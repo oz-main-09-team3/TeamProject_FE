@@ -1,9 +1,10 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import NavigationBar from './component/NavigationBar';
+import NavigationBar from './components/NavigationBar';
 import MainPage from './pages/MainPage';
 import FriendsPage from './pages/FriendsPage';
 import NotificationsPage from './pages/NotificationsPage';
 import MyPage from './pages/MyPage';
+
 
 
 
