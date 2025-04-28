@@ -1,5 +1,5 @@
 import RowCard from "../components/RowCard";
-import MonthlyCalendar from "../components/calendar"; // ✅ 추가
+import MonthlyCalendar from "../components/calendar";
 
 function MainPage() {
   const diaryList = [
@@ -16,14 +16,13 @@ function MainPage() {
 
   return (
     <div className="flex min-h-screen bg-pink-100 p-10 gap-8">
-      {/* 캘린더 영역 */}
-      <div className="bg-white p-6 rounded-lg shadow-md flex-1 max-w-md">
-        {/* ✅ MonthlyCalendar 삽입 */}
+      {/* 왼쪽 - 캘린더 영역 */}
+      <div className="w-1/2 bg-white p-6 rounded-lg shadow-md flex flex-col">
         <MonthlyCalendar />
       </div>
 
-      {/* 일기 리스트 영역 */}
-      <div className="flex flex-col gap-4 flex-1">
+      {/* 오른쪽 - 일기 리스트 영역 */}
+      <div className="w-1/2 flex flex-col gap-4">
         {diaryList.map((diary) => (
           <div key={diary.id} className="bg-white rounded-lg shadow-md p-4">
             <RowCard
