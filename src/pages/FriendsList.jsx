@@ -34,4 +34,4 @@ function FriendList() {
   );
 }
 
-export default FriendList;
+export default FriendList; 

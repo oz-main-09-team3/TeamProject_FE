@@ -1,7 +1,6 @@
 import { useState } from "react";
 import RowCard from "../components/RowCard";
-import NavigationBar from "../components/NavigationBar";
-import FriendList from "../components/FriendRowCard";
+import MonthlyCalendar from "../components/calendar"; // ✅ 추가
 
 function MainPage() {
   const [showFriends, setShowFriends] = useState(false);
@@ -15,43 +14,26 @@ function MainPage() {
   ];
 
   return (
-    <div className="relative min-h-screen bg-pink-100 p-10">
-
-      {/* Navigation Bar */}
-      <NavigationBar onFriendsClick={() => setShowFriends(!showFriends)} />
-
-      {/* Main Content */}
-      <div className="flex gap-8">
-        {/* 캘린더 */}
-        <div className="bg-white p-6 rounded-lg shadow-md flex-1 max-w-md">
-          <h2 className="text-2xl font-bold mb-6">JULY 2020</h2>
-          <div className="border p-8 rounded-lg flex items-center justify-center text-gray-500">
-            캘린더 자리
-          </div>
-        </div>
-
-        {/* 일기 리스트 */}
-        <div className="flex flex-col gap-4 flex-1">
-          {diaryList.map((diary) => (
-            <div key={diary.id} className="bg-white rounded-lg shadow-md p-4">
-              <RowCard
-                emojiSrc="/vite.svg"
-                headerText={diary.header}
-                bodyText={diary.body}
-                rightIcon={<span className="text-2xl">🤍</span>}
-                onClick={() => alert(`${diary.header} 클릭!`)}
-              />
-            </div>
-          ))}
-        </div>
+    <div className="flex min-h-screen bg-pink-100 p-10 gap-8">
+      {/* 왼쪽 - 캘린더 영역 */}
+      <div className="w-1/2 bg-white p-6 rounded-lg shadow-md flex flex-col">
+        <MonthlyCalendar />
       </div>
 
-      {/* ✅ 친구 목록 사이드바 */}
-      {showFriends && (
-        <div className="fixed top-16 right-0 w-80 h-full bg-white shadow-lg overflow-y-auto p-4">
-          <FriendList />
-        </div>
-      )}
+      {/* 오른쪽 - 일기 리스트 영역 */}
+      <div className="w-1/2 flex flex-col gap-4">
+        {diaryList.map((diary) => (
+          <div key={diary.id} className="bg-white rounded-lg shadow-md p-4">
+            <RowCard
+               emojiSrc="/vite.svg"
+               headerText={diary.header}
+               bodyText={diary.body}
+               rightIcon={<span className="text-2xl">🤍</span>}
+                 onClick={() => alert(`${diary.header} 클릭!`)} // ✅ 바로 닫아버려
+/>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
