@@ -124,7 +124,7 @@ function MonthlyCalendar() {
   };
 
   return (
-    <div style={{ width: "800px" }}>
+    <div className="w-full">
       {/* ✅ 년/월 표시 */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold">
@@ -132,20 +132,17 @@ function MonthlyCalendar() {
         </h2>
         <div className="calendar-buttons">
           <button onClick={handleClickPrevButton}>이전 달</button>
-          <button
-            onClick={handleClickNextButton}
-            style={{ marginLeft: "10px" }}
-          >
+          <button onClick={handleClickNextButton} className="ml-2">
             다음 달
           </button>
         </div>
       </div>
 
+      {/* ✅ 캘린더 */}
       <Calendar
         ref={calendarRef}
-        height="800px"
-        width="800px"
         view="month"
+        className="w-full"
         {...calendarOptions}
       />
     </div>
