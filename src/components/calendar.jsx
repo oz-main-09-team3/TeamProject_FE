@@ -4,7 +4,7 @@ import "@toast-ui/calendar/dist/toastui-calendar.min.css";
 
 function MonthlyCalendar() {
   const calendarRef = useRef(null);
-  const [currentDate, setCurrentDate] = useState(new Date()); // ✅ 현재 날짜 상태
+  const [currentDate, setCurrentDate] = useState(new Date());
 
   useEffect(() => {
     const styleEl = document.createElement("style");
@@ -56,10 +56,9 @@ function MonthlyCalendar() {
     if (calendarRef.current) {
       const calendarInstance = calendarRef.current.getInstance();
       calendarInstance.next();
-
       setCurrentDate((prev) => {
         const next = new Date(prev);
-        next.setMonth(next.getMonth() + 1);
+        next.setMonth(prev.getMonth() + 1);
         return next;
       });
     }
@@ -69,10 +68,9 @@ function MonthlyCalendar() {
     if (calendarRef.current) {
       const calendarInstance = calendarRef.current.getInstance();
       calendarInstance.prev();
-
       setCurrentDate((prev) => {
         const prevDate = new Date(prev);
-        prevDate.setMonth(prevDate.getMonth() - 1);
+        prevDate.setMonth(prev.getMonth() - 1);
         return prevDate;
       });
     }
@@ -124,17 +122,22 @@ function MonthlyCalendar() {
   };
 
   return (
-    <div style={{ width: "800px" }}>
-      {/* ✅ 년/월 표시 */}
+    <div className="w-full">
+      {/* 년/월 표시 */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold">
           {currentDate.getFullYear()}년 {currentDate.getMonth() + 1}월
         </h2>
-        <div className="calendar-buttons">
-          <button onClick={handleClickPrevButton}>이전 달</button>
+        <div className="calendar-buttons flex gap-2">
+          <button
+            onClick={handleClickPrevButton}
+            className="px-3 py-1 bg-gray-200 rounded-md"
+          >
+            이전 달
+          </button>
           <button
             onClick={handleClickNextButton}
-            style={{ marginLeft: "10px" }}
+            className="px-3 py-1 bg-gray-200 rounded-md"
           >
             다음 달
           </button>
@@ -144,7 +147,7 @@ function MonthlyCalendar() {
       <Calendar
         ref={calendarRef}
         view="month"
-        className="w-full"
+        className="w-full h-[800px]" // ✅ width 100%, height 고정
         {...calendarOptions}
       />
     </div>
