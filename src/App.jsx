@@ -7,6 +7,7 @@ import NavigationBar from "./components/NavigationBar"; // ✅ 네비게이션�
 import FriendList from "./pages/FriendsList";        // ✅ 친구 목록
 import FriendInviteSystem from './pages/Qrcodepage';
 import ChartPage from './pages/Chart';
+import LoadingPage from "./pages/Loadingpage";
 
 export default function App() {
   const [showFriends, setShowFriends] = useState(false);
@@ -25,6 +26,8 @@ export default function App() {
           <Route path="/notifications" element={<NotificationsPage />} />
           {import.meta.env.DEV ? <Route path="test" element={<FriendInviteSystem />} /> : null}
           {import.meta.env.DEV ? <Route path="test1" element={<ChartPage />} /> : null}
+          {import.meta.env.DEV ? <Route path="test2" element={<LoadingPage />} /> : null}
+
           {/* 필요한 페이지 더 추가 */}
         </Routes>
 
