@@ -1,4 +1,5 @@
 import RowCard from "../components/RowCard";
+import MonthlyCalendar from "../components/calendar"; // ✅ 추가
 
 function MainPage() {
   const diaryList = [
@@ -17,12 +18,8 @@ function MainPage() {
     <div className="flex min-h-screen bg-pink-100 p-10 gap-8">
       {/* 캘린더 영역 */}
       <div className="bg-white p-6 rounded-lg shadow-md flex-1 max-w-md">
-        <h2 className="text-2xl font-bold mb-6">JULY 2020</h2>
-
-        {/* 캘린더 더미 */}
-        <div className="border p-8 rounded-lg flex items-center justify-center text-gray-500">
-          캘린더 자리
-        </div>
+        {/* ✅ MonthlyCalendar 삽입 */}
+        <MonthlyCalendar />
       </div>
 
       {/* 일기 리스트 영역 */}
