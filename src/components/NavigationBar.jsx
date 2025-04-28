@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { FaCalendarAlt, FaUserFriends, FaBell, FaUser } from 'react-icons/fa';
+import { TestTubeIcon } from 'lucide-react';
 
 export default function NavigationBar() {
   const navigate = useNavigate();
@@ -17,6 +18,9 @@ export default function NavigationBar() {
       </button>
       <button onClick={() => navigate('/mypage')}>
         <FaUser size={24} />
+      </button>
+      <button onClick={() => navigate('/test')}>
+        <TestTubeIcon size={24} />
       </button>
     </div>
   );
