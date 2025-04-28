@@ -7,29 +7,23 @@ const FriendInviteSystem = () => {
   const [inviteUrl, setInviteUrl] = useState('');
   const [showScanner, setShowScanner] = useState(false);
   
-  // 초대 코드 생성
   const generateInviteCode = () => {
-    const userId = 'user123'; // 실제로는 로그인된 사용자 ID
+    const userId = 'user123'; 
     const newCode = userId + '_' + Math.random().toString(36).substring(2, 10);
     setInviteCode(newCode);
     
-    // 초대 URL 생성
     const url = `https://your-app.com/friend/add?code=${newCode}`;
     setInviteUrl(url);
   };
   
-  // 컴포넌트 마운트 시 초대 코드 생성
   useEffect(() => {
     generateInviteCode();
   }, []);
   
-  // 초대 코드로 친구 추가
   const addFriendByCode = (code) => {
-    // 실제로는 서버에 요청을 보내 코드 유효성 검증 및 친구 추가
     alert(`코드 ${code}로 친구 추가 시도`);
   };
   
-  // QR 스캔 시뮬레이션
   const simulateScan = () => {
     setShowScanner(false);
     setTimeout(() => {
@@ -44,7 +38,6 @@ const FriendInviteSystem = () => {
       <div className="flex flex-col items-center mb-8 w-full">
         <h2 className="text-lg font-semibold mb-2">내 초대 코드</h2>
         
-        {/* QR 코드 표시 */}
         <div className="border-2 border-gray-200 rounded-lg p-4 mb-2">
           {inviteUrl && (
             <QRCodeCanvas 
@@ -56,7 +49,6 @@ const FriendInviteSystem = () => {
           )}
         </div>
         
-        {/* 초대 URL 텍스트 */}
         <div className="flex items-center mb-4">
           <input 
             type="text" 
@@ -72,7 +64,6 @@ const FriendInviteSystem = () => {
           </button>
         </div>
         
-        {/* 코드 재생성 버튼 */}
         <button 
           onClick={generateInviteCode}
           className="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300"
@@ -84,7 +75,6 @@ const FriendInviteSystem = () => {
       <div className="w-full border-t border-gray-200 pt-6">
         <h2 className="text-lg font-semibold mb-4">친구 추가</h2>
         
-        {/* 코드 입력으로 친구 추가 */}
         <div className="flex mb-4">
           <input 
             type="text" 
@@ -100,7 +90,6 @@ const FriendInviteSystem = () => {
           </button>
         </div>
         
-        {/* QR 스캐너 */}
         <button 
           onClick={() => setShowScanner(true)}
           className="flex items-center justify-center w-full bg-blue-500 text-white px-4 py-3 rounded hover:bg-blue-600"
@@ -114,7 +103,6 @@ const FriendInviteSystem = () => {
             <div className="bg-white p-6 rounded-lg">
               <h3 className="text-lg font-semibold mb-4">QR 코드를 스캔하세요</h3>
               <div className="bg-gray-200 w-64 h-64 flex items-center justify-center mb-4">
-                {/* 실제로는 여기에 카메라 컴포넌트가 들어갑니다 */}
                 <button 
                   onClick={simulateScan}
                   className="bg-blue-500 text-white px-4 py-2 rounded"
