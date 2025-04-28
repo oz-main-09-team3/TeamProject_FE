@@ -18,7 +18,6 @@ function MainPage() {
     <div className="flex min-h-screen bg-pink-100 p-10 gap-8">
       {/* 왼쪽 - 캘린더 영역 */}
       <div className="w-1/2 bg-white p-6 rounded-lg shadow-md flex flex-col">
-        <h2 className="text-2xl font-bold mb-6">2025년 4월</h2>
         <MonthlyCalendar />
       </div>
 
