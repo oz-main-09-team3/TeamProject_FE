@@ -1,6 +1,8 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function UserInfo() {
+  const navigate = useNavigate();
   return (
     <main className="flex flex-col items-center justify-center min-h-screen bg-gray-50 py-10">
       {/* 프로필 이미지 */}
@@ -32,9 +34,7 @@ export default function UserInfo() {
         {/* 수정 버튼 */}
         <button
           className="w-full mt-8 py-2 rounded-full bg-purple-500 text-white font-semibold hover:bg-purple-600 transition"
-          onClick={() => {
-            // 추후에 회원정보 수정 페이지로 navigate 처리 예정
-          }}
+          onClick={() => navigate("/mypage/edit")}
         >
           회원 정보 수정
         </button>
