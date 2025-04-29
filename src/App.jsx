@@ -11,6 +11,7 @@ import LoadingPage from "./pages/Loadingpage";
 import UserInfo from "./pages/UserInfo";
 import DiaryEditor from "./pages/DiaryEditor";
 import EditUserInfo from "./pages/EditUserInfo";
+import OAuthCallback from "./pages/OAuthCallback";
 
 export default function App() {
   const [showFriends, setShowFriends] = useState(false);
@@ -27,6 +28,7 @@ export default function App() {
           <Route path="/mypage/chart" element={<ChartPage />} />
           <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/mypage/qrcode" element={<FriendInviteSystem />} />
+          <Route path="/auth/callback/:provider" element={<OAuthCallback />} />
           {import.meta.env.DEV ? (
             <Route path="test2" element={<LoadingPage />} />
           ) : null}
