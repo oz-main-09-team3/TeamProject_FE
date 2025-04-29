@@ -13,6 +13,8 @@ import DiaryEditor from "./pages/DiaryEditor";
 import EditUserInfo from "./pages/EditUserInfo";
 import OAuthCallback from "./pages/OAuthCallback";
 import ListWrapper from "./components/ListWrapper";
+import FriendDiaryView from "./pages/FriendDiaryView";
+import DiaryEditPage from "./pages/DiaryEditPage";
 
 export default function App() {
   const [showFriends, setShowFriends] = useState(false);
@@ -45,6 +47,12 @@ export default function App() {
           ) : null}
           {import.meta.env.DEV ? (
             <Route path="test3" element={<DiaryEditor />} />
+          ) : null}
+              {import.meta.env.DEV ? (
+            <Route path="test4" element={<FriendDiaryView />} />
+          ) : null}
+          {import.meta.env.DEV ? (
+            <Route path="test5" element={<DiaryEditPage />} />
           ) : null}
         </Routes>
 
