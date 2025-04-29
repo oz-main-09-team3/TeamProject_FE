@@ -1,3 +1,4 @@
+import React from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function UserInfo() {
@@ -18,7 +19,7 @@ export default function UserInfo() {
           </div>
         </div>
 
-        {/* 회원 정보 카드 내용 */}
+        {/* 회원 정보 내용 */}
         <div className="w-full mt-6 space-y-6 text-sm text-gray-800">
           <div className="flex justify-between">
             <span className="font-semibold">닉네임</span>
@@ -34,14 +35,14 @@ export default function UserInfo() {
           </div>
           <div className="flex justify-between">
             <span className="font-semibold">생년월일</span>
-            <span>1997-04-17</span>
+            <span>1997-04-17</span> {/* 🎂 생년월일 추가 */}
           </div>
         </div>
 
         {/* 회원 정보 수정 버튼 */}
         <button
           onClick={() => navigate("/mypage/edit")}
-          className="w-full mt-10 py-3 rounded-full bg-gray-400 text-white font-semibold hover:bg-gray-600 transition"
+          className="w-full mt-10 py-3 rounded-full bg-gray-400 text-white font-semibold hover:bg-gray-500 transition"
         >
           회원 정보 수정
         </button>
@@ -49,3 +50,4 @@ export default function UserInfo() {
     </main>
   );
 }
+

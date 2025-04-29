@@ -9,6 +9,7 @@ import FriendInviteSystem from "./pages/Qrcodepage";
 import ChartPage from "./pages/Chart";
 import LoadingPage from "./pages/Loadingpage";
 import UserInfo from "./pages/UserInfo";
+import EditUserInfo from "./pages/EditUserInfo";
 
 export default function App() {
   const [showFriends, setShowFriends] = useState(false);
@@ -16,14 +17,12 @@ export default function App() {
   return (
     <Router>
       <div className="relative min-h-screen bg-pink-100">
-        {/* ✅ 네비게이션바는 항상 상단에 고정되어 있어야 함 */}
         <NavigationBar onFriendsClick={() => setShowFriends((prev) => !prev)} />
-
-        {/* ✅ 페이지 라우터 */}
         <Routes>
           <Route path="/main" element={<MainPage />} />
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/mypage/info" element={<UserInfo />} />
+          <Route path="/mypage/edit" element={<EditUserInfo />} />
           <Route path="/notifications" element={<NotificationsPage />} />
           {import.meta.env.DEV ? (
             <Route path="test" element={<FriendInviteSystem />} />
