@@ -44,10 +44,10 @@ export default function MyPage() {
           />
           <RowCard
             emojiSrc="/chart.png"
-            headerText="감정 통계"
+            headerText="감정 통계표"
             bodyText="나의 감정 기록을 한눈에 보기"
-            rightIcon={<FaChartPie />}
-            onClick={() => navigate("/statistics")}
+            rightIcon={<span>➔</span>}
+            onClick={() => navigate("/mypage/chart")}
           />
           <RowCard
             emojiSrc="/logout.png"
