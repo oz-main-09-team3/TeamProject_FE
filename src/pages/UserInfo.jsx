@@ -1,20 +1,25 @@
-import React from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function UserInfo() {
-  return (
-    <main className="flex flex-col items-center justify-center min-h-screen bg-gray-50 py-10">
-      {/* 프로필 이미지 */}
-      <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-purple-400 mb-8">
-        <img
-          src="/profile.png" // public 폴더 기준 경로
-          alt="프로필 이미지"
-          className="object-cover w-full h-full"
-        />
-      </div>
+  const navigate = useNavigate();
 
-      {/* 회원 정보 카드 */}
-      <section className="bg-white rounded-lg shadow-lg px-8 py-6 w-80 border border-gray-200 text-gray-800">
-        <div className="space-y-4 text-sm">
+  return (
+    <main className="flex items-center justify-center min-h-screen bg-gray-100 px-4">
+      {/* 전체 카드: 프로필 + 회원 정보 */}
+      <div className="w-full max-w-md bg-white rounded-3xl shadow-lg px-6 pt-[92px] pb-8 relative flex flex-col items-center">
+        {/* 프로필 이미지 */}
+        <div className="absolute -top-[92px]">
+          <div className="w-[184px] h-[184px] rounded-full overflow-hidden border-4 border-gray-400 bg-white shadow-md">
+            <img
+              src="/profile.png"
+              alt="프로필 이미지"
+              className="object-cover w-full h-full"
+            />
+          </div>
+        </div>
+
+        {/* 회원 정보 카드 내용 */}
+        <div className="w-full mt-6 space-y-6 text-sm text-gray-800">
           <div className="flex justify-between">
             <span className="font-semibold">닉네임</span>
             <span>몽이마덜</span>
@@ -27,18 +32,20 @@ export default function UserInfo() {
             <span className="font-semibold">이메일</span>
             <span>mong@naver.com</span>
           </div>
+          <div className="flex justify-between">
+            <span className="font-semibold">생년월일</span>
+            <span>1997-04-17</span>
+          </div>
         </div>
 
-        {/* 수정 버튼 */}
+        {/* 회원 정보 수정 버튼 */}
         <button
-          className="w-full mt-8 py-2 rounded-full bg-purple-500 text-white font-semibold hover:bg-purple-600 transition"
-          onClick={() => {
-            // 추후에 회원정보 수정 페이지로 navigate 처리 예정
-          }}
+          onClick={() => navigate("/mypage/edit")}
+          className="w-full mt-10 py-3 rounded-full bg-gray-400 text-white font-semibold hover:bg-gray-600 transition"
         >
           회원 정보 수정
         </button>
-      </section>
+      </div>
     </main>
   );
 }
