@@ -11,6 +11,7 @@ import LoadingPage from "./pages/Loadingpage";
 import UserInfo from "./pages/UserInfo";
 import DiaryEditor from "./pages/DiaryEditor";
 import EditUserInfo from "./pages/EditUserInfo";
+import OAuthCallback from "./pages/OAuthCallback";
 import ListWrapper from "./components/ListWrapper";
 
 export default function App() {
@@ -38,6 +39,7 @@ export default function App() {
           <Route path="/mypage/edit" element={<EditUserInfo />} />
           <Route path="/mypage/chart" element={<ChartPage />} />
           <Route path="/mypage/qrcode" element={<FriendInviteSystem />} />
+          <Route path="/auth/callback/:provider" element={<OAuthCallback />} />
           {import.meta.env.DEV ? (
             <Route path="test2" element={<LoadingPage />} />
           ) : null}
