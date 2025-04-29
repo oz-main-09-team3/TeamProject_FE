@@ -37,6 +37,13 @@ export default function NavigationBar({
       <button onClick={() => navigate("/test3")}>
         <TestTube2Icon size={24} />
       </button>
+      <button onClick={() => navigate("/test4")}>
+        <TestTube2Icon size={24} />
+      </button>
+
+      <button onClick={() => navigate("/test5")}>
+        <TestTube2Icon size={24} />
+      </button>
     </div>
   );
 }
