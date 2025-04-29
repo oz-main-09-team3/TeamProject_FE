@@ -2,7 +2,10 @@ import { useNavigate } from "react-router-dom";
 import { FaCalendarAlt, FaUserFriends, FaBell, FaUser } from "react-icons/fa";
 import { TestTube2Icon, TestTubeIcon } from "lucide-react";
 
-export default function NavigationBar({ onFriendsClick }) {
+export default function NavigationBar({
+  onFriendsClick,
+  onNotificationsClick,
+}) {
   const navigate = useNavigate();
 
   return (
@@ -17,8 +20,8 @@ export default function NavigationBar({ onFriendsClick }) {
         <FaUserFriends size={24} />
       </button>
 
-      {/* 알림 페이지 이동 버튼 */}
-      <button onClick={() => navigate("/notifications")}>
+      {/* 알림 사이드바 열기 버튼 (라우팅 X) */}
+      <button onClick={onNotificationsClick}>
         <FaBell size={24} />
       </button>
 
@@ -27,6 +30,7 @@ export default function NavigationBar({ onFriendsClick }) {
         <FaUser size={24} />
       </button>
 
+      {/* 테스트 버튼 */}
       <button onClick={() => navigate("/test2")}>
         <TestTube2Icon size={24} />
       </button>
