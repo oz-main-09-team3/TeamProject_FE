@@ -4,9 +4,9 @@ import MainPage from "./pages/MainPage";
 import MyPage from "./pages/MyPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import NavigationBar from "./components/NavigationBar"; // ✅ 네비게이션바
-import FriendList from "./pages/FriendsList";        // ✅ 친구 목록
-import FriendInviteSystem from './pages/Qrcodepage';
-import ChartPage from './pages/Chart';
+import FriendList from "./pages/FriendsList"; // ✅ 친구 목록
+import FriendInviteSystem from "./pages/Qrcodepage";
+import ChartPage from "./pages/Chart";
 import LoadingPage from "./pages/Loadingpage";
 
 export default function App() {
@@ -15,18 +15,24 @@ export default function App() {
   return (
     <Router>
       <div className="relative min-h-screen bg-pink-100">
-
         {/* ✅ 네비게이션바는 항상 상단에 고정되어 있어야 함 */}
-        <NavigationBar onFriendsClick={() => setShowFriends(prev => !prev)} />
+        <NavigationBar onFriendsClick={() => setShowFriends((prev) => !prev)} />
 
         {/* ✅ 페이지 라우터 */}
         <Routes>
           <Route path="/main" element={<MainPage />} />
           <Route path="/mypage" element={<MyPage />} />
+          <Route path="/mypage/info" element={<UserInfo />} />
           <Route path="/notifications" element={<NotificationsPage />} />
-          {import.meta.env.DEV ? <Route path="test" element={<FriendInviteSystem />} /> : null}
-          {import.meta.env.DEV ? <Route path="test1" element={<ChartPage />} /> : null}
-          {import.meta.env.DEV ? <Route path="test2" element={<LoadingPage />} /> : null}
+          {import.meta.env.DEV ? (
+            <Route path="test" element={<FriendInviteSystem />} />
+          ) : null}
+          {import.meta.env.DEV ? (
+            <Route path="test1" element={<ChartPage />} />
+          ) : null}
+          {import.meta.env.DEV ? (
+            <Route path="test2" element={<LoadingPage />} />
+          ) : null}
 
           {/* 필요한 페이지 더 추가 */}
         </Routes>
@@ -38,7 +44,6 @@ export default function App() {
             <FriendList />
           </div>
         )}
-
       </div>
     </Router>
   );
