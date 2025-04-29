@@ -9,6 +9,7 @@ import FriendInviteSystem from "./pages/Qrcodepage";
 import ChartPage from "./pages/Chart";
 import LoadingPage from "./pages/Loadingpage";
 import UserInfo from "./pages/UserInfo";
+import DiaryEditor from "./pages/DiaryEditor";
 import EditUserInfo from "./pages/EditUserInfo";
 
 export default function App() {
@@ -33,7 +34,9 @@ export default function App() {
           {import.meta.env.DEV ? (
             <Route path="test2" element={<LoadingPage />} />
           ) : null}
-
+{import.meta.env.DEV ? (
+            <Route path="test3" element={<DiaryEditor />} />
+          ) : null}
           {/* 필요한 페이지 더 추가 */}
         </Routes>
 

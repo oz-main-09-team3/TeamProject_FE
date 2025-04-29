@@ -39,6 +39,9 @@ export default function NavigationBar({ onFriendsClick }) {
       <button onClick={() => navigate('/test2')}>
         <TestTube2Icon size={24} />
       </button>
+      <button onClick={() => navigate('/test3')}>
+        <TestTube2Icon size={24} />
+      </button>
     </div>
   );
 }
