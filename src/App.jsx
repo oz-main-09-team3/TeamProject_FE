@@ -8,6 +8,7 @@ import FriendList from "./pages/FriendsList"; // ✅ 친구 목록
 import FriendInviteSystem from "./pages/Qrcodepage";
 import ChartPage from "./pages/Chart";
 import LoadingPage from "./pages/Loadingpage";
+import UserInfo from "./pages/UserInfo";
 
 export default function App() {
   const [showFriends, setShowFriends] = useState(false);
