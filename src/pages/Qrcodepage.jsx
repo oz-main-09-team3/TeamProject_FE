@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { Camera } from "lucide-react";
 import { QRCodeCanvas } from "qrcode.react";
+import Modal from "../components/Modal";
 
 const FriendInviteSystem = () => {
   const [inviteCode, setInviteCode] = useState("");
   const [inviteUrl, setInviteUrl] = useState("");
   const [showScanner, setShowScanner] = useState(false);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [pendingCode, setPendingCode] = useState("");
 
   const generateInviteCode = () => {
     const userId = "user123";
@@ -24,10 +28,22 @@ const FriendInviteSystem = () => {
     alert(`코드 ${code}로 친구 추가 시도`);
   };
 
+  const handleConfirm = () => {
+    addFriendByCode(pendingCode);
+    setIsModalOpen(false);
+    setPendingCode("");
+  };
+
+  const handleCancel = () => {
+    setIsModalOpen(false);
+    setPendingCode("");
+  };
+
   const simulateScan = () => {
     setShowScanner(false);
     setTimeout(() => {
-      addFriendByCode("scanned_code_123");
+      setPendingCode("scanned_code_123");
+      setIsModalOpen(true);
     }, 500);
   };
 
@@ -41,12 +57,11 @@ const FriendInviteSystem = () => {
         {/* 내 초대 코드 */}
         <div className="flex flex-col items-center mb-8 w-full">
           <h2 className="text-lg font-semibold mb-2">내 초대 코드</h2>
-
           <div className="border-2 border-gray-200 rounded-lg p-4 mb-4">
             {inviteUrl && (
               <QRCodeCanvas
                 value={inviteUrl}
-                size={220} // 살짝 줄여서 반응형 대응
+                size={220}
                 level="H"
                 includeMargin={true}
               />
@@ -88,7 +103,10 @@ const FriendInviteSystem = () => {
               onChange={(e) => setInviteCode(e.target.value)}
             />
             <button
-              onClick={() => addFriendByCode(inviteCode)}
+              onClick={() => {
+                setPendingCode(inviteCode);
+                setIsModalOpen(true);
+              }}
               className="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 w-full sm:w-auto"
             >
               추가
@@ -127,6 +145,21 @@ const FriendInviteSystem = () => {
               취소
             </button>
           </div>
+        </div>
+      )}
+
+      {/* 확인 모달 */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+          <Modal
+            type="info"
+            title="친구 추가"
+            message="친구를 추가하시겠습니까?"
+            confirmText="추가하기"
+            cancelText="취소"
+            onConfirm={handleConfirm}
+            onCancel={handleCancel}
+          />
         </div>
       )}
     </main>
