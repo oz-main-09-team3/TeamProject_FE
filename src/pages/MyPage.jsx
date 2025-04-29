@@ -36,12 +36,13 @@ export default function MyPage() {
             onClick={() => navigate("/mypage/info")}
           />
           <RowCard
-            emojiSrc="/friends.png"
-            headerText="친구 목록"
-            bodyText="친구를 추가하고 관리해요"
-            rightIcon={<FaUserFriends />}
-            onClick={() => navigate("/friends")}
+            emojiSrc="/qrcode.png"
+            headerText="친구 초대 (QR 코드)"
+            bodyText="QR 코드를 통해 친구를 초대해요"
+            rightIcon={<span>➔</span>}
+            onClick={() => navigate("/mypage/qrcode")}
           />
+
           <RowCard
             emojiSrc="/chart.png"
             headerText="감정 통계표"
