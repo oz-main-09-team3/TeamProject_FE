@@ -24,17 +24,15 @@ export default function App() {
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/mypage/info" element={<UserInfo />} />
           <Route path="/mypage/edit" element={<EditUserInfo />} />
+          <Route path="/mypage/chart" element={<ChartPage />} />
           <Route path="/notifications" element={<NotificationsPage />} />
           {import.meta.env.DEV ? (
             <Route path="test" element={<FriendInviteSystem />} />
           ) : null}
           {import.meta.env.DEV ? (
-            <Route path="test1" element={<ChartPage />} />
-          ) : null}
-          {import.meta.env.DEV ? (
             <Route path="test2" element={<LoadingPage />} />
           ) : null}
-{import.meta.env.DEV ? (
+          {import.meta.env.DEV ? (
             <Route path="test3" element={<DiaryEditor />} />
           ) : null}
           {/* 필요한 페이지 더 추가 */}
