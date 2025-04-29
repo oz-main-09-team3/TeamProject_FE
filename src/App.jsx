@@ -26,9 +26,7 @@ export default function App() {
           <Route path="/mypage/edit" element={<EditUserInfo />} />
           <Route path="/mypage/chart" element={<ChartPage />} />
           <Route path="/notifications" element={<NotificationsPage />} />
-          {import.meta.env.DEV ? (
-            <Route path="test" element={<FriendInviteSystem />} />
-          ) : null}
+          <Route path="/mypage/qrcode" element={<FriendInviteSystem />} />
           {import.meta.env.DEV ? (
             <Route path="test2" element={<LoadingPage />} />
           ) : null}
