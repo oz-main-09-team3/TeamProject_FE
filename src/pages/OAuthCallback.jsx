@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export default function OAuthCallback() {
   const location = useLocation();
@@ -7,46 +7,46 @@ export default function OAuthCallback() {
 
   useEffect(() => {
     const query = new URLSearchParams(location.search);
-    const code = query.get('code');
+    const code = query.get("code");
     const path = location.pathname; // 예: /auth/callback/kakao
 
     if (!code) {
-      console.error('code가 없습니다');
+      console.error("code가 없습니다");
       return;
     }
 
-    let provider = '';
-    if (path.includes('kakao')) {
-      provider = 'kakao';
-    } else if (path.includes('naver')) {
-      provider = 'naver';
-    } else if (path.includes('google')) {
-      provider = 'google';
+    let provider = "";
+    if (path.includes("kakao")) {
+      provider = "kakao";
+    } else if (path.includes("naver")) {
+      provider = "naver";
+    } else if (path.includes("google")) {
+      provider = "google";
     }
 
     if (!provider) {
-      console.error('provider를 알 수 없습니다');
+      console.error("provider를 알 수 없습니다");
       return;
     }
 
-    fetch(`http://내백엔드주소.com/auth/${provider}`, {
-      method: 'POST',
+    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
+    fetch(`${BACKEND_URL}/oauth/${provider}/callback`, {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({ code }),
     })
       .then((res) => res.json())
       .then((data) => {
-        console.log('로그인 성공!', data);
-        // 예: 토큰 저장
-        localStorage.setItem('token', data.token);
-        navigate('/main');
+        console.log("로그인 성공!", data);
+        localStorage.setItem("token", data.token);
+        navigate("/main");
       })
       .catch((err) => {
-        console.error('로그인 실패', err);
-        // 실패하면 로그인페이지로 되돌릴 수도 있음
-        navigate('/');
+        console.error("로그인 실패", err);
+        navigate("/");
       });
   }, [location, navigate]);
 
