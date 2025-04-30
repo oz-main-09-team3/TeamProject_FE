@@ -2,86 +2,87 @@ import React, { useState, useEffect, useRef } from "react";
 import "@toast-ui/editor/dist/toastui-editor.css";
 import Editor from "@toast-ui/editor";
 import testimage from "../assets/profile.png";
-import Modal from "../components/Modal"; // 
+import Modal from "../components/Modal";
 
 const DiaryEditPage = () => {
-  const [mood, setMood] = useState("슬픔");
+  const [mood, setMood] = useState("기본");
   const [originalContent, setOriginalContent] = useState("");
   const [isEditing, setIsEditing] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false); //모달 상태
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const editorRef = useRef(null);
   const editorContainerRef = useRef(null);
   const moodImageSrc = testimage;
 
   const formatDate = () => {
     const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, "0");
-    const day = String(today.getDate()).padStart(2, "0");
-    return `${year}.${month}.${day}`;
-  };
-
-  const handleGoBack = () => {
-    if (
-      isEditing &&
-      window.confirm("저장하지 않은 변경사항이 있습니다. 나가시겠습니까?")
-    ) {
-      console.log("수정 취소, 뒤로가기");
-    } else {
-      console.log("뒤로가기");
-    }
-  };
-
-  const handleSave = () => {
-    if (editorRef.current) {
-      const content = editorRef.current.getMarkdown();
-      console.log("저장된 내용:", content);
-      console.log("선택된 감정:", mood);
-      setIsModalOpen(true); // 모달 열기
-    }
-  };
-
-  const handleCancel = () => {
-    if (window.confirm("수정을 취소하시겠습니까?")) {
-      if (editorRef.current) {
-        editorRef.current.setMarkdown(originalContent);
-      }
-      console.log("수정 취소");
-    }
+    return `${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, "0")}.${String(today.getDate()).padStart(2, "0")}`;
   };
 
   const handleMoodChange = (newMood) => {
     setMood(newMood);
   };
 
+  const handleGoBack = () => {
+    if (isEditing) {
+      setIsCancelModalOpen(true);
+    } else {
+      console.log("뒤로가기");
+    }
+  };
+
+  const handleSave = () => {
+    setIsSaveModalOpen(true);
+  };
+
+  const handleConfirmSave = () => {
+    if (editorRef.current) {
+      const content = editorRef.current.getMarkdown();
+      console.log("저장된 내용:", content);
+      console.log("선택된 감정:", mood);
+      setIsSaveModalOpen(false);
+    }
+  };
+
+  const handleCancelSave = () => {
+    setIsSaveModalOpen(false);
+  };
+
+  const handleCancel = () => {
+    setIsCancelModalOpen(true);
+  };
+
+  const handleConfirmCancel = () => {
+    if (editorRef.current) {
+      editorRef.current.setMarkdown(originalContent);
+    }
+    console.log("작성 취소");
+    setIsCancelModalOpen(false);
+  };
+
+  const handleCancelModalClose = () => {
+    setIsCancelModalOpen(false);
+  };
+
   useEffect(() => {
-    const fetchDiaryData = async () => {
-      try {
-        const diaryData = { content: "테스트", mood: "슬픔" };
-        setOriginalContent(diaryData.content);
-        setMood(diaryData.mood);
+    if (!editorContainerRef.current) return;
 
-        if (editorContainerRef.current) {
-          editorRef.current = new Editor({
-            el: editorContainerRef.current,
-            height: "400px",
-            initialEditType: "markdown",
-            initialValue: diaryData.content,
-            toolbarItems: [
-              ["heading", "bold", "italic", "strike"],
-              ["hr", "quote"],
-              ["ul", "ol", "task", "indent", "outdent"],
-              ["table", "image", "link"],
-              ["code", "codeblock"],
-            ],
-          });
-        }
-      } catch (error) {
-        console.error("일기 데이터를 가져오는 중 오류 발생:", error);
-      }
-    };
+    setOriginalContent("테스트");
 
-    fetchDiaryData();
+    editorRef.current = new Editor({
+      el: editorContainerRef.current,
+      height: "500px",
+      previewStyle: "vertical",
+      initialEditType: "markdown",
+      initialValue: "테스트",
+      toolbarItems: [
+        ["heading", "bold", "italic", "strike"],
+        ["hr", "quote"],
+        ["ul", "ol", "task", "indent", "outdent"],
+        ["table", "image", "link"],
+        ["code", "codeblock"],
+      ],
+    });
 
     return () => {
       if (editorRef.current) {
@@ -91,15 +92,16 @@ const DiaryEditPage = () => {
   }, []);
 
   const moodButtons = [
-    "짜릿해", "즐거움", "사랑", "기대감", "자신감", "기쁨", "행복함", "뿌듯함", "츄릅", "쑥스러움",
-    "인생..", "꾸엑", "지침", "놀람", "니가?", "현타", "그래요", "당황", "소노", "슬픔",
-    "억울함", "불안함", "어이없음", "울고싶음", "우울함", "안타까움", "화남", "열받음",
+    "짜릿해", "즐거움", "사랑", "기대감", "자신감", "기쁨", "행복함", "뿌듯함",
+    "츄릅", "쑥스러움", "인생..", "꾸엑", "지침", "놀람", "니가?", "현타",
+    "그래요", "당황", "소노", "슬픔", "억울함", "불안함", "어이없음", "울고싶음",
+    "우울함", "안타까움", "화남", "열받음",
   ];
 
   return (
-    <div className="min-h-screen pt-20  text-lighttext dark:text-darkBrown transition-colors duration-300 flex justify-center items-center px-4 py-8">
+    <div className="min-h-screen pt-20 text-lighttext dark:text-darkBrown transition-colors duration-300 flex justify-center items-center px-4 py-8">
       <div className="w-full max-w-6xl bg-white shadow-md rounded-xl flex flex-col md:flex-row overflow-hidden">
-        <div className="w-full md:w-2/3 p-5 flex flex-col">
+        <div className="w-full md:w-2/3 p-6 flex flex-col">
           <div className="mb-6 flex justify-between items-center">
             <button
               className="p-3 bg-lightYellow dark:bg-darkCopper dark:text-darktext rounded-full w-10 h-10 flex items-center justify-center"
@@ -139,17 +141,15 @@ const DiaryEditPage = () => {
             <div className="text-sm text-gray-500">수정 중...</div>
           </div>
 
-          <div className="w-full bg-white rounded-lg border border-gray-200 dark:border-darktext shadow-sm mb-4">
+          <div className="w-full bg-white rounded-lg border border-gray-200 shadow-sm mb-4">
             <div ref={editorContainerRef} className="min-h-[400px]" />
           </div>
 
           <div className="text-right text-gray-400 text-sm mb-4">0 / 20</div>
         </div>
 
-        <div className="w-full md:w-1/3 p-5 flex flex-col border-t md:border-t-0 md:border-l border-gray-200 dark:border-darktext max-h-[90vh] overflow-auto">
-          <h3 className="text-lg font-medium mb-4">
-            이모지는 하나만 골라주세요!
-          </h3>
+        <div className="w-full md:w-1/3 p-6 flex flex-col border-t md:border-t-0 md:border-l border-gray-200 dark:border-darkBrown max-h-[90vh] overflow-auto">
+          <h3 className="text-lg font-medium mb-4">이모지는 하나만 골라주세요!</h3>
           <div className="text-sm text-gray-500 mb-4">
             현재 선택: <span className="font-medium">{mood}</span>
           </div>
@@ -167,15 +167,30 @@ const DiaryEditPage = () => {
         </div>
       </div>
 
-  
-      {isModalOpen && (
+      {isSaveModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
           <Modal
-            type="success"
-            title="저장 완료"
-            message="일기가 성공적으로 수정되었습니다!"
-            confirmText="확인"
-            onConfirm={() => setIsModalOpen(false)}
+            type="info"
+            title="일기 수정"
+            message="지금 내용을 수정하시겠습니까?"
+            confirmText="수정하기"
+            cancelText="취소"
+            onConfirm={handleConfirmSave}
+            onCancel={handleCancelSave}
+          />
+        </div>
+      )}
+
+      {isCancelModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+          <Modal
+            type="warning"
+            title="수정 취소"
+            message="수정을 취소하시겠습니까?"
+            confirmText="취소하기"
+            cancelText="돌아가기"
+            onConfirm={handleConfirmCancel}
+            onCancel={handleCancelModalClose}
           />
         </div>
       )}
