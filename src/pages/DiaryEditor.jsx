@@ -107,7 +107,7 @@ const DiaryEditor = () => {
   ];
 
   return (
-    <div className="min-h-screen pt-20 bg-lightBg dark:bg-darkBg text-lighttext dark:text-darkBrown transition-colors duration-300 flex justify-center items-center px-4 py-8">
+    <div className="min-h-screen pt-20  text-lighttext dark:text-darkBrown transition-colors duration-300 flex justify-center items-center px-4 py-8">
       <div className="w-full max-w-6xl bg-white shadow-md rounded-xl flex flex-col md:flex-row overflow-hidden">
         <div className="w-full md:w-2/3 p-6 flex flex-col">
           <div className="mb-6 flex justify-between items-center">

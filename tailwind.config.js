@@ -8,6 +8,7 @@ export default {
         lightBg: "#FFF6D8",
         darkBg: "#1D1006",
         brown900: "#361D1C",
+        yl100: "#FFFBEF",
 
         // 🎨 라이트 모드 색상
         lightYellow: "#FFE281",
@@ -16,7 +17,7 @@ export default {
         lightOrange: "#FF9D00",
 
         // 🎨 다크 모드 색상
-        darktext: "#FBDAAC",
+        darktext: "#FFEED7",
         darkOrange: "#FFB34A",
         darkBrown: "#895000",
         darkCopper: "#B56732",

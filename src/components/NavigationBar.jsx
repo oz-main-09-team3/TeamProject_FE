@@ -73,7 +73,7 @@ export default function NavigationBar({
 
   return (
     <div className="fixed top-0 left-0 w-full h-[72px] px-6 md:px-10 flex justify-end items-center gap-6 z-50 shadow-sm bg-lightBg dark:bg-darkBg transition-colors duration-300">
-      <div className="absolute inset-0 h-[72px] bg-lightBg dark:bg-darkdark z-[-1]" />
+      <div className="absolute inset-0 h-[72px] bg-lightYellow dark:bg-darkBg z-[-1]" />
 
       <NavIcon to="/main" label="캘린더">
         <FaCalendarAlt size={22} />

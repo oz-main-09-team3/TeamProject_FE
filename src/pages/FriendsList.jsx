@@ -14,14 +14,14 @@ export default function FriendList() {
   ];
 
   return (
-    <div className="flex flex-col gap-4 w-full">
+    <div className="flex flex-col gap-4 w-full text-lighttext">
       {/* 검색창 */}
-      <div className="flex items-center gap-2 mb-4 p-2 bg-gray-100 rounded">
-        <Search size={20} />
+      <div className="flex items-center gap-2 mb-4 p-2 bg-lightBg dark:bg-darkBrown rounded">
+        <Search size={20} className="text-lighttext dark:text-darktext" />
         <input
           type="text"
           placeholder="검색"
-          className="bg-transparent outline-none flex-1"
+          className="bg-transparent outline-none flex-1 text-lighttext dark:text-darktext placeholder-lighttext dark:placeholder-darktext"
         />
       </div>
 
@@ -32,7 +32,12 @@ export default function FriendList() {
             key={index}
             emojiSrc={testimage}
             headerText={friend}
-            rightIcon={<ArrowRight size={20} />}
+            rightIcon={
+              <ArrowRight
+                size={20}
+                className="text-lighttext dark:text-darkCopper"
+              />
+            }
             onClick={() => console.log(`${friend} 클릭됨`)}
           />
         ))}
