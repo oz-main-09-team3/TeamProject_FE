@@ -1,6 +1,6 @@
 import { useState } from "react";
 import RowCard from "../components/RowCard";
-import MonthlyCalendar from "../components/calendar"; // ✅ 추가
+import MonthlyCalendar from "../components/calendar";
 
 function MainPage() {
   const [showFriends, setShowFriends] = useState(false);
@@ -18,25 +18,31 @@ function MainPage() {
   ];
 
   return (
-    <div className="flex items-center justify-center min-h-screen p-10 gap-8">
-      {/* 왼쪽 - 캘린더 영역 */}
-      <div className="w-1/2 bg-white p-6 rounded-lg shadow-md flex flex-col">
-        <MonthlyCalendar />
-      </div>
-
-      {/* 오른쪽 - 일기 리스트 영역 */}
-      <div className="w-1/2 flex flex-col gap-4">
-        {diaryList.map((diary) => (
-          <div key={diary.id} className="rounded-lg shadow-md">
-            <RowCard
-              emojiSrc="/profile.png"
-              headerText={diary.header}
-              bodyText={diary.body}
-              rightIcon={<span className="text-2xl">🤍</span>}
-              onClick={() => alert(`${diary.header} 클릭!`)} // ✅ 바로 닫아버려
-            />
+    <div className="min-h-screen pt-[100px] px-4 py-10  transition-colors duration-300">
+      <div className="border bg-yl100 dark:bg-darktext border-lightGold dark:border-darkCopper rounded-xl p-6">
+        <div className="flex flex-col lg:flex-row gap-8 items-stretch">
+          {/* 왼쪽 - 캘린더 영역 */}
+          <div className="w-full lg:w-1/2 order-1 lg:order-1 bg-white p-6 rounded-lg shadow-md flex flex-col justify-between">
+            <div className="aspect-[7/6]">
+              <MonthlyCalendar />
+            </div>
           </div>
-        ))}
+
+          {/* 오른쪽 - 일기 리스트 영역 */}
+          <div className="w-full lg:w-1/2 order-2 lg:order-2 flex flex-col gap-4">
+            {diaryList.map((diary) => (
+              <div key={diary.id} className="rounded-lg shadow-md">
+                <RowCard
+                  emojiSrc="/profile.png"
+                  headerText={diary.header}
+                  bodyText={diary.body}
+                  rightIcon={<span className="text-2xl">🤍</span>}
+                  onClick={() => alert(`${diary.header} 클릭!`)}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

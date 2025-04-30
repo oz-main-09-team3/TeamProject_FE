@@ -115,13 +115,13 @@ function ChartPage() {
   }, []);
 
   return (
-    <main className="flex items-center justify-center min-h-screen px-4">
-      <div className="w-full max-w-7xl bg-white rounded-3xl shadow-lg p-8">
-        <div className="flex flex-wrap justify-center gap-8">
-          <div className="w-full md:w-[45%]">
+    <main className="flex items-center justify-center min-h-screen p-6">
+      <div className="w-full max-w-6xl bg-yl100 dark:bg-darktext rounded-3xl shadow-lg p-8">
+        <div className="flex flex-wrap justify-center ">
+          <div className="w-full md:w-[50%]">
             <div ref={columnChartRef} className="w-full"></div>
           </div>
-          <div className="w-full md:w-[45%]">
+          <div className="w-full md:w-[50%]">
             <div ref={nestedPieChartRef} className="w-full"></div>
           </div>
         </div>

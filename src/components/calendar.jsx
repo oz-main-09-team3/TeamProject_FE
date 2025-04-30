@@ -10,37 +10,28 @@ function MonthlyCalendar() {
     const styleEl = document.createElement("style");
     styleEl.innerHTML = `
       .toastui-calendar-daygrid-cell-date,
-      .toastui-calendar-weekday-grid-date,
-      .tui-full-calendar-weekday-grid-date,
-      .tui-calendar-weekday-grid-date {
+      .toastui-calendar-weekday-grid-date {
         text-align: center !important;
         justify-content: center !important;
         padding-left: 0 !important;
         padding-right: 0 !important;
         margin-left: -4px !important;
       }
-      
-      .toastui-calendar-day-name-item,
-      .tui-full-calendar-day-name-item,
-      .tui-calendar-day-name-item {
+
+      .toastui-calendar-day-name-item {
         text-align: left !important;
         justify-content: flex-start !important;
         padding-left: 10px !important;
       }
-      
+
       .toastui-calendar-day-name-item.toastui-calendar-sun,
-      .toastui-calendar-daygrid-cell.toastui-calendar-sun .toastui-calendar-daygrid-cell-date,
-      .tui-full-calendar-day-name-item.tui-full-calendar-sun,
-      .tui-full-calendar-daygrid-cell.tui-full-calendar-sun .tui-full-calendar-daygrid-cell-date,
-      .tui-calendar-day-name-item.tui-calendar-sun,
-      .tui-calendar-daygrid-cell.tui-calendar-sun .tui-calendar-daygrid-cell-date {
+      .toastui-calendar-daygrid-cell.toastui-calendar-sun .toastui-calendar-daygrid-cell-date {
         color: #FF0000 !important;
       }
-      
-      .toastui-calendar-daygrid-cell,
-      .tui-full-calendar-daygrid-cell,
-      .tui-calendar-daygrid-cell {
-        text-align: left !important;
+
+      .toastui-calendar-daygrid-cell {
+        aspect-ratio: 1 / 1 !important;
+        height: auto !important;
       }
     `;
     document.head.appendChild(styleEl);
@@ -53,8 +44,8 @@ function MonthlyCalendar() {
   }, []);
 
   const handleClickNextButton = () => {
-    if (calendarRef.current) {
-      const calendarInstance = calendarRef.current.getInstance();
+    const calendarInstance = calendarRef.current?.getInstance();
+    if (calendarInstance) {
       calendarInstance.next();
       setCurrentDate((prev) => {
         const next = new Date(prev);
@@ -65,8 +56,8 @@ function MonthlyCalendar() {
   };
 
   const handleClickPrevButton = () => {
-    if (calendarRef.current) {
-      const calendarInstance = calendarRef.current.getInstance();
+    const calendarInstance = calendarRef.current?.getInstance();
+    if (calendarInstance) {
       calendarInstance.prev();
       setCurrentDate((prev) => {
         const prevDate = new Date(prev);
@@ -92,7 +83,6 @@ function MonthlyCalendar() {
       "month.dayname.paddingLeft": "10px",
       "month.day.fontSize": "16px",
       "month.day.fontWeight": "400",
-      "month.day.height": "48px",
       "month.day.textAlign": "center",
       "month.sunday.color": "#FF0000",
       "month.dayname.sunday.color": "#FF0000",
@@ -144,12 +134,15 @@ function MonthlyCalendar() {
         </div>
       </div>
 
-      <Calendar
-        ref={calendarRef}
-        view="month"
-        className="w-full h-[800px]" // ✅ width 100%, height 고정
-        {...calendarOptions}
-      />
+      {/* 캘린더 컨테이너 */}
+      <div className="aspect-[7/6] w-full">
+        <Calendar
+          ref={calendarRef}
+          view="month"
+          className="w-full h-full"
+          {...calendarOptions}
+        />
+      </div>
     </div>
   );
 }
