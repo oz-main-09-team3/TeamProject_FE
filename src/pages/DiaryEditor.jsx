@@ -156,7 +156,7 @@ const DiaryEditor = () => {
           <div className="text-right text-gray-400 text-sm">0 / 20</div>
         </div>
 
-        <div className="w-full md:w-1/3 p-6 flex flex-col border-t md:border-t-0 md:border-l border-gray-200 dark:border-darkBrown max-h-[90vh] overflow-auto">
+        <div className="w-full md:w-1/3 p-6 flex flex-col border-t md:border-t-0 md:border-l border-lightYellow dark:border-darkBrown max-h-[90vh] overflow-auto">
           <h3 className="text-center text-base mb-4 text-gray-400 dark:text-gray-300">
             이모지는 하나만 골라주세요!
           </h3>
