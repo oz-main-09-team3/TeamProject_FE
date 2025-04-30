@@ -2,7 +2,7 @@ function RowCard({ emojiSrc, headerText, bodyText, rightIcon, onClick }) {
   return (
     <div
       onClick={onClick}
-      className="flex items-center justify-between w-full p-5 rounded-2xl shadow-md bg-gray-100 cursor-pointer hover:bg-gray-300 transition"
+      className="flex items-center justify-between w-full p-5 rounded-2xl shadow-md bg-lightBg cursor-pointer hover:bg-gray-300 transition"
     >
       {/* 왼쪽: 이모지/아바타 + 텍스트 */}
       <div className="flex items-center gap-4">
