@@ -148,8 +148,10 @@ const DiaryEditPage = () => {
           <div className="text-right text-gray-400 text-sm mb-4">0 / 20</div>
         </div>
 
-        <div className="w-full md:w-1/3 p-6 flex flex-col border-t md:border-t-0 md:border-l border-gray-200 dark:border-darkBrown max-h-[90vh] overflow-auto">
-          <h3 className="text-lg font-medium mb-4">이모지는 하나만 골라주세요!</h3>
+        <div className="w-full md:w-1/3 p-5 flex flex-col border-t md:border-t-0 md:border-l border-lightYellow dark:border-darktext max-h-[90vh] overflow-auto">
+          <h3 className="text-lg font-medium mb-4">
+            이모지는 하나만 골라주세요!
+          </h3>
           <div className="text-sm text-gray-500 mb-4">
             현재 선택: <span className="font-medium">{mood}</span>
           </div>

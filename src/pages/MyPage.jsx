@@ -28,7 +28,7 @@ export default function MyPage() {
       <div className="w-full max-w-md bg-yl100 dark:bg-darktext rounded-3xl shadow-lg px-6 pt-[92px] pb-8 relative flex flex-col items-center">
         {/* 감자 프로필 이미지 */}
         <div className="absolute -top-[92px]">
-          <div className="w-[184px] h-[184px] rounded-full overflow-hidden border-4 bg-white shadow-md">
+          <div className="w-[184px] h-[184px] rounded-full overflow-hidden border-4 bg-lightBg dark:bg-darkdark shadow-md">
             <img
               src="/profile.png"
               alt="프로필 이미지"
