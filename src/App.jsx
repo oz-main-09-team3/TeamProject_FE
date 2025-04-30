@@ -22,7 +22,7 @@ export default function App() {
 
   return (
     <Router>
-      <div className="relative min-h-screen bg-pink-100">
+      <div className="relative min-h-screen">
         <NavigationBar
           onFriendsClick={() => {
             setShowFriends((prev) => !prev);
@@ -48,7 +48,7 @@ export default function App() {
           {import.meta.env.DEV ? (
             <Route path="test3" element={<DiaryEditor />} />
           ) : null}
-              {import.meta.env.DEV ? (
+          {import.meta.env.DEV ? (
             <Route path="test4" element={<FriendDiaryView />} />
           ) : null}
           {import.meta.env.DEV ? (
