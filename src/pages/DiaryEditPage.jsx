@@ -2,11 +2,13 @@ import React, { useState, useEffect, useRef } from "react";
 import "@toast-ui/editor/dist/toastui-editor.css";
 import Editor from "@toast-ui/editor";
 import testimage from "../assets/profile.png";
+import Modal from "../components/Modal"; // 
 
 const DiaryEditPage = () => {
   const [mood, setMood] = useState("슬픔");
   const [originalContent, setOriginalContent] = useState("");
   const [isEditing, setIsEditing] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false); //모달 상태
   const editorRef = useRef(null);
   const editorContainerRef = useRef(null);
   const moodImageSrc = testimage;
@@ -35,7 +37,7 @@ const DiaryEditPage = () => {
       const content = editorRef.current.getMarkdown();
       console.log("저장된 내용:", content);
       console.log("선택된 감정:", mood);
-      alert("일기가 수정되었습니다.");
+      setIsModalOpen(true); // 모달 열기
     }
   };
 
@@ -89,34 +91,9 @@ const DiaryEditPage = () => {
   }, []);
 
   const moodButtons = [
-    "짜릿해",
-    "즐거움",
-    "사랑",
-    "기대감",
-    "자신감",
-    "기쁨",
-    "행복함",
-    "뿌듯함",
-    "츄릅",
-    "쑥스러움",
-    "인생..",
-    "꾸엑",
-    "지침",
-    "놀람",
-    "니가?",
-    "현타",
-    "그래요",
-    "당황",
-    "소노",
-    "슬픔",
-    "억울함",
-    "불안함",
-    "어이없음",
-    "울고싶음",
-    "우울함",
-    "안타까움",
-    "화남",
-    "열받음",
+    "짜릿해", "즐거움", "사랑", "기대감", "자신감", "기쁨", "행복함", "뿌듯함", "츄릅", "쑥스러움",
+    "인생..", "꾸엑", "지침", "놀람", "니가?", "현타", "그래요", "당황", "소노", "슬픔",
+    "억울함", "불안함", "어이없음", "울고싶음", "우울함", "안타까움", "화남", "열받음",
   ];
 
   return (
@@ -189,6 +166,19 @@ const DiaryEditPage = () => {
           </div>
         </div>
       </div>
+
+  
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+          <Modal
+            type="success"
+            title="저장 완료"
+            message="일기가 성공적으로 수정되었습니다!"
+            confirmText="확인"
+            onConfirm={() => setIsModalOpen(false)}
+          />
+        </div>
+      )}
     </div>
   );
 };
