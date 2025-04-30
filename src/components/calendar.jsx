@@ -92,7 +92,7 @@ function MonthlyCalendar() {
       "month.dayname.paddingLeft": "10px",
       "month.day.fontSize": "16px",
       "month.day.fontWeight": "400",
-      "month.day.height": "42px",
+      "month.day.height": "48px",
       "month.day.textAlign": "center",
       "month.sunday.color": "#FF0000",
       "month.dayname.sunday.color": "#FF0000",
@@ -124,20 +124,20 @@ function MonthlyCalendar() {
   return (
     <div className="w-full">
       {/* 년/월 표시 */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 dark:text-darkBg">
         <h2 className="text-2xl font-bold">
           {currentDate.getFullYear()}년 {currentDate.getMonth() + 1}월
         </h2>
         <div className="calendar-buttons flex gap-2">
           <button
             onClick={handleClickPrevButton}
-            className="px-3 py-1 bg-gray-200 rounded-md"
+            className="px-3 py-1 bg-lightYellow dark:text-darkBg dark:bg-darkOrange rounded-md"
           >
             이전 달
           </button>
           <button
             onClick={handleClickNextButton}
-            className="px-3 py-1 bg-gray-200 rounded-md"
+            className="px-3 py-1 bg-lightYellow dark:text-darkBg dark:bg-darkOrange rounded-md"
           >
             다음 달
           </button>
