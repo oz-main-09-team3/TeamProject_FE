@@ -1,10 +1,8 @@
 import { useState } from "react";
 import RowCard from "../components/RowCard";
-import MonthlyCalendar from "../components/calendar";
+import MonthlyCalendar from "../components/calendar/MonthlyCalendar";
 
 function MainPage() {
-  const [showFriends, setShowFriends] = useState(false);
-
   const diaryList = [
     { id: 1, header: "아 오늘도 힘들었다.", body: "아 진짜 집 가고싶었다." },
     {
@@ -18,20 +16,20 @@ function MainPage() {
   ];
 
   return (
-    <div className="min-h-screen pt-[100px] px-4 py-10  transition-colors duration-300">
-      <div className="border bg-yl100 dark:bg-darktext border-lightGold dark:border-darkCopper rounded-xl p-6">
+    <main className="min-h-screen pt-[100px] transition-colors duration-300">
+      <section className="section-container border bg-yl100 dark:bg-darktext border-lightGold dark:border-darkCopper rounded-xl">
         <div className="flex flex-col lg:flex-row gap-8 items-stretch">
-          {/* 왼쪽 - 캘린더 영역 */}
-          <div className="w-full lg:w-1/2 order-1 lg:order-1 bg-white p-6 rounded-lg shadow-md flex flex-col justify-between">
+          {/* 캘린더 영역 */}
+          <div className="w-full lg:w-1/2 bg-white p-4 sm:p-6 rounded-lg shadow-md">
             <div className="aspect-[7/6]">
               <MonthlyCalendar />
             </div>
           </div>
 
-          {/* 오른쪽 - 일기 리스트 영역 */}
-          <div className="w-full lg:w-1/2 order-2 lg:order-2 flex flex-col gap-4">
+          {/* 일기 리스트 영역 */}
+          <div className="w-full lg:w-1/2 flex flex-col gap-4">
             {diaryList.map((diary) => (
-              <div key={diary.id} className="rounded-lg shadow-md">
+              <div key={diary.id}>
                 <RowCard
                   emojiSrc="/profile.png"
                   headerText={diary.header}
@@ -43,8 +41,8 @@ function MainPage() {
             ))}
           </div>
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }
 

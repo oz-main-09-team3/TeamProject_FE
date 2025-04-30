@@ -1,6 +1,10 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
+  content: [
+    "./index.html",
+    "./src/**/*.{js,jsx,ts,tsx}",
+    "./src/styles/**/*.{css}",
+  ],
   theme: {
     extend: {
       colors: {
@@ -26,5 +30,9 @@ export default {
     },
   },
   darkMode: "class",
-  plugins: [],
+  plugins: [
+    require("@tailwindcss/forms"), // 폼 요소 정돈
+    require("@tailwindcss/typography"), // 프로즈 스타일링
+    require("@tailwindcss/aspect-ratio"), // 비율 고정 (이미지/비디오)
+  ],
 };

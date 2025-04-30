@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import Calendar from "@toast-ui/react-calendar";
 import "@toast-ui/calendar/dist/toastui-calendar.min.css";
+import { calendarOptions } from "./calendarOptions";
 
 function MonthlyCalendar() {
   const calendarRef = useRef(null);
@@ -32,6 +33,11 @@ function MonthlyCalendar() {
       .toastui-calendar-daygrid-cell {
         aspect-ratio: 1 / 1 !important;
         height: auto !important;
+      }
+
+      .toastui-calendar-grid-row {
+        display: grid !important;
+        grid-template-columns: repeat(7, 1fr) !important;
       }
     `;
     document.head.appendChild(styleEl);
@@ -67,50 +73,6 @@ function MonthlyCalendar() {
     }
   };
 
-  const calendarOptions = {
-    view: "month",
-    defaultView: "month",
-    isReadOnly: false,
-    usageStatistics: false,
-    theme: {
-      "common.saturday.color": "#888888",
-      "common.sunday.color": "#FF0000",
-      "common.dayName.saturday.color": "#888888",
-      "common.dayName.sunday.color": "#FF0000",
-      "month.dayname.height": "31px",
-      "month.dayname.borderLeft": "1px solid #e5e5e5",
-      "month.dayname.textAlign": "left",
-      "month.dayname.paddingLeft": "10px",
-      "month.day.fontSize": "16px",
-      "month.day.fontWeight": "400",
-      "month.day.textAlign": "center",
-      "month.sunday.color": "#FF0000",
-      "month.dayname.sunday.color": "#FF0000",
-      "month.holidayExceptThisMonth.color": "#f3acac",
-      "month.dayExceptThisMonth.color": "#bbb",
-      "month.weekend.backgroundColor": "#fafafa",
-      "month.schedule.borderRadius": "2px",
-      "month.schedule.height": "24px",
-      "month.schedule.marginTop": "2px",
-      "month.schedule.marginLeft": "10px",
-      "month.schedule.marginRight": "10px",
-    },
-    month: {
-      daynames: ["일", "월", "화", "수", "목", "금", "토"],
-      startDayOfWeek: 0,
-      narrowWeekend: false,
-    },
-    calendars: [
-      {
-        id: "cal1",
-        name: "기본 캘린더",
-        color: "#ffffff",
-        backgroundColor: "#34c38f",
-        borderColor: "#34c38f",
-      },
-    ],
-  };
-
   return (
     <div className="w-full">
       {/* 년/월 표시 */}
@@ -121,13 +83,13 @@ function MonthlyCalendar() {
         <div className="calendar-buttons flex gap-2">
           <button
             onClick={handleClickPrevButton}
-            className="px-3 py-1 bg-lightYellow dark:text-darkBg dark:bg-darkOrange rounded-md"
+            className="calendar-nav-button"
           >
             이전 달
           </button>
           <button
             onClick={handleClickNextButton}
-            className="px-3 py-1 bg-lightYellow dark:text-darkBg dark:bg-darkOrange rounded-md"
+            className="calendar-nav-button"
           >
             다음 달
           </button>

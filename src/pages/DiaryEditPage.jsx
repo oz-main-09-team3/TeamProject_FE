@@ -48,9 +48,7 @@ const DiaryEditPage = () => {
     }
   };
 
-  const handleMoodChange = (newMood) => {
-    setMood(newMood);
-  };
+  const handleMoodChange = (newMood) => setMood(newMood);
 
   useEffect(() => {
     const fetchDiaryData = async () => {
@@ -120,35 +118,25 @@ const DiaryEditPage = () => {
   ];
 
   return (
-    <div className="min-h-screen pt-20  text-lighttext dark:text-darkBrown transition-colors duration-300 flex justify-center items-center px-4 py-8">
-      <div className="w-full max-w-6xl bg-white shadow-md rounded-xl flex flex-col md:flex-row overflow-hidden">
+    <div className="min-h-screen pt-20 text-lighttext dark:text-darkBrown transition-colors duration-300 flex justify-center items-center px-4 py-8">
+      <div className="editor-card">
         <div className="w-full md:w-2/3 p-5 flex flex-col">
-          <div className="mb-6 flex justify-between items-center">
-            <button
-              className="p-3 bg-lightYellow dark:bg-darkCopper dark:text-darktext rounded-full w-10 h-10 flex items-center justify-center"
-              onClick={handleGoBack}
-            >
+          <div className="editor-toolbar">
+            <button className="back-button" onClick={handleGoBack}>
               ←
             </button>
             <div className="flex space-x-3">
-              <button
-                className="py-2 px-4 bg-lightYellow dark:bg-darkCopper text-lighttext dark:text-white hover:bg-gray-300 dark:hover:bg-darkBrown rounded-md text-sm"
-                onClick={handleCancel}
-              >
+              <button className="btn btn-outline" onClick={handleCancel}>
                 취소
               </button>
-              <button
-                className="py-2 px-4 bg-lightOrange dark:bg-darkOrange text-white hover:brightness-110 rounded-md text-sm"
-                onClick={handleSave}
-              >
+              <button className="btn btn-primary" onClick={handleSave}>
                 저장
               </button>
             </div>
           </div>
 
           <div className="flex justify-end mb-6">
-            <div className="w-28 h-28 rounded-full border-2 flex justify-center items-center overflow-hidden relative">
-              <div className="absolute inset-0 rounded-full border-4"></div>
+            <div className="emoji-select-wrapper">
               <img
                 src={moodImageSrc}
                 alt="현재 기분"
@@ -158,11 +146,11 @@ const DiaryEditPage = () => {
           </div>
 
           <div className="flex justify-between items-center mb-4">
-            <div className="text-2xl font-bold">{formatDate()}</div>
-            <div className="text-sm text-gray-500">수정 중...</div>
+            <div className="editor-date">{formatDate()}</div>
+            <div className="editor-status">수정 중...</div>
           </div>
 
-          <div className="w-full bg-white rounded-lg border border-gray-200 dark:border-darktext shadow-sm mb-4">
+          <div className="editor-container dark:border-darktext">
             <div ref={editorContainerRef} className="min-h-[400px]" />
           </div>
 

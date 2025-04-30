@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import testimage from "../assets/profile.png";
+import returnIcon from "../assets/keyboard_return.png";
+import likeIcon from "../assets/like_button.png";
 
 const FriendDiaryView = () => {
   const [comments, setComments] = useState([
@@ -37,10 +39,7 @@ const FriendDiaryView = () => {
 
   const formatDate = () => {
     const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, "0");
-    const day = String(today.getDate()).padStart(2, "0");
-    return `${year}.${month}.${day}`;
+    return `${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, "0")}.${String(today.getDate()).padStart(2, "0")}`;
   };
 
   const handleGoBack = () => {
@@ -64,56 +63,46 @@ const FriendDiaryView = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen px-4">
-      <div className="w-full mx-auto shadow-xl p-10 font-sans rounded-2xl border-4 border-lightGold dark:border-darkOrange bg-yl100 dark:bg-darktext text-lighttext dark:text-darktext transition-colors duration-300">
+    <div className="flex items-center justify-center min-h-screen section-container">
+      <div className="w-full max-w-6xl mx-auto shadow-xl p-10 font-sans rounded-2xl border-4 border-lightGold dark:border-darkOrange bg-yl100 dark:bg-darktext text-lighttext dark:text-darktext transition-colors duration-300">
         <div className="flex flex-col gap-6 md:flex-row md:gap-8">
           <div className="md:w-2/3 w-full flex flex-col">
             <div className="mb-8 flex justify-between items-center">
-              <button
-                className="p-3 bg-lightYellow dark:bg-darkCopper dark:text-darktext rounded-full text-lg w-10 h-10 flex items-center justify-center"
-                onClick={handleGoBack}
-              >
+              <button className="back-button" onClick={handleGoBack}>
                 ←
               </button>
               <div className="flex space-x-2">
-                <button className="p-2 text-gray-500">
+                <button className="p-2 text-gray-500" aria-label="edit">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
+                    className="w-5 h-5"
                     fill="none"
+                    viewBox="0 0 24 24"
                     stroke="currentColor"
                     strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
                   >
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                   </svg>
                 </button>
-                <button className="p-2 text-gray-500">
+                <button className="p-2 text-gray-500" aria-label="delete">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
+                    className="w-5 h-5"
                     fill="none"
+                    viewBox="0 0 24 24"
                     stroke="currentColor"
                     strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
                   >
-                    <polyline points="3 6 5 6 21 6"></polyline>
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                   </svg>
                 </button>
               </div>
             </div>
 
             <div className="flex justify-center mb-8">
-              <div className="w-28 h-28 rounded-full flex justify-center items-center overflow-hidden relative">
-                <div className="absolute inset-0 rounded-full "></div>
+              <div className="emoji-select-wrapper">
                 <img
                   src={moodImageSrc}
                   alt="현재 기분"
@@ -126,18 +115,18 @@ const FriendDiaryView = () => {
               {formatDate()}
             </div>
 
-            <div className="w-full rounded-lg border border-lightGold dark:border-darkCopper shadow-sm p-5 dark:text-darkBg bg-white min-h-[320px]">
+            <div className="card-base min-h-[320px] border-lightGold dark:border-darkCopper">
               <p>테스트</p>
             </div>
           </div>
 
-          <div className="md:w-1/3 w-full flex flex-col gap-4 border-t md:border-t-0 md:border-l dark:text- border-lightGold dark:border-darkCopper pt-6 md:pt-0 md:pl-5 bg-yl100 dark:bg-darktext">
+          <div className="md:w-1/3 w-full flex flex-col gap-4 border-t md:border-t-0 md:border-l border-lightGold dark:border-darkCopper pt-6 md:pt-0 md:pl-5 bg-yl100 dark:bg-darktext">
             <h3 className="text-lg font-medium dark:text-darkBg">댓글</h3>
             <div className="overflow-y-auto flex-grow">
               {comments.map((comment) => (
                 <div
                   key={comment.id}
-                  className="mb-1 border border-gray-100 dark:border-darkCopper rounded-lg p-3 bg-lightBg dark:bg-darkBg"
+                  className="card-base mb-1 border border-gray-100 dark:border-darkCopper bg-lightBg dark:bg-darkBg"
                 >
                   <div className="flex items-start gap-2 mb-2">
                     <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
@@ -171,51 +160,21 @@ const FriendDiaryView = () => {
                         </span>
                         <div className="flex gap-2">
                           <button className="text-gray-400 hover:text-gray-600">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                            </svg>
+                            <img
+                              src={returnIcon}
+                              alt="댓글"
+                              className="w-4 h-4"
+                            />
                           </button>
                           <button className="text-gray-400 hover:text-gray-600">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                            </svg>
+                            <img
+                              src={likeIcon}
+                              alt="좋아요"
+                              className="w-4 h-4"
+                            />
                           </button>
                           <button className="text-gray-400 hover:text-gray-600">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <circle cx="12" cy="12" r="1"></circle>
-                              <circle cx="19" cy="12" r="1"></circle>
-                              <circle cx="5" cy="12" r="1"></circle>
-                            </svg>
+                            ⋯
                           </button>
                         </div>
                       </div>

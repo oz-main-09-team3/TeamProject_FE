@@ -49,15 +49,15 @@ const FriendInviteSystem = () => {
 
   return (
     <main className="flex items-center justify-center min-h-screen px-4">
-      <div className="flex flex-col items-center p-8 w-full max-w-lg dark:text-darkdark bg-yl100 dark:bg-yl100 rounded-3xl shadow-lg">
+      <div className="flex flex-col items-center p-8 w-full max-w-lg bg-yl100 dark:text-darkBg rounded-3xl shadow-lg text-lighttext">
         <h1 className="text-2xl font-bold mb-6 text-center">
           친구 초대 시스템
         </h1>
 
         {/* 내 초대 코드 */}
-        <div className="flex flex-col items-center mb-8 w-full">
+        <section className="flex flex-col items-center mb-8 w-full">
           <h2 className="text-lg font-semibold mb-2">내 초대 코드</h2>
-          <div className="border-2 border-lightGold dark:border-darkOrange rounded-lg p-4 mb-4">
+          <div className="border-2 border-lightGold dark:border-darkOrange rounded-lg p-4 mb-4 bg-white">
             {inviteUrl && (
               <QRCodeCanvas
                 value={inviteUrl}
@@ -68,38 +68,40 @@ const FriendInviteSystem = () => {
             )}
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center w-full gap-2 mb-4">
-            <input
-              type="text"
-              value={inviteUrl}
-              readOnly
-              className="flex-grow border rounded px-3 py-2 bg-gray-100"
-            />
-            <button
-              onClick={() => navigator.clipboard.writeText(inviteUrl)}
-              className="bg-lightGold text-lighttext hover:bg-lightOrange dark:bg-darkOrange dark:text-darkdark dark:hover:bg-darkCopper dark:hover:text-yl100 px-4 py-2 rounded w-full sm:w-auto"
-            >
-              복사
-            </button>
+          <div className="flex flex-col sm:flex-row w-full gap-2 mb-4">
+            <div className="flex flex-col sm:flex-row items-center w-full gap-2 mb-4">
+              <input
+                type="text"
+                value={inviteUrl}
+                readOnly
+                className="form-input"
+              />
+              <button
+                onClick={() => navigator.clipboard.writeText(inviteUrl)}
+                className="secondary-button w-full sm:w-auto whitespace-nowrap"
+              >
+                복사
+              </button>
+            </div>
           </div>
 
           <button
             onClick={generateInviteCode}
-            className="bg-lightOrange px-6 py-2 rounded dark:text-yl100 hover:bg-lightGold w-full dark:bg-darkCopper dark:hover:text-darkdark dark:hover:bg-darkOrange "
+            className="primary-button w-full"
           >
             새 코드 생성
           </button>
-        </div>
+        </section>
 
         {/* 친구 추가 */}
-        <div className="w-full border-t border-lightGold pt-6">
+        <section className="w-full border-t border-lightGold pt-6">
           <h2 className="text-lg font-semibold mb-4 text-center">친구 추가</h2>
 
           <div className="flex flex-col sm:flex-row w-full gap-2 mb-4">
             <input
               type="text"
               placeholder="친구 초대 코드 입력"
-              className="flex-grow border rounded px-3 py-2"
+              className="form-input"
               onChange={(e) => setInviteCode(e.target.value)}
             />
             <button
@@ -107,7 +109,7 @@ const FriendInviteSystem = () => {
                 setPendingCode(inviteCode);
                 setIsModalOpen(true);
               }}
-              className="px-6 py-2 rounded bg-lightGold text-lighttext hover:bg-lightOrange dark:bg-darkOrange dark:text-darkdark dark:hover:bg-darkCopper dark:hover:text-yl100 w-full sm:w-auto"
+              className="secondary-button w-full sm:w-auto whitespace-nowrap"
             >
               추가
             </button>
@@ -115,12 +117,12 @@ const FriendInviteSystem = () => {
 
           <button
             onClick={() => setShowScanner(true)}
-            className="flex items-center justify-center w-full px-4 py-3 rounded bg-lightOrange text-lighttext dark:text-yl100 dark:hover:text-darkdark hover:bg-lightGold dark:bg-darkCopper dark:hover:bg-darkOrange"
+            className="primary-button w-full flex items-center justify-center"
           >
             <Camera className="mr-2" size={20} />
             QR 코드 스캔
           </button>
-        </div>
+        </section>
       </div>
 
       {/* 스캐너 모달 */}
@@ -131,16 +133,13 @@ const FriendInviteSystem = () => {
               QR 코드를 스캔하세요
             </h3>
             <div className="bg-gray-100 w-full h-64 flex items-center justify-center mb-4">
-              <button
-                onClick={simulateScan}
-                className="bg-lightOrange text-lighttext px-4 py-2 rounded"
-              >
+              <button onClick={simulateScan} className="primary-button">
                 스캔 시뮬레이션
               </button>
             </div>
             <button
               onClick={() => setShowScanner(false)}
-              className="w-full bg-lightGold text-lighttext px-4 py-2 rounded"
+              className="secondary-button w-full"
             >
               취소
             </button>
@@ -165,5 +164,4 @@ const FriendInviteSystem = () => {
     </main>
   );
 };
-
 export default FriendInviteSystem;
