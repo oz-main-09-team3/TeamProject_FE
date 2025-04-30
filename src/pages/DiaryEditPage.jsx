@@ -122,7 +122,6 @@ const DiaryEditPage = () => {
   return (
     <div className="min-h-screen pt-20 bg-lightBg dark:bg-darkBg text-lighttext dark:text-darkBrown transition-colors duration-300 flex justify-center items-center px-4 py-8">
       <div className="w-full max-w-6xl bg-white shadow-md rounded-xl flex flex-col md:flex-row overflow-hidden">
-        {/* 좌측: 일기 작성 */}
         <div className="w-full md:w-2/3 p-5 flex flex-col">
           <div className="mb-6 flex justify-between items-center">
             <button
@@ -170,7 +169,6 @@ const DiaryEditPage = () => {
           <div className="text-right text-gray-400 text-sm mb-4">0 / 20</div>
         </div>
 
-        {/* 우측: 이모지 선택 */}
         <div className="w-full md:w-1/3 p-5 flex flex-col border-t md:border-t-0 md:border-l border-gray-200 dark:border-darktext max-h-[90vh] overflow-auto">
           <h3 className="text-lg font-medium mb-4">
             이모지는 하나만 골라주세요!

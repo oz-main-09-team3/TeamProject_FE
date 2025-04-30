@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import testimage from '../assets/profile.png';
+import keyboardReturn from '../assets/keyboard_return.png';
+import likeButton from '../assets/like_button.png';
+import sendIcon from '../assets/Send.png';
 
 const FriendDiaryView = () => {
   const [comments, setComments] = useState([
@@ -8,32 +11,90 @@ const FriendDiaryView = () => {
       profileImg: null, 
       text: "멋져용 멋져용.", 
       userNickname: "띠리링톡톰",
-      timestamp: "5분 전"
+      timestamp: "5분 전",
+      replies: [
+        {
+          id: 101,
+          profileImg: null,
+          text: "엉 '아, 맞다'",
+          userNickname: "엄머터틀",
+          timestamp: "3분 전",
+          parentId: null 
+        },
+        {
+          id: 102,
+          profileImg: null,
+          text: "엉'힝계구리'",
+          userNickname: "엄머터틀",
+          timestamp: "2분 전",
+          parentId: 101 
+        },
+        {
+          id: 103,
+          profileImg: null,
+          text: "추가 답글 1",
+          userNickname: "또치",
+          timestamp: "1분 전",
+          parentId: null 
+        },
+        {
+          id: 104,
+          profileImg: null,
+          text: "추가 답글 2",
+          userNickname: "둘리",
+          timestamp: "방금 전",
+          parentId: 103 
+        }
+      ]
     },
     { 
       id: 2, 
       profileImg: null, 
       text: "헉 뭐 와!", 
       userNickname: "김콩팥",
-      timestamp: "10분 전" 
+      timestamp: "10분 전",
+      replies: []
     },
     { 
       id: 3, 
       profileImg: null, 
       text: "맞돌림지마!", 
       userNickname: "김콩팥",
-      timestamp: "15분 전" 
+      timestamp: "15분 전",
+      replies: []
     },
     { 
       id: 4, 
       profileImg: null, 
       text: "멋져용 멋져용.", 
       userNickname: "띠리링톡톰",
-      timestamp: "20분 전" 
+      timestamp: "20분 전",
+      replies: [
+        {
+          id: 401,
+          profileImg: null,
+          text: "댓글을 달았습니다.",
+          userNickname: "엄머터틀",
+          timestamp: "15분 전",
+          parentId: null
+        }
+      ]
     }
   ]);
-  const [newComment, setNewComment] = useState('');
+  
+  const [newReply, setNewReply] = useState('');
+  const [replyingTo, setReplyingTo] = useState(null); 
+  const [replyingToReply, setReplyingToReply] = useState(null); 
+  const [showReplies, setShowReplies] = useState({}); 
   const moodImageSrc = testimage;
+  
+  useEffect(() => {
+    const initialShowRepliesState = {};
+    comments.forEach(comment => {
+      initialShowRepliesState[comment.id] = false;
+    });
+    setShowReplies(initialShowRepliesState);
+  }, []);
 
   const formatDate = () => {
     const today = new Date();
@@ -46,21 +107,201 @@ const FriendDiaryView = () => {
   const handleGoBack = () => {
     console.log('뒤로가기');
   };
-
-  const handleSubmitComment = (e) => {
-    e.preventDefault();
-    if (newComment.trim() === '') return;
+  
+  const handleReplyClick = (commentId) => {
+    if (replyingToReply) {
+      setReplyingToReply(null);
+    }
     
-    const newCommentObj = {
-      id: comments.length + 1,
+    if (replyingTo === commentId && !replyingToReply) {
+      setReplyingTo(null);
+    } else {
+      setReplyingTo(commentId);
+      setNewReply('');
+      
+      if (!showReplies[commentId] && comments.find(c => c.id === commentId)?.replies.length > 0) {
+        setShowReplies(prev => ({
+          ...prev,
+          [commentId]: true
+        }));
+      }
+    }
+  };
+  
+  const handleReplyToReplyClick = (commentId, replyId) => {
+    if (replyingTo && !replyingToReply) {
+      setReplyingTo(null);
+    }
+    
+    if (replyingTo === commentId && replyingToReply === replyId) {
+      setReplyingToReply(null);
+    } else {
+      setReplyingTo(commentId); 
+      setReplyingToReply(replyId);
+      setNewReply('');
+    }
+  };
+  
+  const toggleReplies = (commentId) => {
+    setShowReplies(prev => ({
+      ...prev,
+      [commentId]: !prev[commentId]
+    }));
+  };
+  
+  const getReplyParentUserNickname = (reply, replies) => {
+    if (!reply.parentId) return null;
+    const parentReply = replies.find(r => r.id === reply.parentId);
+    return parentReply ? parentReply.userNickname : null;
+  };
+
+  const handleSubmitReply = (e, commentId) => {
+    e.preventDefault();
+    if (newReply.trim() === '') return;
+    
+    const newReplyObj = {
+      id: Date.now(),
       profileImg: null,
-      text: newComment,
+      text: newReply,
       userNickname: "나",
-      timestamp: "방금 전"
+      timestamp: "방금 전",
+      parentId: replyingToReply 
     };
     
-    setComments([newCommentObj, ...comments]);
-    setNewComment('');
+    const updatedComments = comments.map(comment => {
+      if (comment.id === commentId) {
+        return {
+          ...comment,
+          replies: [...comment.replies, newReplyObj]
+        };
+      }
+      return comment;
+    });
+    
+    setComments(updatedComments);
+    setNewReply('');
+    setReplyingTo(null);
+    setReplyingToReply(null);
+    
+    setShowReplies(prev => ({
+      ...prev,
+      [commentId]: true
+    }));
+  };
+
+  const organizeReplies = (replies) => {
+    const topLevelReplies = replies.filter(reply => !reply.parentId);
+    
+    const nestedReplies = topLevelReplies.map(reply => {
+      return {
+        ...reply,
+        children: buildReplyTree(reply.id, replies)
+      };
+    });
+    
+    return nestedReplies;
+  };
+  
+  const buildReplyTree = (parentId, allReplies) => {
+    const childReplies = allReplies.filter(reply => reply.parentId === parentId);
+    
+    return childReplies.map(reply => {
+      return {
+        ...reply,
+        children: buildReplyTree(reply.id, allReplies)
+      };
+    });
+  };
+
+  const renderReply = (reply, commentId, level = 0) => {
+    const isReplying = replyingTo === commentId && replyingToReply === reply.id;
+    const parentUserNickname = reply.parentId ? 
+      getReplyParentUserNickname(reply, comments.find(c => c.id === commentId)?.replies || []) : null;
+    
+    return (
+      <div key={reply.id} className="mb-3">
+        <div className={`flex items-start gap-2 mb-2 ${level > 0 ? 'pl-' + (level * 8) : ''}`}>
+          <div className="min-w-8 w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+            {reply.profileImg ? (
+              <img src={reply.profileImg} alt="프로필" className="w-full h-full object-cover" />
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            )}
+          </div>
+          <div className="flex-grow">
+            <div className="flex justify-between items-center mb-1">
+              <span className="font-medium text-sm">{reply.userNickname}</span>
+              <button className="text-gray-400 hover:text-gray-600">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="1"></circle>
+                  <circle cx="19" cy="12" r="1"></circle>
+                  <circle cx="5" cy="12" r="1"></circle>
+                </svg>
+              </button>
+            </div>
+            
+            <div className="text-sm mb-2">
+              {parentUserNickname && (
+                <span className="font-medium text-blue-500 mr-1">
+                  @{parentUserNickname}
+                </span>
+              )}
+              {reply.text}
+            </div>
+            
+            <div className="flex justify-between items-center">
+              <span className="text-xs text-gray-400">{reply.timestamp}</span>
+              <div className="flex items-center gap-3">
+                {!isReplying && (
+                  <button 
+                    className="flex items-center text-gray-400 hover:text-gray-600"
+                    onClick={() => handleReplyToReplyClick(commentId, reply.id)}
+                  >
+                    <img src={keyboardReturn} alt="답글" className="w-5 h-5" />
+                  </button>
+                )}
+                <button className="flex items-center text-gray-400 hover:text-gray-600">
+                  <img src={likeButton} alt="좋아요" className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {isReplying && (
+          <div className={`pl-${8 + level * 8} mt-2 mb-3`}>
+            <form onSubmit={(e) => handleSubmitReply(e, commentId)} className="flex items-center gap-2">
+              <div className="min-w-8 w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+              </div>
+              <input
+                type="text"
+                className="flex-grow border border-gray-300 rounded-full px-4 py-2 text-sm"
+                placeholder={`${reply.userNickname}님에게 답글 작성...`}
+                value={newReply}
+                onChange={(e) => setNewReply(e.target.value)}
+              />
+              <button 
+                type="submit" 
+                className="min-w-8 w-8 h-8 flex items-center justify-center flex-shrink-0"
+              >
+                <img src={sendIcon} alt="답글 달기" className="w-6 h-6" />
+              </button>
+            </form>
+          </div>
+        )}
+        
+        {reply.children && reply.children.map(childReply => 
+          renderReply(childReply, commentId, level + 1)
+        )}
+      </div>
+    );
   };
 
   return (
@@ -109,64 +350,27 @@ const FriendDiaryView = () => {
         </div>
       </div>
       
-      <div className="w-1/3 p-5 flex flex-col border-l border-gray-200">
+      <div className="w-2/5 p-5 flex flex-col border-l border-gray-200">
         <h3 className="text-lg font-medium mb-4">댓글</h3>
-        
-        <form onSubmit={handleSubmitComment} className="mb-6">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-              </svg>
-            </div>
-            <input
-              type="text"
-              className="flex-grow border border-gray-300 rounded-full px-4 py-2 text-sm"
-              placeholder="댓글을 입력하세요..."
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-            />
-            <button 
-              type="submit" 
-              className="bg-blue-500 text-white rounded-full w-10 h-10 flex items-center justify-center"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="22" y1="2" x2="11" y2="13"></line>
-                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-              </svg>
-            </button>
-          </div>
-        </form>
         
         <div className="overflow-y-auto flex-grow">
           {comments.map((comment) => (
-            <div key={comment.id} className="mb-4 border-b border-gray-100 pb-3">
-              <div className="flex items-start gap-2 mb-2">
-                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
-                  {comment.profileImg ? (
-                    <img src={comment.profileImg} alt="프로필" className="w-full h-full object-cover" />
-                  ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                      <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                  )}
-                </div>
-                <div className="flex-grow">
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="font-medium text-sm">{comment.userNickname}</span>
-                    <div className="flex gap-2">
-                      <button className="text-gray-400 hover:text-gray-600">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                        </svg>
-                      </button>
-                      <button className="text-gray-400 hover:text-gray-600">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                        </svg>
-                      </button>
+            <div key={comment.id} className="mb-6 border border-gray-100 rounded-lg p-3">
+              <div className="pb-3">
+                <div className="flex items-start gap-2 mb-2">
+                  <div className="min-w-8 w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+                    {comment.profileImg ? (
+                      <img src={comment.profileImg} alt="프로필" className="w-full h-full object-cover" />
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                      </svg>
+                    )}
+                  </div>
+                  <div className="flex-grow">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="font-medium text-sm">{comment.userNickname}</span>
                       <button className="text-gray-400 hover:text-gray-600">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <circle cx="12" cy="12" r="1"></circle>
@@ -175,11 +379,71 @@ const FriendDiaryView = () => {
                         </svg>
                       </button>
                     </div>
+                    <p className="text-sm mb-3">{comment.text}</p>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-gray-400">{comment.timestamp}</span>
+                      <div className="flex items-center gap-3">
+                        {replyingTo !== comment.id && (
+                          <button 
+                            className="flex items-center text-gray-400 hover:text-gray-600"
+                            onClick={() => handleReplyClick(comment.id)}
+                          >
+                            <img src={keyboardReturn} alt="답글" className="w-5 h-5" />
+                          </button>
+                        )}
+                        <button className="flex items-center text-gray-400 hover:text-gray-600">
+                          <img src={likeButton} alt="좋아요" className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-sm mb-1">{comment.text}</p>
-                  <span className="text-xs text-gray-400">{comment.timestamp}</span>
                 </div>
+                
+                {comment.replies.length > 0 && (
+                  <button 
+                    className="text-gray-500 hover:text-gray-700 text-sm pl-10 mt-2"
+                    onClick={() => toggleReplies(comment.id)}
+                  >
+                    {showReplies[comment.id] 
+                      ? "답글 숨기기" 
+                      : `답글 ${comment.replies.length}개 보기`}
+                  </button>
+                )}
               </div>
+              
+              {replyingTo === comment.id && !replyingToReply && (
+                <div className="pl-10 mb-3 border-t border-gray-100 pt-3">
+                  <form onSubmit={(e) => handleSubmitReply(e, comment.id)} className="flex items-center gap-2">
+                    <div className="min-w-8 w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                      </svg>
+                    </div>
+                    <input
+                      type="text"
+                      className="flex-grow border border-gray-300 rounded-full px-4 py-2 text-sm"
+                      placeholder={`${comment.userNickname}님에게 답글 작성...`}
+                      value={newReply}
+                      onChange={(e) => setNewReply(e.target.value)}
+                    />
+                    <button 
+                      type="submit" 
+                      className="min-w-8 w-8 h-8 flex items-center justify-center flex-shrink-0"
+                    >
+                      <img src={sendIcon} alt="답글 달기" className="w-6 h-6" />
+                    </button>
+                  </form>
+                </div>
+              )}
+              
+              {showReplies[comment.id] && comment.replies.length > 0 && (
+                <div className="mt-3 pl-8 border-t border-gray-100 pt-3">
+                  {organizeReplies(comment.replies).map(reply => 
+                    renderReply(reply, comment.id)
+                  )}
+                </div>
+              )}
             </div>
           ))}
         </div>
