@@ -5,6 +5,8 @@ import testimage from "../assets/profile.png";
 
 const DiaryEditor = () => {
   const [mood, setMood] = useState("기본");
+  const [originalContent, setOriginalContent] = useState("");
+  const [isEditing, setIsEditing] = useState(true);
   const editorRef = useRef(null);
   const editorContainerRef = useRef(null);
   const moodImageSrc = testimage;
@@ -19,11 +21,38 @@ const DiaryEditor = () => {
   };
 
   const handleGoBack = () => {
-    console.log("뒤로가기");
+    if (
+      isEditing &&
+      window.confirm("저장하지 않은 변경사항이 있습니다. 나가시겠습니까?")
+    ) {
+      console.log("작성 취소, 뒤로가기");
+    } else {
+      console.log("뒤로가기");
+    }
+  };
+
+  const handleSave = () => {
+    if (editorRef.current) {
+      const content = editorRef.current.getMarkdown();
+      console.log("저장된 내용:", content);
+      console.log("선택된 감정:", mood);
+      alert("일기가 저장되었습니다.");
+    }
+  };
+
+  const handleCancel = () => {
+    if (window.confirm("작성을 취소하시겠습니까?")) {
+      if (editorRef.current) {
+        editorRef.current.setMarkdown(originalContent);
+      }
+      console.log("작성 취소");
+    }
   };
 
   useEffect(() => {
     if (!editorContainerRef.current) return;
+
+    setOriginalContent("");
 
     editorRef.current = new Editor({
       el: editorContainerRef.current,
@@ -80,19 +109,32 @@ const DiaryEditor = () => {
   return (
     <div className="min-h-screen pt-20 bg-lightBg dark:bg-darkBg text-lighttext dark:text-darkBrown transition-colors duration-300 flex justify-center items-center px-4 py-8">
       <div className="w-full max-w-6xl bg-white shadow-md rounded-xl flex flex-col md:flex-row overflow-hidden">
-        {/* 왼쪽 에디터 */}
         <div className="w-full md:w-2/3 p-6 flex flex-col">
-          <div className="mb-6">
+          <div className="mb-6 flex justify-between items-center">
             <button
               className="p-3 bg-lightYellow dark:bg-darkCopper dark:text-darktext rounded-full w-10 h-10 flex items-center justify-center"
               onClick={handleGoBack}
             >
               ←
             </button>
+            <div className="flex space-x-3">
+              <button
+                className="py-2 px-4 bg-lightYellow dark:bg-darkCopper text-lighttext dark:text-white hover:bg-gray-300 dark:hover:bg-darkBrown rounded-md text-sm"
+                onClick={handleCancel}
+              >
+                취소
+              </button>
+              <button
+                className="py-2 px-4 bg-lightOrange dark:bg-darkOrange text-white hover:brightness-110 rounded-md text-sm"
+                onClick={handleSave}
+              >
+                저장
+              </button>
+            </div>
           </div>
 
           <div className="flex justify-end mb-6">
-            <div className="w-28 h-28 rounded-full flex justify-center items-center overflow-hidden relative">
+            <div className="w-28 h-28 rounded-full border-2 flex justify-center items-center overflow-hidden relative">
               <div className="absolute inset-0 rounded-full border-4"></div>
               <img
                 src={moodImageSrc}
@@ -102,7 +144,10 @@ const DiaryEditor = () => {
             </div>
           </div>
 
-          <div className="text-2xl font-bold mb-4">{formatDate()}</div>
+          <div className="flex justify-between items-center mb-4">
+            <div className="text-2xl font-bold">{formatDate()}</div>
+            <div className="text-sm text-gray-500">작성 중...</div>
+          </div>
 
           <div className="w-full bg-white rounded-lg border border-gray-200 shadow-sm mb-4">
             <div ref={editorContainerRef} className="min-h-[400px]" />
@@ -111,11 +156,13 @@ const DiaryEditor = () => {
           <div className="text-right text-gray-400 text-sm">0 / 20</div>
         </div>
 
-        {/* 오른쪽 감정 선택 */}
         <div className="w-full md:w-1/3 p-6 flex flex-col border-t md:border-t-0 md:border-l border-gray-200 dark:border-darkBrown max-h-[90vh] overflow-auto">
           <h3 className="text-center text-base mb-4 text-gray-400 dark:text-gray-300">
             이모지는 하나만 골라주세요!
           </h3>
+          <div className="text-sm text-gray-500 mb-4 text-center">
+            현재 선택: <span className="font-medium">{mood}</span>
+          </div>
 
           <div className="grid grid-cols-4 gap-3">
             {moodButtons.map((buttonText, index) => (
