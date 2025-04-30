@@ -6,7 +6,7 @@ export default {
       colors: {
         // 기존 배경
         lightBg: "#FFF6D8",
-        darkBg: "#36261B",
+        darkBg: "#1D1006",
         brown900: "#361D1C",
 
         // 🎨 라이트 모드 색상
@@ -20,6 +20,7 @@ export default {
         darkOrange: "#FFB34A",
         darkBrown: "#895000",
         darkCopper: "#B56732",
+        darkdark: "#36261B",
       },
     },
   },

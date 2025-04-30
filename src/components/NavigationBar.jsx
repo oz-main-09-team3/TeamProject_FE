@@ -9,11 +9,15 @@ export default function NavigationBar({
 }) {
   const navigate = useNavigate();
   const location = useLocation();
+
   const [isDark, setIsDark] = useState(
     () =>
       localStorage.getItem("theme") === "dark" ||
       window.matchMedia("(prefers-color-scheme: dark)").matches,
   );
+
+  const [isFriendsOpen, setIsFriendsOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -37,15 +41,15 @@ export default function NavigationBar({
         aria-label={label}
       >
         <div
-          className={`transition-transform duration-200 hover:scale-110 ${
-            isActive
-              ? "text-blue-500 dark:text-amber-400"
-              : "text-brown900 dark:text-white"
-          }`}
+          className={`transition-transform duration-200 hover:scale-110
+            ${
+              isActive
+                ? "text-lightOrange dark:text-darkOrange"
+                : "text-lighttext dark:text-darktext"
+            }`}
         >
           {children}
         </div>
-        {/* 툴팁 */}
         <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 whitespace-nowrap bg-black text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50">
           {label}
         </div>
@@ -53,15 +57,32 @@ export default function NavigationBar({
     );
   };
 
+  const handleFriendsClick = () => {
+    const nextState = !isFriendsOpen;
+    setIsFriendsOpen(nextState);
+    setIsNotificationsOpen(false);
+    onFriendsClick();
+  };
+
+  const handleNotificationsClick = () => {
+    const nextState = !isNotificationsOpen;
+    setIsNotificationsOpen(nextState);
+    setIsFriendsOpen(false);
+    onNotificationsClick();
+  };
+
   return (
     <div className="fixed top-0 left-0 w-full h-[72px] px-6 md:px-10 flex justify-end items-center gap-6 z-50 shadow-sm bg-lightBg dark:bg-darkBg transition-colors duration-300">
+      <div className="absolute inset-0 h-[72px] bg-lightBg dark:bg-darkdark z-[-1]" />
+
       <NavIcon to="/main" label="캘린더">
         <FaCalendarAlt size={22} />
       </NavIcon>
 
       <button
-        onClick={onFriendsClick}
-        className="relative group text-brown900 dark:text-white hover:scale-110 transition"
+        onClick={handleFriendsClick}
+        className={`relative group hover:scale-110 transition
+          ${isFriendsOpen ? "text-lightOrange dark:text-darkOrange" : "text-lighttext dark:text-darktext"}`}
         aria-label="친구 목록"
       >
         <FaUserFriends size={22} />
@@ -71,8 +92,9 @@ export default function NavigationBar({
       </button>
 
       <button
-        onClick={onNotificationsClick}
-        className="relative group text-brown900 dark:text-white hover:scale-110 transition"
+        onClick={handleNotificationsClick}
+        className={`relative group hover:scale-110 transition
+          ${isNotificationsOpen ? "text-lightOrange dark:text-darkOrange" : "text-lighttext dark:text-darktext"}`}
         aria-label="알림"
       >
         <FaBell size={22} />
@@ -91,10 +113,9 @@ export default function NavigationBar({
         </NavIcon>
       ))}
 
-      {/* 🌗 다크/라이트 토글 버튼 */}
       <button
         onClick={toggleTheme}
-        className="text-brown900 dark:text-white hover:scale-110 transition"
+        className="text-lighttext dark:text-darktext hover:scale-110 transition"
         aria-label="모드 전환"
       >
         {isDark ? <SunIcon size={22} /> : <MoonIcon size={22} />}

@@ -18,7 +18,7 @@ function MainPage() {
   ];
 
   return (
-    <div className="flex min-h-screen p-10 gap-8">
+    <div className="flex items-center justify-center min-h-screen p-10 gap-8">
       {/* 왼쪽 - 캘린더 영역 */}
       <div className="w-1/2 bg-white p-6 rounded-lg shadow-md flex flex-col">
         <MonthlyCalendar />
