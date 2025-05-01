@@ -2,11 +2,14 @@ import React, { useState, useEffect, useRef } from "react";
 import "@toast-ui/editor/dist/toastui-editor.css";
 import Editor from "@toast-ui/editor";
 import testimage from "../assets/profile.png";
+import Modal from "../components/Modal";
 
 const DiaryEditor = () => {
   const [mood, setMood] = useState("기본");
   const [originalContent, setOriginalContent] = useState("");
   const [isEditing, setIsEditing] = useState(true);
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const editorRef = useRef(null);
   const editorContainerRef = useRef(null);
   const moodImageSrc = testimage;
@@ -19,32 +22,44 @@ const DiaryEditor = () => {
   const handleMoodChange = (newMood) => setMood(newMood);
 
   const handleGoBack = () => {
-    if (
-      isEditing &&
-      window.confirm("저장하지 않은 변경사항이 있습니다. 나가시겠습니까?")
-    ) {
-      console.log("작성 취소, 뒤로가기");
+    if (isEditing) {
+      setIsCancelModalOpen(true);
     } else {
       console.log("뒤로가기");
     }
   };
 
   const handleSave = () => {
+    setIsSaveModalOpen(true);
+  };
+
+  const handleConfirmSave = () => {
     if (editorRef.current) {
       const content = editorRef.current.getMarkdown();
       console.log("저장된 내용:", content);
       console.log("선택된 감정:", mood);
-      alert("일기가 저장되었습니다.");
+      setIsSaveModalOpen(false);
     }
   };
 
+  const handleCancelSave = () => {
+    setIsSaveModalOpen(false);
+  };
+
   const handleCancel = () => {
-    if (window.confirm("작성을 취소하시겠습니까?")) {
-      if (editorRef.current) {
-        editorRef.current.setMarkdown(originalContent);
-      }
-      console.log("작성 취소");
+    setIsCancelModalOpen(true);
+  };
+
+  const handleConfirmCancel = () => {
+    if (editorRef.current) {
+      editorRef.current.setMarkdown(originalContent);
     }
+    console.log("작성 취소");
+    setIsCancelModalOpen(false);
+  };
+
+  const handleCancelModalClose = () => {
+    setIsCancelModalOpen(false);
   };
 
   useEffect(() => {
@@ -73,34 +88,10 @@ const DiaryEditor = () => {
   }, []);
 
   const moodButtons = [
-    "짜릿해",
-    "즐거움",
-    "사랑",
-    "기대감",
-    "자신감",
-    "기쁨",
-    "행복함",
-    "뿌듯함",
-    "츄릅",
-    "쑥스러움",
-    "인생..",
-    "꾸엑",
-    "지침",
-    "놀람",
-    "니가?",
-    "현타",
-    "그래요",
-    "당황",
-    "소노",
-    "슬픔",
-    "억울함",
-    "불안함",
-    "어이없음",
-    "울고싶음",
-    "우울함",
-    "안타까움",
-    "화남",
-    "열받음",
+    "짜릿해", "즐거움", "사랑", "기대감", "자신감", "기쁨", "행복함", "뿌듯함",
+    "츄릅", "쑥스러움", "인생..", "꾸엑", "지침", "놀람", "니가?", "현타",
+    "그래요", "당황", "소노", "슬픔", "억울함", "불안함", "어이없음", "울고싶음",
+    "우울함", "안타까움", "화남", "열받음",
   ];
 
   return (
@@ -163,6 +154,36 @@ const DiaryEditor = () => {
           </div>
         </div>
       </div>
+
+      {/* 저장 모달 */}
+      {isSaveModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+          <Modal
+            type="info"
+            title="일기 저장"
+            message="지금 내용을 저장하시겠습니까?"
+            confirmText="저장하기"
+            cancelText="취소"
+            onConfirm={handleConfirmSave}
+            onCancel={handleCancelSave}
+          />
+        </div>
+      )}
+
+      {/* 취소 모달 */}
+      {isCancelModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+          <Modal
+            type="warning"
+            title="작성 취소"
+            message="작성을 취소하시겠습니까?"
+            confirmText="취소하기"
+            cancelText="돌아가기"
+            onConfirm={handleConfirmCancel}
+            onCancel={handleCancelModalClose}
+          />
+        </div>
+      )}
     </div>
   );
 };
