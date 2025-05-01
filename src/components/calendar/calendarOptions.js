@@ -1,0 +1,45 @@
+export const calendarTheme = {
+  "common.saturday.color": "#888888",
+  "common.sunday.color": "#FF0000",
+  "common.dayName.saturday.color": "#888888",
+  "common.dayName.sunday.color": "#FF0000",
+  "month.dayname.height": "31px",
+  "month.dayname.borderLeft": "1px solid #e5e5e5",
+  "month.dayname.textAlign": "left",
+  "month.dayname.paddingLeft": "10px",
+  "month.day.fontSize": "16px",
+  "month.day.fontWeight": "400",
+  "month.day.textAlign": "center",
+  "month.sunday.color": "#FF0000",
+  "month.dayname.sunday.color": "#FF0000",
+  "month.holidayExceptThisMonth.color": "#f3acac",
+  "month.dayExceptThisMonth.color": "#bbb",
+  "month.weekend.backgroundColor": "#fafafa",
+  "month.schedule.borderRadius": "2px",
+  "month.schedule.height": "24px",
+  "month.schedule.marginTop": "2px",
+  "month.schedule.marginLeft": "10px",
+  "month.schedule.marginRight": "10px",
+};
+
+export const calendarOptions = {
+  view: "month",
+  defaultView: "month",
+  isReadOnly: false,
+  usageStatistics: false,
+  theme: calendarTheme,
+  month: {
+    daynames: ["일", "월", "화", "수", "목", "금", "토"],
+    startDayOfWeek: 0,
+    narrowWeekend: false,
+  },
+  calendars: [
+    {
+      id: "cal1",
+      name: "기본 캘린더",
+      color: "#ffffff",
+      backgroundColor: "#34c38f",
+      borderColor: "#34c38f",
+    },
+  ],
+};

@@ -1,0 +1,24 @@
+@layer base {
+  body {
+    @apply bg-lightBg text-lighttext dark:bg-darkdark dark:text-darktext transition-colors duration-300;
+  }
+
+  /* 반응형 텍스트 및 패딩 설정 */
+  @media (max-width: 767px) {
+    body {
+      @apply text-sm px-4;
+    }
+  }
+
+  @media (min-width: 768px) and (max-width: 1023px) {
+    body {
+      @apply text-base px-6;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    body {
+      @apply text-lg px-8;
+    }
+  }
+}

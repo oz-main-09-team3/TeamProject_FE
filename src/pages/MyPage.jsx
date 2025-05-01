@@ -14,7 +14,7 @@ export default function MyPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleConfirm = () => {
-    console.log("탈퇴 확인 로직 실행"); // 실제 탈퇴 로직
+    console.log("탈퇴 확인 로직 실행");
     setIsModalOpen(false);
   };
 
@@ -24,9 +24,8 @@ export default function MyPage() {
 
   return (
     <main className="flex items-center justify-center min-h-screen px-4">
-      {/* 전체 카드: 프로필 + 리스트 */}
-      <div className="w-full max-w-md bg-yl100 dark:bg-darktext rounded-3xl shadow-lg px-6 pt-[92px] pb-8 relative flex flex-col items-center">
-        {/* 감자 프로필 이미지 */}
+      <div className="section-container max-w-md relative pt-[92px] pb-8 flex flex-col items-center bg-yl100 dark:bg-darktext rounded-3xl">
+        {/* 프로필 이미지 */}
         <div className="absolute -top-[92px]">
           <div className="w-[184px] h-[184px] rounded-full overflow-hidden border-4 bg-lightBg dark:bg-darkdark shadow-md">
             <img
@@ -38,7 +37,7 @@ export default function MyPage() {
         </div>
 
         {/* 리스트 */}
-        <div className="w-full space-y-4 mt-6 ">
+        <div className="w-full space-y-4 mt-6">
           <RowCard
             emojiSrc="/profile.png"
             headerText="회원 정보"
@@ -70,6 +69,7 @@ export default function MyPage() {
         </div>
       </div>
 
+      {/* 탈퇴 확인 모달 */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
           <Modal

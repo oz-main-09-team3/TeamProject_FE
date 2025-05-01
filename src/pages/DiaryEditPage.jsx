@@ -110,24 +110,17 @@ const DiaryEditPage = () => {
               ←
             </button>
             <div className="flex space-x-3">
-              <button
-                className="py-2 px-4 bg-lightYellow dark:bg-darkCopper text-lighttext dark:text-white hover:bg-gray-300 dark:hover:bg-darkBrown rounded-md text-sm"
-                onClick={handleCancel}
-              >
+              <button className="btn btn-outline" onClick={handleCancel}>
                 취소
               </button>
-              <button
-                className="py-2 px-4 bg-lightOrange dark:bg-darkOrange text-white hover:brightness-110 rounded-md text-sm"
-                onClick={handleSave}
-              >
+              <button className="btn btn-primary" onClick={handleSave}>
                 저장
               </button>
             </div>
           </div>
 
           <div className="flex justify-end mb-6">
-            <div className="w-28 h-28 rounded-full border-2 flex justify-center items-center overflow-hidden relative">
-              <div className="absolute inset-0 rounded-full border-4"></div>
+            <div className="emoji-select-wrapper">
               <img
                 src={moodImageSrc}
                 alt="현재 기분"
@@ -137,11 +130,11 @@ const DiaryEditPage = () => {
           </div>
 
           <div className="flex justify-between items-center mb-4">
-            <div className="text-2xl font-bold">{formatDate()}</div>
-            <div className="text-sm text-gray-500">수정 중...</div>
+            <div className="editor-date">{formatDate()}</div>
+            <div className="editor-status">수정 중...</div>
           </div>
 
-          <div className="w-full bg-white rounded-lg border border-gray-200 shadow-sm mb-4">
+          <div className="w-full bg-white rounded-lg border border-gray-200 shadow-sm mb-4 dark:border-darktext">
             <div ref={editorContainerRef} className="min-h-[400px]" />
           </div>
 

@@ -1,0 +1,78 @@
+@layer components {
+  /* 📦 Cards */
+  .card-base {
+    @apply bg-lightBg hover:bg-lightYellow dark:bg-darkdark dark:hover:bg-darkBrown border rounded-lg shadow-sm p-4 transition cursor-pointer;
+  }
+
+  .card-padding {
+    @apply p-4 sm:p-5;
+  }
+
+  /* 🔘 Buttons */
+  .btn {
+    @apply py-2 px-4 rounded-md text-sm transition;
+  }
+
+  .btn-primary {
+    @apply bg-lightOrange dark:bg-darkOrange text-white hover:brightness-110;
+  }
+
+  .btn-outline {
+    @apply bg-lightYellow dark:bg-darkCopper text-lighttext dark:text-white hover:bg-gray-300 dark:hover:bg-darkBrown;
+  }
+
+  .form-button {
+    @apply p-3 text-sm h-[48px] rounded-lg;
+  }
+
+  .primary-button {
+    @apply bg-lightGold text-lighttext hover:bg-lightOrange 
+            dark:bg-darkOrange dark:text-darkdark dark:hover:bg-darkCopper 
+            dark:hover:text-yl100 px-4;
+  }
+
+  .secondary-button {
+    @apply bg-lightOrange text-lighttext hover:bg-lightGold 
+            dark:bg-darkCopper dark:text-yl100 dark:hover:text-darkdark 
+            dark:hover:bg-darkOrange px-4;
+  }
+
+  .back-button {
+    @apply p-3 bg-lightYellow dark:bg-darkCopper dark:text-darktext rounded-full text-lg w-10 h-10 flex items-center justify-center;
+  }
+
+  .calendar-nav-button {
+    @apply px-3 py-1 bg-lightYellow dark:bg-darkOrange dark:text-darkBg rounded-md text-sm font-medium hover:bg-lightGold dark:hover:bg-darkCopper;
+  }
+
+  /* ✍️ Forms */
+  .form-input {
+    @apply w-full p-3 text-sm border border-lightGold dark:border-darkOrange rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-300;
+  }
+
+  /* 🖼️ Images */
+  .emoji-img {
+    @apply w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover;
+  }
+
+  .profile-img {
+    @apply w-[184px] h-[184px] rounded-full overflow-hidden border-4 bg-lightBg dark:bg-darkdark shadow-md;
+  }
+
+  .emoji-select-wrapper {
+    @apply w-28 h-28 rounded-full border-2 flex justify-center items-center overflow-hidden relative;
+  }
+
+  /* 🧭 Icons / UI */
+  .nav-icon {
+    @apply relative group hover:scale-110 transition text-lighttext dark:text-darktext;
+  }
+
+  .nav-icon-active {
+    @apply text-lightOrange dark:text-darkOrange;
+  }
+
+  .tooltip {
+    @apply absolute bottom-full mb-1 left-1/2 -translate-x-1/2 whitespace-nowrap bg-black text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50;
+  }
+}

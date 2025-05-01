@@ -1,9 +1,7 @@
+@import "./styles/base.css";
+@import "./styles/layout.css";
+@import "./styles/components.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@layer base {
-  body {
-    @apply bg-lightBg text-brown900 dark:bg-darkdark dark:text-darktext transition-colors duration-300;
-  }
-}
