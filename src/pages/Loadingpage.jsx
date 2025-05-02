@@ -11,13 +11,16 @@ const KAKAO_CLIENT_ID = import.meta.env.VITE_KAKAO_CLIENT_ID;
 const NAVER_CLIENT_ID = import.meta.env.VITE_NAVER_CLIENT_ID;
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
-const redirectUriKakao = "http://localhost:5173/auth/callback/kakao";
-const redirectUriNaver = "http://localhost:5173/auth/callback/naver";
-const redirectUriGoogle = "http://localhost:5173/auth/callback/google";
+// 환경에 따라 다른 redirect URI 설정
+const BASE_URL = import.meta.env.VITE_BASE_URL || window.location.origin;
 
-const kakaoLoginUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_CLIENT_ID}&redirect_uri=${redirectUriKakao}&response_type=code`;
-const naverLoginUrl = `https://nid.naver.com/oauth2.0/authorize?client_id=${NAVER_CLIENT_ID}&redirect_uri=${redirectUriNaver}&response_type=code&state=randomstring`;
-const googleLoginUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${redirectUriGoogle}&response_type=code&scope=profile email&access_type=offline&prompt=consent`;
+const redirectUriKakao = `${BASE_URL}/auth/callback/kakao`;
+const redirectUriNaver = `${BASE_URL}/auth/callback/naver`;
+const redirectUriGoogle = `${BASE_URL}/auth/callback/google`;
+
+const kakaoLoginUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUriKakao)}&response_type=code`;
+const naverLoginUrl = `https://nid.naver.com/oauth2.0/authorize?client_id=${NAVER_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUriNaver)}&response_type=code&state=randomstring`;
+const googleLoginUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUriGoogle)}&response_type=code&scope=profile email&access_type=offline&prompt=consent`;
 
 const LoadingPage = () => {
   const [isDarkMode, setIsDarkMode] = useState(
@@ -89,13 +92,11 @@ const LoadingPage = () => {
         style={{ backgroundImage: `url(${getBackgroundImage()})` }}
       />
 
-      {/* 로그인 버튼 영역 */}
       <div className="absolute bottom-[20%] right-[20%] z-10 
                 md:bottom-[20%] md:right-[10%] 
                 sm:bottom-[50%] sm:right-[30%] 
                 max-sm:bottom-[5%] max-sm:right-[15%]">        
                 <div className="flex flex-row justify-center space-x-4">
-          {/* 카카오 로그인 */}
           <button
             className="w-20 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
             aria-label="카카오 로그인"
@@ -108,7 +109,6 @@ const LoadingPage = () => {
             />
           </button>
 
-          {/* 네이버 로그인 */}
           <button
             className="w-20 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
             aria-label="네이버 로그인"
@@ -121,7 +121,6 @@ const LoadingPage = () => {
             />
           </button>
 
-          {/* 구글 로그인 */}
           <button
             className="w-20 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
             aria-label="구글 로그인"
