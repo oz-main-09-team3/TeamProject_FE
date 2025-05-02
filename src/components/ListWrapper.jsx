@@ -6,7 +6,7 @@ export default function ListWrapper({ children }) {
                  shadow-2xl rounded-l-2xl p-6 overflow-y-auto z-40
                  transition-all
                  md:w-[360px] 
-                 sm:top-[72px] sm:right-0 sm:left-0 sm:w-full sm:h-[calc(100%-72px)] sm:rounded-none sm:p-4"
+                 sm:top-[72px] sm:right-0 sm:w-full sm:h-[calc(100%-72px)] sm:rounded-none sm:p-4"
     >
       {children}
     </div>
