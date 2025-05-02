@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { FaCalendarAlt, FaUserFriends, FaBell, FaUser } from "react-icons/fa";
-import { TestTube2Icon, SunIcon, MoonIcon } from "lucide-react";
+import { TestTube2Icon, SunIcon, MoonIcon, Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
 
 export default function NavigationBar({
@@ -18,6 +18,7 @@ export default function NavigationBar({
 
   const [isFriendsOpen, setIsFriendsOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -32,16 +33,23 @@ export default function NavigationBar({
 
   const toggleTheme = () => setIsDark((prev) => !prev);
 
-  const NavIcon = ({ to, label, children }) => {
+  const NavIcon = ({ to, label, children, onClick }) => {
     const isActive = location.pathname === to;
     return (
       <button
-        onClick={() => navigate(to)}
-        className="relative group"
+        onClick={() => {
+          if (onClick) {
+            onClick();
+          } else {
+            navigate(to);
+            setIsMobileMenuOpen(false);
+          }
+        }}
+        className="relative group flex items-center gap-3 w-full md:w-auto p-2 md:p-0"
         aria-label={label}
       >
         <div
-          className={`transition-transform duration-200 hover:scale-110
+          className={`transition-transform duration-200 md:hover:scale-110
             ${
               isActive
                 ? "text-lightOrange dark:text-darkOrange"
@@ -50,7 +58,8 @@ export default function NavigationBar({
         >
           {children}
         </div>
-        <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 whitespace-nowrap bg-black text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50">
+        <span className="md:hidden text-lighttext dark:text-darktext">{label}</span>
+        <div className="hidden md:block absolute bottom-full mb-1 left-1/2 -translate-x-1/2 whitespace-nowrap bg-black text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50">
           {label}
         </div>
       </button>
@@ -62,6 +71,7 @@ export default function NavigationBar({
     setIsFriendsOpen(nextState);
     setIsNotificationsOpen(false);
     onFriendsClick();
+    setIsMobileMenuOpen(false);
   };
 
   const handleNotificationsClick = () => {
@@ -69,62 +79,72 @@ export default function NavigationBar({
     setIsNotificationsOpen(nextState);
     setIsFriendsOpen(false);
     onNotificationsClick();
+    setIsMobileMenuOpen(false);
   };
 
   return (
     <div
-      className="fixed top-0 left-0 w-full h-[72px] px-4 sm:px-6 md:px-10 
-                flex justify-end items-center gap-3 sm:gap-4 md:gap-6 
-                z-50 shadow-sm bg-lightBg dark:bg-darkBg transition-colors duration-300 overflow-x-auto"
+      className="fixed top-0 left-0 w-full md:h-[72px] h-auto px-4 sm:px-6 md:px-10 
+                flex justify-end items-center
+                z-50 md:shadow-sm md:bg-lightBg md:dark:bg-darkBg transition-colors duration-300"
     >
-      {/* 배경 레이어 */}
-      <div className="absolute inset-0 h-[72px] bg-lightYellow dark:bg-darkBg z-[-1]" />
-
-      <NavIcon to="/main" label="캘린더">
-        <FaCalendarAlt size={22} />
-      </NavIcon>
-
+      <div className="hidden md:block absolute inset-0 h-[72px] bg-lightYellow dark:bg-darkBg z-[-1]" />
       <button
-        onClick={handleFriendsClick}
-        className={`relative group hover:scale-110 transition
-          ${isFriendsOpen ? "text-lightOrange dark:text-darkOrange" : "text-lighttext dark:text-darktext"}`}
-        aria-label="친구 목록"
+        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        className="md:hidden text-lighttext dark:text-darktext p-4 fixed top-2 right-4"
+        aria-label="메뉴 열기/닫기"
       >
-        <FaUserFriends size={22} />
-        <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 whitespace-nowrap bg-black text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50">
-          친구 목록
-        </div>
+        {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
       </button>
 
-      <button
-        onClick={handleNotificationsClick}
-        className={`relative group hover:scale-110 transition
-          ${isNotificationsOpen ? "text-lightOrange dark:text-darkOrange" : "text-lighttext dark:text-darktext"}`}
-        aria-label="알림"
+      <div
+        className={`${
+          isMobileMenuOpen ? "flex" : "hidden"
+        } md:flex flex-col md:flex-row fixed md:relative top-[64px] md:top-0 left-0 md:left-auto
+        w-full md:w-auto bg-lightBg dark:bg-darkBg md:bg-transparent
+        shadow-lg md:shadow-none p-4 md:p-0 gap-3 md:gap-4 lg:gap-6
+        transition-all duration-300 border-t md:border-0 border-gray-200 dark:border-gray-700`}
       >
-        <FaBell size={22} />
-        <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 whitespace-nowrap bg-black text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50">
-          알림
-        </div>
-      </button>
-
-      <NavIcon to="/mypage" label="마이페이지">
-        <FaUser size={22} />
-      </NavIcon>
-
-      {[2, 3, 4, 5].map((num) => (
-        <NavIcon key={num} to={`/test${num}`} label={`테스트 ${num}`}>
-          <TestTube2Icon size={22} />
+        <NavIcon to="/main" label="캘린더">
+          <FaCalendarAlt size={22} />
         </NavIcon>
-      ))}
 
-      <button
-        onClick={toggleTheme}
-        className="text-lighttext dark:text-darktext hover:scale-110 transition"
-        aria-label="모드 전환"
-      >
-        {isDark ? <SunIcon size={22} /> : <MoonIcon size={22} />}
-      </button>
+        <NavIcon 
+          label="친구 목록" 
+          onClick={handleFriendsClick}
+        >
+          <FaUserFriends size={22} />
+        </NavIcon>
+
+        <NavIcon 
+          label="알림" 
+          onClick={handleNotificationsClick}
+        >
+          <FaBell size={22} />
+        </NavIcon>
+
+        <NavIcon to="/mypage" label="마이페이지">
+          <FaUser size={22} />
+        </NavIcon>
+
+        {[2, 3, 4, 5].map((num) => (
+          <NavIcon key={num} to={`/test${num}`} label={`테스트 ${num}`}>
+            <TestTube2Icon size={22} />
+          </NavIcon>
+        ))}
+
+        <button
+          onClick={() => {
+            toggleTheme();
+            setIsMobileMenuOpen(false);
+          }}
+          className="flex items-center gap-3 p-2 md:p-0 text-lighttext dark:text-darktext md:hover:scale-110 transition w-full md:w-auto"
+          aria-label="모드 전환"
+        >
+          {isDark ? <SunIcon size={22} /> : <MoonIcon size={22} />}
+          <span className="md:hidden">모드 전환</span>
+        </button>
+      </div>
     </div>
   );
 }
