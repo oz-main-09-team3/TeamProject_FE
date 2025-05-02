@@ -1,5 +1,5 @@
 @layer components {
- .section-container {
+  .section-container {
     @apply max-w-6xl mx-auto p-4 sm:p-6 lg:p-8;
   }
 
