@@ -2,6 +2,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { FaCalendarAlt, FaUserFriends, FaBell, FaUser } from "react-icons/fa";
 import { TestTube2Icon, SunIcon, MoonIcon, Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
+import LogoD from "../assets/LogoD.png";
+import LogoL from "../assets/LogoL.png";
 
 export default function NavigationBar({
   onFriendsClick,
@@ -85,13 +87,28 @@ export default function NavigationBar({
   return (
     <div
       className="fixed top-0 left-0 w-full md:h-[72px] h-auto px-4 sm:px-6 md:px-10 
-                flex justify-end items-center
+                flex items-center justify-between
                 z-50 md:shadow-sm md:bg-lightBg md:dark:bg-darkBg transition-colors duration-300"
     >
       <div className="hidden md:block absolute inset-0 h-[72px] bg-lightYellow dark:bg-darkBg z-[-1]" />
+      
+      <div 
+        className="cursor-pointer flex items-center" 
+        onClick={() => {
+          navigate('/main');
+          setIsMobileMenuOpen(false);
+        }}
+      >
+        <img 
+          src={isDark ? LogoD : LogoL} 
+          alt="Logo" 
+          className="h-10 w-auto"
+        />
+      </div>
+
       <button
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        className="md:hidden text-lighttext dark:text-darktext p-4 fixed top-2 right-4"
+        className="md:hidden text-lighttext dark:text-darktext p-4"
         aria-label="메뉴 열기/닫기"
       >
         {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
