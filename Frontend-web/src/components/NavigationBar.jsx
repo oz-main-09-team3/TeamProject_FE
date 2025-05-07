@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { FaCalendarAlt, FaUserFriends, FaBell, FaUser } from "react-icons/fa";
 import { TestTube2Icon, SunIcon, MoonIcon, Menu, X } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import LogoD from "../assets/LogoD.png";
 import LogoL from "../assets/LogoL.png";
 
@@ -21,6 +21,8 @@ export default function NavigationBar({
   const [isFriendsOpen, setIsFriendsOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const friendsButtonRef = useRef(null);
+  const notificationsButtonRef = useRef(null);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -33,12 +35,41 @@ export default function NavigationBar({
     }
   }, [isDark]);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        isFriendsOpen && 
+        friendsButtonRef.current && 
+        !friendsButtonRef.current.contains(event.target)
+      ) {
+        setIsFriendsOpen(false);
+        onFriendsClick(); 
+      }
+      
+      if (
+        isNotificationsOpen && 
+        notificationsButtonRef.current && 
+        !notificationsButtonRef.current.contains(event.target)
+      ) {
+        setIsNotificationsOpen(false);
+        onNotificationsClick(); 
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isFriendsOpen, isNotificationsOpen, onFriendsClick, onNotificationsClick]);
+
   const toggleTheme = () => setIsDark((prev) => !prev);
 
-  const NavIcon = ({ to, label, children, onClick }) => {
+  const NavIcon = ({ to, label, children, onClick, ref }) => {
     const isActive = location.pathname === to;
     return (
       <button
+        ref={ref}
         onClick={() => {
           if (onClick) {
             onClick();
@@ -126,19 +157,23 @@ export default function NavigationBar({
           <FaCalendarAlt size={22} />
         </NavIcon>
 
-        <NavIcon 
-          label="친구 목록" 
-          onClick={handleFriendsClick}
-        >
-          <FaUserFriends size={22} />
-        </NavIcon>
+        <div ref={friendsButtonRef}>
+          <NavIcon 
+            label="친구 목록" 
+            onClick={handleFriendsClick}
+          >
+            <FaUserFriends size={22} />
+          </NavIcon>
+        </div>
 
-        <NavIcon 
-          label="알림" 
-          onClick={handleNotificationsClick}
-        >
-          <FaBell size={22} />
-        </NavIcon>
+        <div ref={notificationsButtonRef}>
+          <NavIcon 
+            label="알림" 
+            onClick={handleNotificationsClick}
+          >
+            <FaBell size={22} />
+          </NavIcon>
+        </div>
 
         <NavIcon to="/mypage" label="마이페이지">
           <FaUser size={22} />
