@@ -7,6 +7,16 @@ function MonthlyCalendar() {
   const calendarRef = useRef(null);
   const [currentDate, setCurrentDate] = useState(new Date());
 
+  // 수정된 캘린더 옵션 - 일정 관련 뷰 비활성화
+  const modifiedOptions = {
+    ...calendarOptions,
+    isReadOnly: true,  // 읽기 전용 모드
+    scheduleView: false,  // 일정 뷰 비활성화
+    taskView: false,  // 작업 뷰 비활성화
+    useDetailPopup: false,  // 상세 팝업 비활성화
+    useCreationPopup: false,  // 생성 팝업 비활성화
+  };
+
   useEffect(() => {
     const styleEl = document.createElement("style");
     styleEl.innerHTML = `
@@ -38,6 +48,11 @@ function MonthlyCalendar() {
       .toastui-calendar-grid-row {
         display: grid !important;
         grid-template-columns: repeat(7, 1fr) !important;
+      }
+      
+      /* 파란색 선택 배경 제거 */
+      .toastui-calendar-daygrid-cell.toastui-calendar-selected {
+        background-color: transparent !important;
       }
     `;
     document.head.appendChild(styleEl);
@@ -102,7 +117,7 @@ function MonthlyCalendar() {
           ref={calendarRef}
           view="month"
           className="w-full h-full"
-          {...calendarOptions}
+          {...modifiedOptions}
         />
       </div>
     </div>
