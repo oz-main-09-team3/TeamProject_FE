@@ -7,13 +7,14 @@ import loadingWebLight from "../assets/LoadingPage.png";
 import kakaoLoginImg from "../assets/kakaotalk.png";
 import naverLoginImg from "../assets/btnW_아이콘사각.png";
 import googleLoginImg from "../assets/web_light_sq_na@1x.png";
+import { SunIcon, MoonIcon } from "lucide-react";
 
 const KAKAO_CLIENT_ID = import.meta.env.VITE_KAKAO_CLIENT_ID;
 const NAVER_CLIENT_ID = import.meta.env.VITE_NAVER_CLIENT_ID;
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 // 환경에 따라 다른 redirect URI 설정
-const BASE_URL = import.meta.env.VITE_BASE_URL || window.location.origin;
+const BASE_URL = import.meta.env.VITE_BASE_URL || '';
 
 const redirectUriKakao = `${BASE_URL}/auth/callback/kakao`;
 const redirectUriNaver = `${BASE_URL}/auth/callback/naver`;
@@ -23,60 +24,53 @@ const kakaoLoginUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO
 const naverLoginUrl = `https://nid.naver.com/oauth2.0/authorize?client_id=${NAVER_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUriNaver)}&response_type=code&state=randomstring`;
 const googleLoginUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUriGoogle)}&response_type=code&scope=profile email&access_type=offline&prompt=consent`;
 
+// 미디어 쿼리 훅
+const useMediaQuery = (query) => {
+  const [matches, setMatches] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = matchMedia(query);
+    
+    // 초기값 설정
+    setMatches(mediaQuery.matches);
+    
+    // 리스너 함수
+    const handleChange = (event) => {
+      setMatches(event.matches);
+    };
+    
+    // 리스너 추가
+    mediaQuery.addEventListener('change', handleChange);
+    
+    // 컴포넌트 언마운트 시 리스너 제거
+    return () => {
+      mediaQuery.removeEventListener('change', handleChange);
+    };
+  }, [query]);
+  
+  return matches;
+};
+
+// LoadingPage 컴포넌트
 const LoadingPage = () => {
-  const [isDarkMode, setIsDarkMode] = useState(
-    () =>
-      localStorage.getItem("theme") === "dark" ||
-      window.matchMedia("(prefers-color-scheme: dark)").matches
-  );
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const savedTheme = localStorage.getItem("theme");
+    const prefersDarkMode = matchMedia('(prefers-color-scheme: dark)').matches;
+    return savedTheme === "dark" || (savedTheme === null && prefersDarkMode);
+  });
 
+  // 테마 변경 시 effect
   useEffect(() => {
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (
-          mutation.attributeName === "class" &&
-          mutation.target === document.documentElement
-        ) {
-          const hasDarkClass = document.documentElement.classList.contains("dark");
-          setIsDarkMode(hasDarkClass);
-        }
-      });
-    });
-
-    observer.observe(document.documentElement, { attributes: true });
-
-    const handleStorageChange = (e) => {
-      if (e.key === "theme") {
-        setIsDarkMode(e.newValue === "dark");
-      }
-    };
-    window.addEventListener("storage", handleStorageChange);
-
-    setIsDarkMode(
-      localStorage.getItem("theme") === "dark" ||
-      (localStorage.getItem("theme") === null &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches)
-    );
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("storage", handleStorageChange);
-    };
-  }, []);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
-    
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
+    const htmlElement = document.documentElement;
+    if (isDarkMode) {
+      htmlElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      htmlElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  }, [isDarkMode]);
 
   const getBackgroundImage = () => {
     if (isMobile) {
@@ -86,17 +80,35 @@ const LoadingPage = () => {
     }
   };
 
+  const toggleTheme = () => {
+    setIsDarkMode(prev => !prev);
+  };
+
+  const handleLogin = (url) => {
+    document.location.href = url;
+  };
+
   return (
     <div className="relative flex justify-center items-center w-screen h-screen overflow-hidden">
-      <Link 
-        to="/main" 
-        className="absolute top-6 right-6 z-50 px-3 py-1 text-sm border border-gray-300 rounded-md shadow-sm transition-all duration-200 hover:shadow-md dark:border-gray-600 dark:text-gray-200 text-gray-700"
-      >
-        메인페이지
-      </Link>
+      <div className="absolute top-6 right-6 z-50 flex items-center space-x-4">
+        <button
+          onClick={toggleTheme}
+          className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          aria-label={isDarkMode ? "라이트 모드로 전환" : "다크 모드로 전환"}
+        >
+          {isDarkMode ? <SunIcon className="w-5 h-5" /> : <MoonIcon className="w-5 h-5" />}
+        </button>
+        
+        <Link 
+          to="/main" 
+          className="px-3 py-1 text-sm border border-gray-300 rounded-md shadow-sm transition-all duration-200 hover:shadow-md dark:border-gray-600 dark:text-gray-200 text-gray-700"
+        >
+          메인페이지
+        </Link>
+      </div>
 
       <div
-        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
+        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat transition-all duration-300"
         style={{ backgroundImage: `url(${getBackgroundImage()})` }}
       />
 
@@ -104,11 +116,11 @@ const LoadingPage = () => {
                 md:bottom-[20%] md:right-[10%] 
                 sm:bottom-[50%] sm:right-[30%] 
                 max-sm:bottom-[5%] max-sm:right-[15%]">        
-                <div className="flex flex-row justify-center space-x-4">
+        <div className="flex flex-row justify-center space-x-4">
           <button
             className="w-20 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
             aria-label="카카오 로그인"
-            onClick={() => (window.location.href = kakaoLoginUrl)}
+            onClick={() => handleLogin(kakaoLoginUrl)}
           >
             <img
               src={kakaoLoginImg}
@@ -120,7 +132,7 @@ const LoadingPage = () => {
           <button
             className="w-20 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
             aria-label="네이버 로그인"
-            onClick={() => (window.location.href = naverLoginUrl)}
+            onClick={() => handleLogin(naverLoginUrl)}
           >
             <img
               src={naverLoginImg}
@@ -132,7 +144,7 @@ const LoadingPage = () => {
           <button
             className="w-20 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
             aria-label="구글 로그인"
-            onClick={() => (window.location.href = googleLoginUrl)}
+            onClick={() => handleLogin(googleLoginUrl)}
           >
             <img
               src={googleLoginImg}
