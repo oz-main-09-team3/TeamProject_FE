@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom"; 
 import loadingLight from "../assets/Phone - l.svg";
 import loadingDark from "../assets/Phone - D.svg";
 import loadingWebDark from "../assets/LoadingPageD.png";
@@ -87,6 +88,13 @@ const LoadingPage = () => {
 
   return (
     <div className="relative flex justify-center items-center w-screen h-screen overflow-hidden">
+      <Link 
+        to="/main" 
+        className="absolute top-6 right-6 z-50 px-3 py-1 text-sm border border-gray-300 rounded-md shadow-sm transition-all duration-200 hover:shadow-md dark:border-gray-600 dark:text-gray-200 text-gray-700"
+      >
+        메인페이지
+      </Link>
+
       <div
         className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${getBackgroundImage()})` }}
