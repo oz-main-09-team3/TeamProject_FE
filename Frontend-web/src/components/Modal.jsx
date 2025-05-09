@@ -1,3 +1,4 @@
+import React from 'react';
 import { XCircle, CheckCircle, AlertTriangle, Info } from "lucide-react";
 
 const ICON_MAP = {
@@ -23,43 +24,66 @@ const ICON_MAP = {
   },
 };
 
-export default function Modal({
-  type = "info",
-  title = "알림",
-  message = "",
-  confirmText = "확인",
-  cancelText = "취소",
+/**
+ * 모달 컴포넌트
+ * @param {Object} props - 컴포넌트 props
+ * @param {boolean} props.isOpen - 모달 표시 여부
+ * @param {Function} props.onClose - 모달 닫기 함수
+ * @param {string} props.title - 모달 제목
+ * @param {string} props.content - 모달 내용
+ * @param {string} props.confirmText - 확인 버튼 텍스트
+ * @param {string} props.cancelText - 취소 버튼 텍스트
+ * @param {Function} props.onConfirm - 확인 버튼 클릭 시 실행할 함수
+ * @param {Function} props.onCancel - 취소 버튼 클릭 시 실행할 함수
+ * @param {boolean} props.isDanger - 위험한 작업인지 여부
+ * @returns {JSX.Element} 모달 컴포넌트
+ */
+const Modal = ({
+  isOpen,
+  onClose,
+  title,
+  content,
+  confirmText,
+  cancelText,
   onConfirm,
   onCancel,
-}) {
-  const { icon, confirmStyle, cancelStyle } = ICON_MAP[type];
+  isDanger = false
+}) => {
+  if (!isOpen) return null;
+
+  const { icon, confirmStyle, cancelStyle } = ICON_MAP[isDanger ? 'error' : 'info'];
 
   return (
-    <div className="bg-white w-[420px] min-h-[200px] p-6 rounded-[8px] shadow-lg flex flex-col justify-between">
-      {/* 내용 */}
-      <div className="flex items-start gap-3">
-        {icon}
-        <div>
-          <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
-          <p className="text-sm text-gray-700 mt-1">{message}</p>
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="fixed inset-0 bg-black bg-opacity-50" onClick={onClose} />
+      <div className="relative bg-white w-[420px] min-h-[200px] p-6 rounded-[8px] shadow-lg flex flex-col justify-between">
+        {/* 내용 */}
+        <div className="flex items-start gap-3">
+          {icon}
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+            <p className="text-sm text-gray-700 mt-1">{content}</p>
+          </div>
         </div>
-      </div>
 
-      {/* 버튼 */}
-      <div className="flex justify-end gap-3 mt-6">
-        <button
-          onClick={onCancel}
-          className={`px-4 py-2 rounded text-sm font-medium ${cancelStyle}`}
-        >
-          {cancelText}
-        </button>
-        <button
-          onClick={onConfirm}
-          className={`px-4 py-2 rounded text-sm font-medium ${confirmStyle}`}
-        >
-          {confirmText}
-        </button>
+        {/* 버튼 */}
+        <div className="flex justify-end gap-3 mt-6">
+          <button
+            onClick={onCancel}
+            className={`px-4 py-2 rounded text-sm font-medium ${cancelStyle}`}
+          >
+            {cancelText}
+          </button>
+          <button
+            onClick={onConfirm}
+            className={`px-4 py-2 rounded text-sm font-medium ${confirmStyle}`}
+          >
+            {confirmText}
+          </button>
+        </div>
       </div>
     </div>
   );
-}
+};
+
+export default Modal;
