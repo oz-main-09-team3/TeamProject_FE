@@ -84,6 +84,15 @@ const DiaryEditPage = () => {
     setIsSavedModalOpen(false);
   };
 
+  const handleEdit = () => {
+    setIsEditModalOpen(true);
+  };
+
+  const handleConfirmEdit = () => {
+    setIsEditModalOpen(false);
+    navigate(`/diary/edit/${id}`);
+  };
+
   return (
     <div className="min-h-screen pt-20 text-lighttext dark:text-darkBrown transition-colors duration-300 flex justify-center items-center px-4 py-8">
       <div className="w-full max-w-6xl bg-white shadow-md rounded-xl flex flex-col md:flex-row overflow-hidden">
