@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build_web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Frontend-web  
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: Frontend-web/package-lock.json  
+    
+    - name: Install dependencies
+      run: npm install
+    
+    - name: Build
+      run: npm run build
+
+  build_app:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Frontend-app  
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: Frontend-app/package-lock.json 
+    
+    - name: Install dependencies
+      run: npm install
+    
+    - name: Build
+      run: npm run build
