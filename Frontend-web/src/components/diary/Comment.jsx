@@ -2,6 +2,7 @@ import React from 'react';
 import keyboardReturn from "../../assets/keyboard_return.png";
 import likeButton from "../../assets/like_button.png";
 import sendIcon from "../../assets/Send.png";
+import testimage from "../../assets/profile.png";
 import { getReplyParentUserNickname, organizeReplies } from '../../utils/replyUtils';
 
 /**
@@ -27,28 +28,11 @@ const Comment = ({
       <div className="pb-3">
         <div className="flex items-start gap-2 mb-2">
           <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
-            {comment.profileImg ? (
-              <img
-                src={comment.profileImg}
-                alt="프로필"
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-              </svg>
-            )}
+            <img
+              src={comment.profileImg ? comment.profileImg : testimage}
+              alt="프로필"
+              className="w-full h-full object-cover"
+            />
           </div>
           <div className="flex-grow">
             <div className="flex justify-between items-center mb-1">
@@ -126,7 +110,7 @@ const Comment = ({
             </div>
             <input
               type="text"
-              className="flex-grow border border-gray-300 rounded-full px-4 py-2 text-sm"
+              className="flex-grow border border-gray-300 rounded-full px-4 py-2 text-sm text-lighttext dark:text-darkbg"
               placeholder={`${comment.userNickname}님에게 답글 작성...`}
               value={newReply}
               onChange={(e) => setNewReply(e.target.value)}
@@ -140,16 +124,8 @@ const Comment = ({
           </form>
         </div>
       )}
-
-      {showReplies[comment.id] && comment.replies && comment.replies.length > 0 && (
-        <div className="mt-3 pl-8 border-t border-gray-100 pt-3">
-          {organizeReplies(comment.replies).map(reply => 
-            renderReply(reply, comment.id)
-          )}
-        </div>
-      )}
     </div>
   );
 };
 
-export default Comment; 
+export default Comment;
