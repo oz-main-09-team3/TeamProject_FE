@@ -1,6 +1,14 @@
+@font-face {
+  font-family: 'GangwonEduSaeeum_OTFMediumA';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2201-2@1.0/GangwonEduSaeeum_OTFMediumA.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
 @layer base {
   body {
     @apply bg-lightBg text-lighttext dark:bg-darkdark dark:text-darktext transition-colors duration-300;
+  font-family: 'GangwonEduSaeeum_OTFMediumA', sans-serif;
   }
 
   /* 반응형 텍스트 및 패딩 설정 */
