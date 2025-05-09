@@ -15,6 +15,7 @@ import OAuthCallback from "./pages/OAuthCallback";
 import ListWrapper from "./components/ListWrapper";
 import FriendDiaryView from "./pages/FriendDiaryView";
 import DiaryEditPage from "./pages/DiaryEditPage";
+import DiaryDetailPage from "./pages/DiaryDetailPage";
 
 function AppLayoutWithNavbar() {
   const [showFriends, setShowFriends] = useState(false);
@@ -41,16 +42,10 @@ function AppLayoutWithNavbar() {
         <Route path="/mypage/chart" element={<ChartPage />} />
         <Route path="/mypage/qrcode" element={<FriendInviteSystem />} />
         <Route path="/auth/callback/:provider" element={<OAuthCallback />} />
-        
-        {import.meta.env.DEV ? (
-          <Route path="test3" element={<DiaryEditor />} />
-        ) : null}
-        {import.meta.env.DEV ? (
-          <Route path="test4" element={<FriendDiaryView />} />
-        ) : null}
-        {import.meta.env.DEV ? (
-          <Route path="test5" element={<DiaryEditPage />} />
-        ) : null}
+        <Route path="/test2" element={<DiaryDetailPage />} />
+        <Route path="/test3" element={<DiaryEditor />} />
+        <Route path="/test4" element={<FriendDiaryView />} />
+        <Route path="/test5" element={<DiaryEditPage />} />
         <Route path="*" element={<Navigate to="/main" />} />
       </Routes>
 
