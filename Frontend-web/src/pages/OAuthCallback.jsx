@@ -1,4 +1,3 @@
-/*
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -94,7 +93,7 @@ export default function OAuthCallback() {
     </div>
   );
 }
-  */
+/*
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
@@ -142,3 +141,4 @@ export default function OAuthCallback() {
     </div>
   );
 }
+  */
