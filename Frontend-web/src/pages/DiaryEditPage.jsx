@@ -1,20 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 import "@toast-ui/editor/dist/toastui-editor.css";
 import MoodButton from "../components/diary/MoodButton";
 import { useDiaryEditor } from "../hooks/useDiaryEditor";
 import Modal from "../components/Modal";
 import { ChevronLeft, Save } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 /**
  * 일기 수정 페이지 컴포넌트
  * @returns {JSX.Element} 일기 수정 페이지
  */
 const DiaryEditPage = () => {
+  const navigate = useNavigate();
+  const [isSavedModalOpen, setIsSavedModalOpen] = useState(false);
   const {
     mood,
     isEditing,
-    isSaveModalOpen,
     isCancelModalOpen,
+    isSaveModalOpen,
     editorContainerRef,
     formatDate,
     handleMoodChange,
@@ -24,6 +27,7 @@ const DiaryEditPage = () => {
     handleCancelSave,
     handleConfirmCancel,
     handleCancelModalClose,
+    setIsSaveModalOpen,
   } = useDiaryEditor('');
 
   // 기분 옵션 배열
@@ -58,6 +62,28 @@ const DiaryEditPage = () => {
     { value: '열받음', label: '열받음' }
   ];
 
+  // 모달 닫기 핸들러 (뒤로가기)
+  const handleCancelModalCloseAndGoBack = () => {
+    handleCancelModalClose();
+    navigate(-1);
+  };
+
+  // 모달만 닫기
+  const handleOnlyCloseModal = () => {
+    handleCancelModalClose();
+  };
+
+  // 저장 확인 모달에서 '저장' 클릭 시 실행
+  const handleConfirmSaveAndShowSaved = () => {
+    handleConfirmSave();
+    setIsSavedModalOpen(true);
+  };
+
+  // 저장 완료 모달 닫기
+  const handleCloseSavedModal = () => {
+    setIsSavedModalOpen(false);
+  };
+
   return (
     <div className="min-h-screen pt-20 text-lighttext dark:text-darkBrown transition-colors duration-300 flex justify-center items-center px-4 py-8">
       <div className="w-full max-w-6xl bg-white shadow-md rounded-xl flex flex-col md:flex-row overflow-hidden">
@@ -73,7 +99,7 @@ const DiaryEditPage = () => {
               <div className="flex gap-2">
                 <button
                   className="w-10 h-10 bg-lightYellow dark:bg-darkCopper dark:text-darktext rounded-full flex items-center justify-center hover:bg-lightYellow/80 dark:hover:bg-darkCopper/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  onClick={handleSave}
+                  onClick={() => setIsSaveModalOpen(true)}
                   disabled={!isEditing}
                 >
                   <Save className="w-5 h-5" />
@@ -117,26 +143,38 @@ const DiaryEditPage = () => {
       </div>
 
       <Modal
+        isOpen={isCancelModalOpen}
+        onClose={handleOnlyCloseModal}
+        title="작성을 취소하시겠습니까?"
+        content="작성 중인 내용이 저장되지 않습니다."
+        confirmText="취소"
+        cancelText="계속 작성"
+        onConfirm={handleCancelModalCloseAndGoBack}
+        onCancel={handleOnlyCloseModal}
+        isDanger={true}
+      />
+
+      <Modal
         isOpen={isSaveModalOpen}
         onClose={handleCancelSave}
         title="저장하시겠습니까?"
         content="작성한 내용이 저장됩니다."
         confirmText="저장"
         cancelText="취소"
-        onConfirm={handleConfirmSave}
+        onConfirm={handleConfirmSaveAndShowSaved}
         onCancel={handleCancelSave}
       />
 
       <Modal
-        isOpen={isCancelModalOpen}
-        onClose={handleCancelModalClose}
-        title="작성을 취소하시겠습니까?"
-        content="작성 중인 내용이 저장되지 않습니다."
-        confirmText="취소"
-        cancelText="계속 작성"
-        onConfirm={handleConfirmCancel}
-        onCancel={handleCancelModalClose}
-        isDanger={true}
+        isOpen={isSavedModalOpen}
+        onClose={handleCloseSavedModal}
+        title="저장 완료"
+        content="저장되었습니다."
+        confirmText="확인"
+        cancelText=""
+        onConfirm={handleCloseSavedModal}
+        onCancel={handleCloseSavedModal}
+        type="success"
       />
     </div>
   );

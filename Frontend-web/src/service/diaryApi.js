@@ -1,4 +1,4 @@
-import api from "./axiosInstance";
+import api from "./axios";
 
 // 일기 전체 조회
 export const fetchDiaries = () => api.get("/api/diary/");

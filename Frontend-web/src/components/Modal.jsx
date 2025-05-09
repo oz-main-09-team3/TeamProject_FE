@@ -1,5 +1,6 @@
 import React from 'react';
 import { XCircle, CheckCircle, AlertTriangle, Info } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
 
 const ICON_MAP = {
   error: {
@@ -36,6 +37,7 @@ const ICON_MAP = {
  * @param {Function} props.onConfirm - 확인 버튼 클릭 시 실행할 함수
  * @param {Function} props.onCancel - 취소 버튼 클릭 시 실행할 함수
  * @param {boolean} props.isDanger - 위험한 작업인지 여부
+ * @param {string} props.type - 모달 타입 (error, success, warning, info)
  * @returns {JSX.Element} 모달 컴포넌트
  */
 const Modal = ({
@@ -47,11 +49,19 @@ const Modal = ({
   cancelText,
   onConfirm,
   onCancel,
-  isDanger = false
+  isDanger = false,
+  type = 'info'
 }) => {
+  const navigate = useNavigate();
+
   if (!isOpen) return null;
 
-  const { icon, confirmStyle, cancelStyle } = ICON_MAP[isDanger ? 'error' : 'info'];
+  const { icon, confirmStyle, cancelStyle } = ICON_MAP[type];
+
+  const handleCancelModalCloseAndGoBack = () => {
+    onCancel();
+    navigate(-1);
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -68,12 +78,14 @@ const Modal = ({
 
         {/* 버튼 */}
         <div className="flex justify-end gap-3 mt-6">
-          <button
-            onClick={onCancel}
-            className={`px-4 py-2 rounded text-sm font-medium ${cancelStyle}`}
-          >
-            {cancelText}
-          </button>
+          {cancelText && (
+            <button
+              onClick={onCancel}
+              className={`px-4 py-2 rounded text-sm font-medium ${cancelStyle}`}
+            >
+              {cancelText}
+            </button>
+          )}
           <button
             onClick={onConfirm}
             className={`px-4 py-2 rounded text-sm font-medium ${confirmStyle}`}
