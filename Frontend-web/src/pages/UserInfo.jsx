@@ -35,7 +35,7 @@ export default function UserInfo() {
           </div>
           <div className="flex justify-between">
             <span className="font-semibold">생년월일</span>
-            <span>1997-04-17</span> {/* 🎂 생년월일 추가 */}
+            <span>1997-04-17</span>
           </div>
         </div>
 
