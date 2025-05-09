@@ -1,4 +1,3 @@
-/*
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom"; 
 import loadingLight from "../assets/Phone - l.svg";
@@ -160,7 +159,7 @@ const LoadingPage = () => {
 };
 
 export default LoadingPage;
-*/
+/*
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom"; 
 import loadingLight from "../assets/Phone - l.svg";
@@ -320,3 +319,4 @@ const LoadingPage = () => {
 };
 
 export default LoadingPage;
+*/
