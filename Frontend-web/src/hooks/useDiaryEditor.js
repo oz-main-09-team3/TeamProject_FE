@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import Editor from '@toast-ui/editor';
+// import { updateDiary } from '../service/diaryApi';
 
 /**
  * 일기 에디터 관련 로직을 관리하는 커스텀 훅
@@ -48,9 +49,27 @@ export const useDiaryEditor = (initialContent = '') => {
   /**
    * 저장 확인 핸들러
    */
-  const handleConfirmSave = () => {
-    // TODO: API 호출하여 저장
-    setIsSaveModalOpen(false);
+  const handleConfirmSave = async () => {
+    try {
+      const content = editorRef.current?.getInstance().getMarkdown() || '';
+      const diaryData = {
+        content,
+        mood,
+        date: formatDate()
+      };
+      
+      // TODO: API 연결 후 주석 해제
+      // const diaryId = 1; // 임시로 1로 설정
+      // await updateDiary(diaryId, diaryData);
+      
+      console.log('저장할 데이터:', diaryData); // 임시로 데이터 확인용
+      
+      setIsSaveModalOpen(false);
+      setIsEditing(false);
+    } catch (error) {
+      console.error('일기 저장 중 오류:', error);
+      alert('일기 저장 중 오류가 발생했습니다.');
+    }
   };
 
   /**
@@ -136,5 +155,6 @@ export const useDiaryEditor = (initialContent = '') => {
     handleCancelSave,
     handleConfirmCancel,
     handleCancelModalClose,
+    setIsSaveModalOpen,
   };
 }; 

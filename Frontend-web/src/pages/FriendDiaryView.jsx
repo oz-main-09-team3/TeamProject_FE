@@ -36,6 +36,7 @@ const FriendDiaryView = () => {
 
   const [likedComments, setLikedComments] = useState({});
   const [isReplying, setIsReplying] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const navigate = useNavigate();
 
@@ -77,6 +78,15 @@ const FriendDiaryView = () => {
     setIsReplying(false);
     setNewReply("");
     handleReplyClick(null);
+  };
+
+  const handleCancelModalClose = () => {
+    setIsModalOpen(false);
+    navigate(-1);
+  };
+
+  const handleOnlyCloseModal = () => {
+    setIsModalOpen(false);
   };
 
   const renderReply = (reply, commentId, level = 0) => (
