@@ -1,92 +1,37 @@
-import React, { useState, useEffect, useRef } from "react";
+import React from "react";
 import "@toast-ui/editor/dist/toastui-editor.css";
-import Editor from "@toast-ui/editor";
 import testimage from "../assets/profile.png";
 import Modal from "../components/Modal";
+import MoodButton from "../components/diary/MoodButton";
+import { useDiaryEditor } from "../hooks/useDiaryEditor";
 
+/**
+ * 일기 작성 페이지 컴포넌트
+ * @returns {JSX.Element} 일기 작성 페이지
+ */
 const DiaryEditor = () => {
-  const [mood, setMood] = useState("기본");
-  const [originalContent, setOriginalContent] = useState("");
-  const [isEditing, setIsEditing] = useState(true);
-  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
-  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
-  const editorRef = useRef(null);
-  const editorContainerRef = useRef(null);
+  // useDiaryEditor 훅을 사용하여 에디터 관련 로직 관리
+  const {
+    mood,
+    isEditing,
+    isSaveModalOpen,
+    isCancelModalOpen,
+    editorContainerRef,
+    formatDate,
+    handleMoodChange,
+    handleGoBack,
+    handleSave,
+    handleConfirmSave,
+    handleCancelSave,
+    handleCancel,
+    handleConfirmCancel,
+    handleCancelModalClose,
+  } = useDiaryEditor();
+
+  // 감정 아이콘 이미지 소스
   const moodImageSrc = testimage;
 
-  const formatDate = () => {
-    const today = new Date();
-    return `${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, "0")}.${String(today.getDate()).padStart(2, "0")}`;
-  };
-
-  const handleMoodChange = (newMood) => setMood(newMood);
-
-  const handleGoBack = () => {
-    if (isEditing) {
-      setIsCancelModalOpen(true);
-    } else {
-      console.log("뒤로가기");
-    }
-  };
-
-  const handleSave = () => {
-    setIsSaveModalOpen(true);
-  };
-
-  const handleConfirmSave = () => {
-    if (editorRef.current) {
-      const content = editorRef.current.getMarkdown();
-      console.log("저장된 내용:", content);
-      console.log("선택된 감정:", mood);
-      setIsSaveModalOpen(false);
-    }
-  };
-
-  const handleCancelSave = () => {
-    setIsSaveModalOpen(false);
-  };
-
-  const handleCancel = () => {
-    setIsCancelModalOpen(true);
-  };
-
-  const handleConfirmCancel = () => {
-    if (editorRef.current) {
-      editorRef.current.setMarkdown(originalContent);
-    }
-    console.log("작성 취소");
-    setIsCancelModalOpen(false);
-  };
-
-  const handleCancelModalClose = () => {
-    setIsCancelModalOpen(false);
-  };
-
-  useEffect(() => {
-    if (!editorContainerRef.current) return;
-    setOriginalContent("");
-
-    editorRef.current = new Editor({
-      el: editorContainerRef.current,
-      height: "500px",
-      previewStyle: "vertical",
-      initialEditType: "markdown",
-      toolbarItems: [
-        ["heading", "bold", "italic", "strike"],
-        ["hr", "quote"],
-        ["ul", "ol", "task", "indent", "outdent"],
-        ["table", "image", "link"],
-        ["code", "codeblock"],
-      ],
-    });
-
-    return () => {
-      if (editorRef.current) {
-        editorRef.current.destroy();
-      }
-    };
-  }, []);
-
+  // 사용 가능한 감정 목록
   const moodButtons = [
     "짜릿해", "즐거움", "사랑", "기대감", "자신감", "기쁨", "행복함", "뿌듯함",
     "츄릅", "쑥스러움", "인생..", "꾸엑", "지침", "놀람", "니가?", "현타",
@@ -96,8 +41,11 @@ const DiaryEditor = () => {
 
   return (
     <div className="min-h-screen pt-20 text-lighttext dark:text-darkBrown transition-colors duration-300 flex justify-center items-center px-4 py-8">
+      {/* 에디터 카드 컨테이너 */}
       <div className="editor-card">
+        {/* 에디터 영역 */}
         <div className="w-full md:w-2/3 p-6 flex flex-col">
+          {/* 툴바 */}
           <div className="editor-toolbar">
             <button className="back-button" onClick={handleGoBack}>
               ←
@@ -112,6 +60,7 @@ const DiaryEditor = () => {
             </div>
           </div>
 
+          {/* 감정 아이콘 */}
           <div className="flex justify-end mb-6">
             <div className="emoji-select-wrapper">
               <img
@@ -122,18 +71,22 @@ const DiaryEditor = () => {
             </div>
           </div>
 
+          {/* 날짜 및 상태 표시 */}
           <div className="flex justify-between items-center mb-4">
             <div className="editor-date">{formatDate()}</div>
             <div className="editor-status">작성 중...</div>
           </div>
 
+          {/* 에디터 컨테이너 */}
           <div className="editor-container">
             <div ref={editorContainerRef} className="min-h-[400px]" />
           </div>
 
+          {/* 글자 수 표시 */}
           <div className="text-right text-gray-400 text-sm">0 / 20</div>
         </div>
 
+        {/* 감정 선택 영역 */}
         <div className="w-full md:w-1/3 p-6 flex flex-col border-t md:border-t-0 md:border-l border-lightYellow dark:border-darkBrown max-h-[90vh] overflow-auto">
           <h3 className="text-center text-base mb-4 text-gray-400 dark:text-gray-300">
             이모지는 하나만 골라주세요!
@@ -142,6 +95,7 @@ const DiaryEditor = () => {
             현재 선택: <span className="font-medium">{mood}</span>
           </div>
 
+          {/* 감정 버튼 그리드 */}
           <div className="grid grid-cols-4 gap-3">
             {moodButtons.map((buttonText, index) => (
               <MoodButton
@@ -155,7 +109,7 @@ const DiaryEditor = () => {
         </div>
       </div>
 
-      {/* 저장 모달 */}
+      {/* 저장 확인 모달 */}
       {isSaveModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
           <Modal
@@ -170,7 +124,7 @@ const DiaryEditor = () => {
         </div>
       )}
 
-      {/* 취소 모달 */}
+      {/* 취소 확인 모달 */}
       {isCancelModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
           <Modal
@@ -187,22 +141,5 @@ const DiaryEditor = () => {
     </div>
   );
 };
-
-const MoodButton = ({ text, isSelected, onClick }) => (
-  <button
-    className={`
-      py-1 px-2 text-sm h-12 w-full rounded-md flex items-center justify-center transition-colors
-      ${
-        isSelected
-          ? "bg-lightOrange text-white dark:text-darkBrown border-2 border-lightGold dark:bg-darkOrange dark:border-darktext"
-          : "bg-lightYellow text-lighttext hover:bg-lightGold dark:bg-[#FBDAAC] dark:text-darkBrown dark:hover:text-darktext dark:hover:bg-darkCopper"
-      }
-    `}
-    onClick={onClick}
-    style={{ wordBreak: "keep-all", whiteSpace: "normal", lineHeight: "1.2" }}
-  >
-    {text}
-  </button>
-);
 
 export default DiaryEditor;
