@@ -1,9 +1,39 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { FaCalendarAlt, FaUserFriends, FaBell, FaUser } from "react-icons/fa";
-import { TestTube2Icon, SunIcon, MoonIcon, Menu, X } from "lucide-react";
+import { SunIcon, MoonIcon, Menu, X } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import LogoD from "../assets/LogoD.png";
 import LogoL from "../assets/LogoL.png";
+
+function NavIcon({ to, label, icon, onClick, isActive, buttonRef, onMenuItemClick }) {
+  const navigate = useNavigate();
+  return (
+    <button
+      ref={buttonRef}
+      onClick={() => {
+        if (onClick) {
+          onClick();
+        } else if (to) {
+          navigate(to);
+        }
+        if (onMenuItemClick) onMenuItemClick();
+      }}
+      className="relative group flex items-center gap-3 w-full md:w-auto p-2 md:p-0"
+      aria-label={label}
+    >
+      <div
+        className={`transition-transform duration-200 md:hover:scale-110
+          ${isActive ? "text-lightOrange dark:text-darkOrange" : "text-lighttext dark:text-darktext"}`}
+      >
+        {icon}
+      </div>
+      <span className="md:hidden text-lighttext dark:text-darktext">{label}</span>
+      <div className="hidden md:block absolute bottom-full mb-1 left-1/2 -translate-x-1/2 whitespace-nowrap bg-black text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50">
+        {label}
+      </div>
+    </button>
+  );
+}
 
 export default function NavigationBar({
   onFriendsClick,
@@ -65,64 +95,54 @@ export default function NavigationBar({
 
   const toggleTheme = () => setIsDark((prev) => !prev);
 
-  const NavIcon = ({ to, label, children, onClick, ref }) => {
-    const isActive = location.pathname === to;
-    return (
-      <button
-        ref={ref}
-        onClick={() => {
-          if (onClick) {
-            onClick();
-          } else {
-            navigate(to);
-            setIsMobileMenuOpen(false);
-          }
-        }}
-        className="relative group flex items-center gap-3 w-full md:w-auto p-2 md:p-0"
-        aria-label={label}
-      >
-        <div
-          className={`transition-transform duration-200 md:hover:scale-110
-            ${
-              isActive
-                ? "text-lightOrange dark:text-darkOrange"
-                : "text-lighttext dark:text-darktext"
-            }`}
-        >
-          {children}
-        </div>
-        <span className="md:hidden text-lighttext dark:text-darktext">{label}</span>
-        <div className="hidden md:block absolute bottom-full mb-1 left-1/2 -translate-x-1/2 whitespace-nowrap bg-black text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50">
-          {label}
-        </div>
-      </button>
-    );
-  };
-
-  const handleFriendsClick = () => {
-    const nextState = !isFriendsOpen;
-    setIsFriendsOpen(nextState);
-    setIsNotificationsOpen(false);
-    onFriendsClick();
-    setIsMobileMenuOpen(false);
-  };
-
-  const handleNotificationsClick = () => {
-    const nextState = !isNotificationsOpen;
-    setIsNotificationsOpen(nextState);
-    setIsFriendsOpen(false);
-    onNotificationsClick();
-    setIsMobileMenuOpen(false);
-  };
+  // 메뉴 배열화
+  const menuItems = [
+    {
+      key: 'calendar',
+      to: '/main',
+      label: '캘린더',
+      icon: <FaCalendarAlt size={22} />,
+    },
+    {
+      key: 'friends',
+      label: '친구 목록',
+      icon: <FaUserFriends size={22} />, // onClick 별도
+      ref: friendsButtonRef,
+      onClick: () => {
+        const nextState = !isFriendsOpen;
+        setIsFriendsOpen(nextState);
+        setIsNotificationsOpen(false);
+        onFriendsClick();
+        setIsMobileMenuOpen(false);
+      },
+    },
+    {
+      key: 'notifications',
+      label: '알림',
+      icon: <FaBell size={22} />, // onClick 별도
+      ref: notificationsButtonRef,
+      onClick: () => {
+        const nextState = !isNotificationsOpen;
+        setIsNotificationsOpen(nextState);
+        setIsFriendsOpen(false);
+        onNotificationsClick();
+        setIsMobileMenuOpen(false);
+      },
+    },
+    {
+      key: 'mypage',
+      to: '/mypage',
+      label: '마이페이지',
+      icon: <FaUser size={22} />,
+    },
+  ];
 
   return (
     <div
-      className="fixed top-0 left-0 w-full md:h-[72px] h-auto px-4 sm:px-6 md:px-10 
+      className="fixed top-0 left-0 w-full h-[72px] px-4 sm:px-6 md:px-10 
                 flex items-center justify-between
-                z-50 md:shadow-sm md:bg-lightBg md:dark:bg-darkBg transition-colors duration-300"
+                z-50 shadow-sm bg-lightYellow dark:bg-darkBg transition-colors duration-300"
     >
-      <div className="hidden md:block absolute inset-0 h-[72px] bg-lightYellow dark:bg-darkBg z-[-1]" />
-      
       <div 
         className="cursor-pointer flex items-center" 
         onClick={() => {
@@ -153,36 +173,17 @@ export default function NavigationBar({
         shadow-lg md:shadow-none p-4 md:p-0 gap-3 md:gap-4 lg:gap-6
         transition-all duration-300 border-t md:border-0 border-gray-200 dark:border-gray-700`}
       >
-        <NavIcon to="/main" label="캘린더">
-          <FaCalendarAlt size={22} />
-        </NavIcon>
-
-        <div ref={friendsButtonRef}>
-          <NavIcon 
-            label="친구 목록" 
-            onClick={handleFriendsClick}
-          >
-            <FaUserFriends size={22} />
-          </NavIcon>
-        </div>
-
-        <div ref={notificationsButtonRef}>
-          <NavIcon 
-            label="알림" 
-            onClick={handleNotificationsClick}
-          >
-            <FaBell size={22} />
-          </NavIcon>
-        </div>
-
-        <NavIcon to="/mypage" label="마이페이지">
-          <FaUser size={22} />
-        </NavIcon>
-
-        {[2, 3, 4, 5].map((num) => (
-          <NavIcon key={num} to={`/test${num}`} label={`테스트 ${num}`}>
-            <TestTube2Icon size={22} />
-          </NavIcon>
+        {menuItems.map((item) => (
+          <NavIcon
+            key={item.key}
+            to={item.to}
+            label={item.label}
+            icon={item.icon}
+            onClick={item.onClick}
+            isActive={item.to ? location.pathname === item.to : false}
+            buttonRef={item.ref}
+            onMenuItemClick={isMobileMenuOpen ? () => setIsMobileMenuOpen(false) : undefined}
+          />
         ))}
 
         <button

@@ -49,8 +49,8 @@ function MainPage() {
   };
 
   return (
-    <main className="min-h-screen pt-[100px] transition-colors duration-300">
-      <section className="section-container border bg-yl100 dark:bg-darktext border-lightGold dark:border-darkCopper rounded-xl">
+    <main className="min-h-screen transition-colors duration-300">
+      <section className="m-8 section-container border bg-yl100 dark:bg-darktext border-lightGold dark:border-darkCopper rounded-xl">
         <div className="flex flex-col lg:flex-row gap-8 items-stretch">
           {/* 캘린더 영역 */}
           <div className="w-full lg:w-1/2 bg-white p-4 sm:p-6 rounded-lg shadow-md">
