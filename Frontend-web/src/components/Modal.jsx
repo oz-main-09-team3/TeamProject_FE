@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { XCircle, CheckCircle, AlertTriangle, Info } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 
@@ -53,8 +53,29 @@ const Modal = ({
   type = 'info'
 }) => {
   const navigate = useNavigate();
+  const [show, setShow] = useState(false);
+  const modalRef = useRef();
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (isOpen) {
+      setShow(true);
+    } else {
+      // fade out 후에 완전히 제거
+      const timeout = setTimeout(() => setShow(false), 200);
+      return () => clearTimeout(timeout);
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
+  if (!isOpen && !show) return null;
 
   const { icon, confirmStyle, cancelStyle } = ICON_MAP[type];
 
@@ -64,9 +85,14 @@ const Modal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="fixed inset-0 bg-black bg-opacity-50" onClick={onClose} />
-      <div className="relative bg-white w-[420px] min-h-[200px] p-6 rounded-[8px] shadow-lg flex flex-col justify-between">
+    <div
+      className={`fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+      role="dialog"
+      aria-modal="true"
+      ref={modalRef}
+    >
+      <div className={`fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`} onClick={onClose} />
+      <div className={`relative bg-white w-[420px] min-h-[200px] p-6 rounded-[8px] shadow-lg flex flex-col justify-between transform transition-all duration-200 ${isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}>
         {/* 내용 */}
         <div className="flex items-start gap-3">
           {icon}
