@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "@toast-ui/editor": "^3.2.2",
-    "@toast-ui/react-editor": "^3.2.3"
+    "@toast-ui/react-editor": "^3.2.3",
+    "colorthief": "^2.6.0"
   }
 }
