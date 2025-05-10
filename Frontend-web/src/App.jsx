@@ -42,10 +42,10 @@ function AppLayoutWithNavbar() {
         <Route path="/mypage/chart" element={<ChartPage />} />
         <Route path="/mypage/qrcode" element={<FriendInviteSystem />} />
         <Route path="/auth/callback/:provider" element={<OAuthCallback />} />
-        <Route path="/test2" element={<DiaryDetailPage />} />
-        <Route path="/test3" element={<DiaryEditor />} />
-        <Route path="/test4" element={<FriendDiaryView />} />
-        <Route path="/test5" element={<DiaryEditPage />} />
+        <Route path="/diary/:id" element={<DiaryDetailPage />} />
+        <Route path="/diary/edit/:id" element={<DiaryEditPage />} />
+        <Route path="/diary/new" element={<DiaryEditor />} />
+        <Route path="/friend/diary/:id" element={<FriendDiaryView />} />
         <Route path="*" element={<Navigate to="/main" />} />
       </Routes>
 
