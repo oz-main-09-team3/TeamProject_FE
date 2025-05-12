@@ -60,10 +60,10 @@ export default function OAuthCallback() {
       console.log("백엔드 응답 성공:", data);
 
       // access_token과 refresh_token으로 변경
-      if (data.access_token) {
-        localStorage.setItem("token", data.access_token);
-        console.log("access_token 저장됨");
-      }
+      if (data.token) { // access_token → token으로 변경
+  localStorage.setItem("token", data.token);
+  console.log("token 저장됨");
+}
 
       if (data.refresh_token) {
         localStorage.setItem("refresh_token", data.refresh_token);
