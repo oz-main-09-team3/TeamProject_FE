@@ -76,14 +76,17 @@ const DiaryEditor = () => {
   };
 
   // 저장 확인 모달에서 '저장' 클릭 시 실행
-  const handleConfirmSaveAndShowSaved = () => {
-    handleConfirmSave();
-    setIsSavedModalOpen(true);
+  const handleConfirmSaveAndShowSaved = async () => {
+    const saveSuccess = await handleConfirmSave();
+    if (saveSuccess) {
+      setIsSavedModalOpen(true);
+    }
   };
 
-  // 저장 완료 모달 닫기
+  // 저장 완료 모달 닫고 메인페이지로 이동
   const handleCloseSavedModal = () => {
     setIsSavedModalOpen(false);
+    navigate('/main'); // 메인페이지로 이동
   };
 
   return (
@@ -104,7 +107,7 @@ const DiaryEditor = () => {
                 <button
                   className="w-10 h-10 bg-lightYellow dark:bg-darkCopper dark:text-darktext rounded-full flex items-center justify-center hover:bg-lightYellow/80 dark:hover:bg-darkCopper/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={() => setIsSaveModalOpen(true)}
-                  disabled={!isEditing}
+                  disabled={!isEditing || !mood}
                 >
                   <Save className="w-5 h-5" />
                 </button>
