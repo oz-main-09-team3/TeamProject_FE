@@ -3,13 +3,14 @@ import { ArrowRight, Search } from "lucide-react";
 import testimage from "../assets/profile.png";
 import emptyImage from "../assets/empty.png";
 import { useSearch } from "../hooks/useSearch";
+import { useNavigate } from "react-router-dom";
 
 /**
  * 친구 목록을 보여주는 컴포넌트
  * TODO: API 연동 후 하드코딩된 데이터를 API 호출로 대체
  * TODO: 친구 클릭 시 상세 페이지로 이동하는 기능 추가
  */
-export default function FriendsList() {
+export default function FriendsList({ onFriendClick }) {
   // 임시 친구 목록 데이터 (API 연동 시 제거)
   const friends = [
     "김오즈",
@@ -23,6 +24,7 @@ export default function FriendsList() {
 
   // 검색 기능을 위한 커스텀 훅 사용
   const { searchTerm, setSearchTerm, filteredItems: filteredFriends } = useSearch(friends);
+  const navigate = useNavigate();
 
   return (
     <div className="friends-panel flex flex-col w-full text-lighttext dark:text-darktext text-xl">
@@ -54,7 +56,10 @@ export default function FriendsList() {
                   className="text-lighttext dark:text-darktext"
                 />
               }
-              onClick={() => console.log(`${friend} 클릭됨`)}
+              onClick={() => {
+                if (onFriendClick) onFriendClick();
+                navigate('/friend-diary');
+              }}
             />
           ))
         ) : (

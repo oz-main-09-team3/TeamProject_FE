@@ -42,10 +42,10 @@ function AppLayoutWithNavbar() {
         <Route path="/mypage/chart" element={<ChartPage />} />
         <Route path="/mypage/qrcode" element={<FriendInviteSystem />} />
         <Route path="/auth/callback/:provider" element={<OAuthCallback />} />
-        <Route path="/diary/:id" element={<DiaryDetailPage />} />
-        <Route path="/diary/edit/:id" element={<DiaryEditPage />} />
+        <Route path="/diary" element={<DiaryDetailPage />} />
+        <Route path="/diary/edit" element={<DiaryEditPage />} />
         <Route path="/diary/new" element={<DiaryEditor />} />
-        <Route path="/friend/diary/:id" element={<FriendDiaryView />} />
+        <Route path="/friend-diary" element={<FriendDiaryView />} />
         <Route path="*" element={<Navigate to="/main" />} />
       </Routes>
 
@@ -53,7 +53,7 @@ function AppLayoutWithNavbar() {
       {showFriends && (
         <ListWrapper>
           <h2 className="text-2xl font-bold mb-6">친구 목록</h2>
-          <FriendList />
+          <FriendList onFriendClick={() => setShowFriends(false)} />
         </ListWrapper>
       )}
 

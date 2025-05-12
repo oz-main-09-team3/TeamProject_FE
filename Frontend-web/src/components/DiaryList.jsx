@@ -15,19 +15,8 @@ export default function DiaryList({ diaryList, setDiaryList }) {
   const { handleLike, loadingId, animatingId } = useLike(diaryList, setDiaryList);
   const navigate = useNavigate();
 
-  const handleDiaryClick = (diary) => {
-    // 임시: 하드코딩된 데이터로 상세 페이지 이동
-    navigate('/diary/1', {
-      state: {
-        diary: {
-          id: 1,
-          title: "테스트 일기",
-          content: "이것은 테스트용 일기입니다.",
-          date: new Date().toLocaleDateString(),
-          liked: false
-        }
-      }
-    });
+  const handleDiaryClick = () => {
+    navigate('/diary');
   };
 
   // 날짜별로 정렬 (최신순)

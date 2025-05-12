@@ -88,7 +88,9 @@ export default function NavigationBar({
           if (onClick) {
             onClick();
           } else if (to) {
-            navigate(to);
+            if (location.pathname !== to) {
+              navigate(to);
+            }
             setIsMobileMenuOpen(false);
           }
         }}
@@ -165,7 +167,7 @@ export default function NavigationBar({
         ${isMobileMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-2 opacity-0'}
         border-t md:border-0 border-gray-200 dark:border-gray-700`}
       >
-        <NavIcon to="/diary-editor" label="일기 작성" isActive={!isFriendsOpen && !isNotificationsOpen && location.pathname === '/diary-editor'}>
+        <NavIcon to="/diary/new" label="일기 작성" isActive={!isFriendsOpen && !isNotificationsOpen && location.pathname === '/diary/new'}>
           <FaPen size={22} />
         </NavIcon>
         <NavIcon to="/main" label="캘린더" isActive={!isFriendsOpen && !isNotificationsOpen && location.pathname === '/main'}>
@@ -198,7 +200,7 @@ export default function NavigationBar({
       </div>
 
       <div className="hidden md:flex items-center gap-4 ml-auto">
-        <NavIcon to="/diary-editor" label="일기 작성" isActive={!isFriendsOpen && !isNotificationsOpen && location.pathname === '/diary-editor'}>
+        <NavIcon to="/diary/new" label="일기 작성" isActive={!isFriendsOpen && !isNotificationsOpen && location.pathname === '/diary/new'}>
           <FaPen size={22} />
         </NavIcon>
         <NavIcon to="/main" label="캘린더" isActive={!isFriendsOpen && !isNotificationsOpen && location.pathname === '/main'}>

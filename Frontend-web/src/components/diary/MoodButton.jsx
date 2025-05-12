@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 /**
  * 기분 선택 버튼 컴포넌트
@@ -12,6 +13,13 @@ import React from 'react';
  */
 const MoodButton = ({ mood, value, onClick }) => {
   const isSelected = mood === value;
+  const navigate = useNavigate();
+
+//  const handleDiaryClick = (diary) => {
+//    navigate(`/diary/${diary.id}`, {
+//      state: { diary }
+//    });
+//  };
 
   return (
     <button

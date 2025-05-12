@@ -19,12 +19,13 @@ const DiaryDetailPage = () => {
 
   const {
     comments,
+    setComments,
     newComment,
-    showReplies,
     setNewComment,
+    showReplies,
+    setShowReplies,
     handleSubmitComment,
-    toggleReplies,
-    setComments
+    toggleReplies
   } = useComments();
 
   const {
@@ -38,9 +39,16 @@ const DiaryDetailPage = () => {
   } = useReplies();
 
   // 일기 좋아요 훅
-  const { handleLike: handleDiaryLike, loadingId: diaryLoadingId } = useLike(
+  const { handleLike: diaryLike, loadingId: diaryLoadingId } = useLike(
     diary ? [diary] : [],
-    (newItems) => setDiary(newItems[0])
+    (newItems) => {
+      if (newItems && newItems.length > 0) {
+        setDiary(prev => ({
+          ...prev,
+          liked: !prev.liked
+        }));
+      }
+    }
   );
 
   // 댓글 좋아요 훅
@@ -109,7 +117,16 @@ const DiaryDetailPage = () => {
   const handleCommentSubmit = (e) => {
     e.preventDefault();
     if (newComment.trim()) {
-      handleSubmitComment(e);
+      const newCommentObj = {
+        id: Date.now(),
+        profileImg: null,
+        text: newComment,
+        userNickname: "나",
+        timestamp: "방금 전",
+        liked: false,
+        replies: []
+      };
+      setComments(prev => [newCommentObj, ...prev]);
       setNewComment("");
     }
   };
@@ -133,6 +150,18 @@ const DiaryDetailPage = () => {
     setIsReplying(false);
     setNewReply("");
     handleReplyClick(null);
+  };
+
+  const handleDiaryLike = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (diaryLoadingId === diary.id) return;
+    
+    try {
+      await diaryLike(diary.id, e);
+    } catch (error) {
+      console.error('좋아요 처리 중 오류 발생:', error);
+    }
   };
 
   const renderReply = (reply, commentId, level = 0) => (
@@ -234,14 +263,16 @@ const DiaryDetailPage = () => {
             </div>
             <div className="flex gap-2">
               <button
-                onClick={(e) => handleDiaryLike(diary.id, e)}
+                onClick={handleDiaryLike}
                 className="p-3 bg-lightYellow dark:bg-darkCopper dark:text-darktext rounded-full w-10 h-10 flex items-center justify-center hover:bg-lightYellow/80 dark:hover:bg-darkCopper/80 transition-colors"
                 title={diary.liked ? "좋아요 취소" : "좋아요"}
                 disabled={diaryLoadingId === diary.id}
               >
                 <Heart
                   className={`w-5 h-5 ${
-                    diary.liked ? "fill-red-500 text-red-500" : "text-gray-500 dark:text-gray-800"
+                    diary.liked
+                      ? "fill-red-500 text-red-500"
+                      : "text-lighttext dark:text-darktext"
                   }`}
                 />
               </button>
@@ -334,7 +365,9 @@ const DiaryDetailPage = () => {
                           >
                             <Heart
                               className={`w-4 h-4 ${
-                                comment.liked ? "fill-red-500 text-red-500" : "text-gray-500 dark:text-gray-800"
+                                comment.liked
+                                  ? "fill-red-500 text-red-500"
+                                  : "text-gray-500 dark:text-gray-800"
                               }`}
                             />
                           </button>
