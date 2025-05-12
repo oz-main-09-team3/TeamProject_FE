@@ -33,14 +33,8 @@ export default function OAuthCallback() {
     }
 
     const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-    
-    // 1. 리다이렉트 URI 수정 - 실제 현재 경로 사용 (중요!)
-const redirectUri = `${window.location.origin}/auth/callback/${provider}`;
-
-
-    
-    // 2. API 엔드포인트 확인
-    const apiEndpoint = `${BACKEND_URL}/api/auth/login/${provider}/`; // '/api/' 추가 확인
+    const redirectUri = `${window.location.origin}/auth/callback/${provider}`;
+    const apiEndpoint = `${BACKEND_URL}/api/auth/login/${provider}/`;
     
     console.log(`=== ${provider} 인가 코드 백엔드 전송 ===`);
     console.log("Provider:", provider);
@@ -65,17 +59,27 @@ const redirectUri = `${window.location.origin}/auth/callback/${provider}`;
       const data = res.data;
       console.log("백엔드 응답 성공:", data);
 
-      if (data.access) {
-        localStorage.setItem("token", data.access);
+      // access_token과 refresh_token으로 변경
+      if (data.access_token) {
+        localStorage.setItem("token", data.access_token);
+        console.log("access_token 저장됨");
       }
 
-      if (data.refresh) {
-        localStorage.setItem("refresh_token", data.refresh);
+      if (data.refresh_token) {
+        localStorage.setItem("refresh_token", data.refresh_token);
+        console.log("refresh_token 저장됨");
       }
 
       if (data.user) {
         localStorage.setItem("user", JSON.stringify(data.user));
+        console.log("user 정보 저장됨");
       }
+
+      // 저장 확인
+      console.log("=== 저장된 값 확인 ===");
+      console.log("token:", localStorage.getItem("token"));
+      console.log("refresh_token:", localStorage.getItem("refresh_token"));
+      console.log("user:", localStorage.getItem("user"));
 
       navigate("/main");
     })
@@ -96,52 +100,3 @@ const redirectUri = `${window.location.origin}/auth/callback/${provider}`;
     </div>
   );
 }
-/*
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "../lib/supabase";
-
-export default function OAuthCallback() {
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data, error } = await supabase.auth.getSession();
-
-      if (error) {
-        console.error("세션 확인 실패:", error.message);
-        alert("로그인 세션을 불러오지 못했습니다.");
-        navigate("/");
-        return;
-      }
-
-      if (data?.session) {
-        const user = data.session.user;
-        console.log("로그인 성공, 사용자:", user);
-
-        // 토큰과 사용자 정보 저장 (원한다면)
-        localStorage.setItem("token", data.session.access_token);
-        localStorage.setItem("refresh_token", data.session.refresh_token);
-        localStorage.setItem("user", JSON.stringify(user));
-
-        // 메인 페이지로 이동
-        navigate("/main");
-      } else {
-        alert("로그인 세션이 없습니다.");
-        navigate("/");
-      }
-    };
-
-    checkSession();
-  }, [navigate]);
-
-  return (
-    <div className="flex justify-center items-center h-screen">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-        <p className="text-lg">로그인 처리 중입니다...</p>
-      </div>
-    </div>
-  );
-}
-  */
