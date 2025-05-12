@@ -1,22 +1,25 @@
 import { useState, useRef, useEffect } from 'react';
 import { Editor } from '@toast-ui/editor';
 import { createDiary } from '../service/diaryApi';
+import { useNavigate } from 'react-router-dom';
 
 /**
  * 일기 에디터 관련 로직을 관리하는 커스텀 훅
- * @param {string} initialContent - 에디터의 초기 내용
- * @returns {Object} 에디터 관련 상태와 핸들러 함수들
+ * @param {string} initialContent 
+ * @returns {Object}
  */
 export const useDiaryEditor = (initialContent = '') => {
+  const navigate = useNavigate();
+  
   // 상태 관리
-  const [mood, setMood] = useState(""); // 선택된 감정 상태
-  const [isEditing, setIsEditing] = useState(false); // 편집 모드 상태
-  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false); // 저장 모달 상태
-  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false); // 취소 모달 상태
+  const [mood, setMood] = useState(""); 
+  const [isEditing, setIsEditing] = useState(false); 
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false); 
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false); 
   
   // 에디터 관련 refs
-  const editorRef = useRef(null); // Toast UI Editor 인스턴스
-  const editorContainerRef = useRef(null); // 에디터 DOM 요소
+  const editorRef = useRef(null); 
+  const editorContainerRef = useRef(null); 
 
   /**
    * 현재 날짜를 YYYY-MM-DD 형식으로 반환
@@ -39,22 +42,14 @@ export const useDiaryEditor = (initialContent = '') => {
     setIsEditing(true);
   };
 
-  /**
-   * 저장 버튼 클릭 핸들러
-   */
   const handleSave = () => {
     setIsSaveModalOpen(true);
   };
 
-  /**
-   * 저장 확인 핸들러
-   */
   const handleConfirmSave = async () => {
     try {
-      // Toast UI Editor 인스턴스에서 직접 getMarkdown() 호출
       const content = editorRef.current ? editorRef.current.getMarkdown() : '';
       
-      // emotion_id 매핑
       const emotionMap = {
         '짜릿해': 1, '즐거움': 2, '사랑': 3, '기대감': 4, '자신감': 5,
         '기쁨': 6, '행복함': 7, '뿌듯함': 8, '츄릅': 9, '쑥스러움': 10,
@@ -66,7 +61,7 @@ export const useDiaryEditor = (initialContent = '') => {
       
       if (!mood) {
         alert('기분을 선택해주세요.');
-        return;
+        return false;
       }
       
       const diaryData = {
@@ -83,22 +78,19 @@ export const useDiaryEditor = (initialContent = '') => {
       
       setIsSaveModalOpen(false);
       setIsEditing(false);
+      
+      return true; 
     } catch (error) {
       console.error('일기 저장 중 오류:', error);
       alert(error.response?.data?.message || '일기 저장 중 오류가 발생했습니다.');
+      return false; 
     }
   };
 
-  /**
-   * 저장 취소 핸들러
-   */
   const handleCancelSave = () => {
     setIsSaveModalOpen(false);
   };
 
-  /**
-   * 뒤로가기 버튼 클릭 핸들러
-   */
   const handleGoBack = () => {
     if (isEditing) {
       setIsCancelModalOpen(true);
@@ -107,27 +99,19 @@ export const useDiaryEditor = (initialContent = '') => {
     }
   };
 
-  /**
-   * 취소 확인 핸들러
-   */
   const handleConfirmCancel = () => {
     setIsCancelModalOpen(false);
     window.history.back();
   };
 
-  /**
-   * 취소 모달 닫기 핸들러
-   */
   const handleCancelModalClose = () => {
     setIsCancelModalOpen(false);
   };
 
-  // 에디터 초기화
   useEffect(() => {
     if (!editorContainerRef.current || editorRef.current) return;
 
     try {
-      // Toast UI Editor 인스턴스 생성
       editorRef.current = new Editor({
         el: editorContainerRef.current,
         height: "500px",
@@ -144,7 +128,6 @@ export const useDiaryEditor = (initialContent = '') => {
         ],
       });
 
-      // 변경 이벤트 리스너
       editorRef.current.on('change', () => {
         setIsEditing(true);
       });
@@ -152,7 +135,6 @@ export const useDiaryEditor = (initialContent = '') => {
       console.error('에디터 초기화 오류:', error);
     }
 
-    // 컴포넌트 언마운트 시 에디터 정리
     return () => {
       if (editorRef.current) {
         try {
@@ -164,7 +146,6 @@ export const useDiaryEditor = (initialContent = '') => {
     };
   }, [initialContent]);
 
-  // 훅에서 제공하는 값들 반환
   return {
     mood,
     isEditing,
