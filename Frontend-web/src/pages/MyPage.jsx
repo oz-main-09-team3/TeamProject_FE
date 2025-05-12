@@ -27,7 +27,7 @@ export default function MyPage() {
   };
 
   return (
-    <main className="flex items-center justify-center min-h-screen px-4 bg-gray-50 dark:bg-darkdark">
+    <main className="flex items-center justify-center min-h-screen px-4 bg-gray-50 dark:bg-darkdark pt-[100px]">
       <div className="w-full max-w-md relative pt-[92px] pb-8 flex flex-col items-center bg-white dark:bg-darktext rounded-3xl shadow-lg">
         <ProfileImage />
 

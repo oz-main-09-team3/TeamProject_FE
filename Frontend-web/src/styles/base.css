@@ -38,3 +38,8 @@
     }
   }
 }
+
+/* toast-ui 차트 내부 폰트 강제 적용 */
+.tui-chart * {
+  font-family: 'GangwonEduSaeeum_OTFMediumA', sans-serif !important;
+}

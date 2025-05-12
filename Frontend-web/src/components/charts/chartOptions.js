@@ -34,6 +34,8 @@ const themes = {
   },
 };
 
+const FONT = 'GangwonEduSaeeum_OTFMediumA, sans-serif';
+
 /**
  * 컬럼 차트 옵션 생성 함수
  * @param {number} width - 차트 컨테이너의 너비
@@ -46,16 +48,31 @@ export const getColumnOptions = (width, title = "월별 데이터", height = 400
     width,
     height,
     title,
+    fontFamily: FONT,
   },
   series: { 
-    dataLabels: { visible: true },
+    dataLabels: { visible: true, fontFamily: FONT },
     colors: ['#4B9CD3', '#7B68EE'],
+    fontFamily: FONT,
   },
   legend: { 
     visible: true,
+    label: { fontFamily: FONT }
+  },
+  xAxis: {
+    title: '',
+    label: { fontFamily: FONT }
+  },
+  yAxis: {
+    title: '',
+    label: { fontFamily: FONT }
+  },
+  tooltip: {
+    fontFamily: FONT
   },
   title: {
     color: '#333333',
+    fontFamily: FONT
   },
 });
 
@@ -71,16 +88,20 @@ export const getNestedPieOptions = (width, title = "브라우저 사용량", hei
     width,
     height,
     title,
+    fontFamily: FONT,
   },
   series: { 
-    dataLabels: { visible: true },
+    dataLabels: { visible: true, fontFamily: FONT },
     colors: ['#4B9CD3', '#7B68EE', '#20B2AA', '#FF7F50', '#9370DB'],
+    fontFamily: FONT,
   },
-  tooltip: { grouped: true },
+  tooltip: { grouped: true, fontFamily: FONT },
   legend: { 
     visible: true,
+    label: { fontFamily: FONT }
   },
   title: {
     color: '#333333',
+    fontFamily: FONT
   },
 }); 

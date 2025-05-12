@@ -2,6 +2,7 @@ import { useReducer, useRef, useState } from "react";
 import { Camera } from "lucide-react";
 import ColorThief from 'colorthief';
 import Modal from '../components/Modal';
+import { useNavigate } from "react-router-dom";
 
 const initialState = {
   nickname: "몽이마덜",
@@ -26,6 +27,7 @@ export default function EditUserInfo() {
   const [modalType, setModalType] = useState('warning');
   const fileInputRef = useRef(null);
   const imageRef = useRef(null);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -144,6 +146,9 @@ export default function EditUserInfo() {
 
   const closeModal = () => {
     setShowModal(false);
+    if (modalType === 'success') {
+      navigate('/mypage/info');
+    }
   };
 
   // 현재 날짜를 YYYY-MM-DD 형식으로 가져오기
