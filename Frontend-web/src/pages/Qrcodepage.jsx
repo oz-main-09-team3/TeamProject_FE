@@ -68,21 +68,21 @@ const FriendInviteSystem = () => {
             )}
           </div>
 
-          <div className="flex flex-col sm:flex-row w-full gap-2 mb-4">
-            <div className="flex flex-col sm:flex-row items-center w-full gap-2 mb-4">
-              <input
-                type="text"
-                value={inviteUrl}
-                readOnly
-                className="form-input"
-              />
-              <button
-                onClick={() => navigator.clipboard.writeText(inviteUrl)}
-                className="secondary-button w-full sm:w-auto whitespace-nowrap"
-              >
-                복사
-              </button>
-            </div>
+          {/* 복사 버튼 */}
+          <div className="flex flex-col sm:flex-row items-center w-full gap-2 mb-4">
+            <input
+              type="text"
+              value={inviteUrl}
+              readOnly
+              className="form-input flex-1"
+            />
+            <button
+              type="button"
+              onClick={() => navigator.clipboard.writeText(inviteUrl)}
+              className="secondary-button w-full sm:w-auto px-6 py-2 text-base rounded-full whitespace-nowrap flex items-center justify-center min-w-[80px]"
+            >
+              복사
+            </button>
           </div>
 
           <button
@@ -97,19 +97,21 @@ const FriendInviteSystem = () => {
         <section className="w-full border-t border-lightGold pt-6">
           <h2 className="text-lg font-semibold mb-4 text-center">친구 추가</h2>
 
-          <div className="flex flex-col sm:flex-row w-full gap-2 mb-4">
+          {/* 추가 버튼 */}
+          <div className="flex flex-col sm:flex-row items-center w-full gap-2 mb-4">
             <input
               type="text"
               placeholder="친구 초대 코드 입력"
-              className="form-input"
+              className="form-input flex-1"
               onChange={(e) => setInviteCode(e.target.value)}
             />
             <button
+              type="button"
               onClick={() => {
                 setPendingCode(inviteCode);
                 setIsModalOpen(true);
               }}
-              className="secondary-button w-full sm:w-auto whitespace-nowrap"
+              className="secondary-button w-full sm:w-auto px-6 py-2 text-base rounded-full whitespace-nowrap flex items-center justify-center min-w-[80px]"
             >
               추가
             </button>
