@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Camera } from "lucide-react";
+import { Camera, ChevronLeft } from "lucide-react";
 import { QRCodeCanvas } from "qrcode.react";
 import Modal from "../components/Modal";
+import { useNavigate } from "react-router-dom";
 
 const FriendInviteSystem = () => {
   const [inviteCode, setInviteCode] = useState("");
@@ -10,6 +11,8 @@ const FriendInviteSystem = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [pendingCode, setPendingCode] = useState("");
+
+  const navigate = useNavigate();
 
   const generateInviteCode = () => {
     const userId = "user123";
@@ -48,8 +51,17 @@ const FriendInviteSystem = () => {
   };
 
   return (
-    <main className="flex items-center justify-center min-h-screen px-4">
-      <div className="flex flex-col items-center p-8 w-full max-w-lg bg-yl100 dark:text-darkBg rounded-3xl shadow-lg text-lighttext">
+    <main className="flex items-center justify-center min-h-screen px-4 pt-[100px]">
+      <div className="flex flex-col items-center p-8 w-full max-w-lg bg-yl100 dark:text-darkBg rounded-3xl shadow-lg text-lighttext relative pt-8">
+        {/* 뒤로 가기 버튼 */}
+        <button
+          onClick={() => navigate('/mypage')}
+          className="p-3 bg-lightYellow dark:bg-darkCopper dark:text-darktext rounded-full w-10 h-10 flex items-center justify-center hover:bg-lightYellow/80 dark:hover:bg-darkCopper/80 transition-colors absolute left-4 top-4 z-10"
+          title="뒤로 가기"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+
         <h1 className="text-2xl font-bold mb-6 text-center">
           친구 초대 시스템
         </h1>
@@ -68,21 +80,21 @@ const FriendInviteSystem = () => {
             )}
           </div>
 
-          <div className="flex flex-col sm:flex-row w-full gap-2 mb-4">
-            <div className="flex flex-col sm:flex-row items-center w-full gap-2 mb-4">
-              <input
-                type="text"
-                value={inviteUrl}
-                readOnly
-                className="form-input"
-              />
-              <button
-                onClick={() => navigator.clipboard.writeText(inviteUrl)}
-                className="secondary-button w-full sm:w-auto whitespace-nowrap"
-              >
-                복사
-              </button>
-            </div>
+          {/* 복사 버튼 */}
+          <div className="flex flex-col sm:flex-row items-center w-full gap-2 mb-4">
+            <input
+              type="text"
+              value={inviteUrl}
+              readOnly
+              className="form-input flex-1"
+            />
+            <button
+              type="button"
+              onClick={() => navigator.clipboard.writeText(inviteUrl)}
+              className="secondary-button w-full sm:w-auto px-6 py-2 text-base rounded-full whitespace-nowrap flex items-center justify-center min-w-[80px]"
+            >
+              복사
+            </button>
           </div>
 
           <button
@@ -97,19 +109,21 @@ const FriendInviteSystem = () => {
         <section className="w-full border-t border-lightGold pt-6">
           <h2 className="text-lg font-semibold mb-4 text-center">친구 추가</h2>
 
-          <div className="flex flex-col sm:flex-row w-full gap-2 mb-4">
+          {/* 추가 버튼 */}
+          <div className="flex flex-col sm:flex-row items-center w-full gap-2 mb-4">
             <input
               type="text"
               placeholder="친구 초대 코드 입력"
-              className="form-input"
+              className="form-input flex-1"
               onChange={(e) => setInviteCode(e.target.value)}
             />
             <button
+              type="button"
               onClick={() => {
                 setPendingCode(inviteCode);
                 setIsModalOpen(true);
               }}
-              className="secondary-button w-full sm:w-auto whitespace-nowrap"
+              className="secondary-button w-full sm:w-auto px-6 py-2 text-base rounded-full whitespace-nowrap flex items-center justify-center min-w-[80px]"
             >
               추가
             </button>

@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 export default function OAuthCallback() {
   const location = useLocation();
@@ -9,7 +10,7 @@ export default function OAuthCallback() {
     const query = new URLSearchParams(location.search);
     const code = query.get("code");
     const path = location.pathname;
-     console.log(path)
+
     if (!code) {
       console.error("code가 없습니다");
       navigate("/");
@@ -31,57 +32,59 @@ export default function OAuthCallback() {
       return;
     }
 
-    const BASE_URL = import.meta.env.VITE_BASE_URL;
-    const BACKEND_URL = import.meta.env. VITE_BACKEND_URL;
+    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+    
+    // 1. 리다이렉트 URI 수정 - 실제 현재 경로 사용 (중요!)
+const redirectUri = `${window.location.origin}/auth/callback/${provider}`;
+
+
+    
+    // 2. API 엔드포인트 확인
+    const apiEndpoint = `${BACKEND_URL}/api/auth/login/${provider}/`; // '/api/' 추가 확인
     
     console.log(`=== ${provider} 인가 코드 백엔드 전송 ===`);
     console.log("Provider:", provider);
     console.log("Authorization Code:", code);
-    console.log("Backend URL:", `${BASE_URL}/oauth/${provider}/callback`);
+    console.log("Redirect URI:", redirectUri);
+    console.log("API Endpoint:", apiEndpoint);
+    
+    const requestData = {
+      code: code,
+      redirect_uri: redirectUri
+    };
+    
+    console.log("전송 데이터:", JSON.stringify(requestData));
 
-    fetch(`${BACKEND_URL}/auth/login/${provider}/`, {
-      method: "POST",
+    axios.post(apiEndpoint, requestData, {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ 
-        code: code,
-        redirect_uri: `${window.location.origin}/auth/callback/${provider}`
-      }),
+      withCredentials: true, 
     })
-      .then(async (res) => {
-        if (!res.ok) {
-          const errorData = await res.json();
-          console.error("백엔드 응답 에러:", errorData);
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
-        return res.json();
-      })
-      .then((data) => {
-        console.log("백엔드 응답 성공:", data);
-        
-        if (data.token) {
-          localStorage.setItem("token", data.token);
-          console.log("JWT 토큰 저장됨");
-        }
-        
-        if (data.refresh_token) {
-          localStorage.setItem("refresh_token", data.refresh_token);
-          console.log("리프레시 토큰 저장됨");
-        }
-        
-        if (data.user) {
-          localStorage.setItem("user", JSON.stringify(data.user));
-          console.log("사용자 정보 저장됨");
-        }
-        
-        navigate("/main");
-      })
-      .catch((err) => {
-        console.error("로그인 처리 실패:", err);
-        alert(`${provider} 로그인에 실패했습니다. 다시 시도해주세요.`);
-        navigate("/");
-      });
+    .then((res) => {
+      const data = res.data;
+      console.log("백엔드 응답 성공:", data);
+
+      if (data.access) {
+        localStorage.setItem("token", data.access);
+      }
+
+      if (data.refresh) {
+        localStorage.setItem("refresh_token", data.refresh);
+      }
+
+      if (data.user) {
+        localStorage.setItem("user", JSON.stringify(data.user));
+      }
+
+      navigate("/main");
+    })
+    .catch((err) => {
+      console.error("로그인 처리 실패:", err);
+      console.error("에러 상세:", err.response ? err.response.data : 'No response data');
+      alert(`${provider} 로그인에 실패했습니다. 다시 시도해주세요.`);
+      navigate("/");
+    });
   }, [location, navigate]);
 
   return (

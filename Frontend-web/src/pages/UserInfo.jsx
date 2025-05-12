@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { ChevronLeft } from "lucide-react";
 
 export default function UserInfo() {
   const navigate = useNavigate();
@@ -8,6 +9,14 @@ export default function UserInfo() {
     <main className="flex items-center justify-center min-h-screen bg-lightBg dark:bg-darkdark px-4">
       {/* 전체 카드: 프로필 + 회원 정보 */}
       <div className="w-full max-w-md bg-yl100 dark:bg-darktext rounded-3xl shadow-lg px-6 pt-[92px] pb-8 relative flex flex-col items-center">
+        {/* 뒤로 가기 버튼 */}
+        <button
+          onClick={() => navigate('/mypage')}
+          className="p-3 bg-lightYellow dark:bg-darkCopper dark:text-darktext rounded-full w-10 h-10 flex items-center justify-center hover:bg-lightYellow/80 dark:hover:bg-darkCopper/80 transition-colors absolute left-4 top-4 z-10"
+          title="뒤로 가기"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
         {/* 프로필 이미지 */}
         <div className="absolute -top-[92px]">
           <div className="w-[184px] h-[184px] rounded-full overflow-hidden shadow-md">

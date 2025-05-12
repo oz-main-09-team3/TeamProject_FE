@@ -28,13 +28,13 @@
   .primary-button {
     @apply bg-lightGold text-lighttext hover:bg-lightOrange 
             dark:bg-darkOrange dark:text-darkdark dark:hover:bg-darkCopper 
-            dark:hover:text-yl100 px-4;
+            dark:hover:text-yl100 py-2 px-6 text-base rounded-full font-semibold transition;
   }
 
   .secondary-button {
     @apply bg-lightOrange text-lighttext hover:bg-lightGold 
             dark:bg-darkCopper dark:text-yl100 dark:hover:text-darkdark 
-            dark:hover:bg-darkOrange px-4;
+            dark:hover:bg-darkOrange py-2 px-6 text-base rounded-full font-semibold transition;
   }
 
   .back-button {

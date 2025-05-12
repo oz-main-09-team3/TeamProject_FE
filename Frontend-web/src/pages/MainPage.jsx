@@ -1,8 +1,11 @@
 import { useState } from "react";
 import RowCard from "../components/RowCard";
 import MonthlyCalendar from "../components/calendar/MonthlyCalendar";
+import { useNavigate } from "react-router-dom";
+import { Heart } from "lucide-react";
 
 function MainPage() {
+  const navigate = useNavigate();
   const [diaryList, setDiaryList] = useState([
     { id: 1, header: "아 오늘도 힘들었다.", body: "아 진짜 집 가고싶었다.", liked: false },
     {
@@ -74,10 +77,16 @@ function MainPage() {
                       disabled={loadingId === diary.id}
                       style={{ opacity: loadingId === diary.id ? 0.5 : 1 }}
                     >
-                      {diary.liked ? '❤️' : '🤍'}
+                      <Heart
+                        className={`w-6 h-6 ${
+                          diary.liked
+                            ? "fill-red-500 text-red-500"
+                            : "text-lighttext dark:text-darktext"
+                        }`}
+                      />
                     </button>
                   }
-                  onClick={() => alert(`${diary.header} 클릭!`)}
+                  onClick={() => navigate('/diary', { state: { diary } })}
                 />
               </div>
             ))}
