@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Modal from "../components/Modal";
 import testimage from "../assets/profile.png";
 import { ChevronLeft, Pencil, Trash2, Heart, Reply as ReplyIcon, Send, X } from "lucide-react";
@@ -8,7 +8,6 @@ import useReplies from "../hooks/useReplies";
 import { useLike } from "../hooks/useLike";
 
 const DiaryDetailPage = () => {
-  const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const [diary, setDiary] = useState(null);
@@ -51,20 +50,25 @@ const DiaryDetailPage = () => {
   );
 
   useEffect(() => {
-    // TODO: API 연동 후 실제 데이터 fetch로 교체
     if (location.state?.diary) {
-      setDiary(location.state.diary);
+      // MainPage에서 전달받은 데이터 구조에 맞게 변환
+      setDiary({
+        ...location.state.diary,
+        title: location.state.diary.header,
+        content: location.state.diary.body,
+        date: new Date().toLocaleDateString()
+      });
     } else {
-      // 테스트용 더미 데이터
+      // 더미 데이터로 표시
       setDiary({
         id: 1,
         title: "테스트 일기",
-        content: "이것은 나의 일기 상세페이지 테스트용 일기입니다.",
+        content: "이것은 테스트용 일기입니다.",
         date: new Date().toLocaleDateString(),
         liked: false
       });
     }
-  }, [id, navigate, location]);
+  }, [location.state]);
 
   const handleGoBack = () => {
     navigate(-1);
@@ -76,7 +80,7 @@ const DiaryDetailPage = () => {
 
   const handleConfirmEdit = () => {
     setIsEditModalOpen(false);
-    navigate(`/diary/edit/${id}`);
+    navigate('/diary/edit');
   };
 
   const handleCancelEdit = () => {
