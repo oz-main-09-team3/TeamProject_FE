@@ -7,7 +7,7 @@ import Comment from "../components/diary/Comment";
 import Reply from "../components/diary/Reply";
 import Modal from "../components/Modal";
 import { ChevronLeft, Heart, Reply as ReplyIcon, Send } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 /**
  * 친구 일기 보기 페이지 컴포넌트
@@ -39,6 +39,8 @@ const FriendDiaryView = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const navigate = useNavigate();
+  const location = useLocation();
+  const friendId = location.state?.friendId;
 
   const handleGoBack = () => {
     navigate(-1);
