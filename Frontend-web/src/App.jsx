@@ -16,6 +16,7 @@ import ListWrapper from "./components/ListWrapper";
 import FriendDiaryView from "./pages/FriendDiaryView";
 import DiaryEditPage from "./pages/DiaryEditPage";
 import DiaryDetailPage from "./pages/DiaryDetailPage";
+import { HelmetProvider, Helmet } from 'react-helmet-async';
 
 function AppLayoutWithNavbar() {
   const [showFriends, setShowFriends] = useState(false);
@@ -69,14 +70,16 @@ function AppLayoutWithNavbar() {
 
 export default function App() {
   return (
-    <Router>
-      <Routes>
-        {/* 루트 경로는 로딩 페이지로 설정 (네비게이션 바 없음) */}
-        <Route path="/" element={<LoadingPage />} />
-        
-        {/* 나머지 모든 경로는 네비게이션 바가 있는 레이아웃으로 처리 */}
-        <Route path="/*" element={<AppLayoutWithNavbar />} />
-      </Routes>
-    </Router>
+    <HelmetProvider>
+      <Router>
+        <Routes>
+          {/* 루트 경로는 로딩 페이지로 설정 (네비게이션 바 없음) */}
+          <Route path="/" element={<LoadingPage />} />
+          
+          {/* 나머지 모든 경로는 네비게이션 바가 있는 레이아웃으로 처리 */}
+          <Route path="/*" element={<AppLayoutWithNavbar />} />
+        </Routes>
+      </Router>
+    </HelmetProvider>
   );
 }
