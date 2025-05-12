@@ -185,7 +185,7 @@ const DiaryDetailPage = () => {
             >
               <Heart
                 className={`w-4 h-4 ${
-                  reply.liked ? "fill-red-500 text-red-500" : "text-gray-500"
+                  reply.liked ? "fill-red-500 text-red-500" : "text-lighttext dark:text-darktext"
                 }`}
               />
             </button>
@@ -367,7 +367,7 @@ const DiaryDetailPage = () => {
                               className={`w-4 h-4 ${
                                 comment.liked
                                   ? "fill-red-500 text-red-500"
-                                  : "text-gray-500 dark:text-gray-800"
+                                  : "text-lighttext dark:text-darktext"
                               }`}
                             />
                           </button>
