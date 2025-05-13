@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import "@toast-ui/editor/dist/toastui-editor.css";
 import MoodButton from "../components/diary/MoodButton";
 import { useDiaryEditor } from "../hooks/useDiaryEditor";
 import Modal from "../components/Modal";
 import { ChevronLeft, Save } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { fetchEmotions } from "../service/diaryApi";
 
 /**
  * 일기 작성 페이지 컴포넌트
@@ -13,6 +14,9 @@ import { useNavigate } from "react-router-dom";
 const DiaryEditor = () => {
   const navigate = useNavigate();
   const [isSavedModalOpen, setIsSavedModalOpen] = useState(false);
+  const [moodOptions, setMoodOptions] = useState([]);
+  const [isLoadingMoods, setIsLoadingMoods] = useState(true);
+  const [moodError, setMoodError] = useState(null);
   
   // useDiaryEditor 훅을 사용하여 에디터 관련 로직 관리
   const {
@@ -32,37 +36,68 @@ const DiaryEditor = () => {
     setIsSaveModalOpen,
   } = useDiaryEditor();
 
-  // 기분 옵션 배열
-  const moodOptions = [
-    { value: '짜릿해', label: '짜릿해' },
-    { value: '즐거움', label: '즐거움' },
-    { value: '사랑', label: '사랑' },
-    { value: '기대감', label: '기대감' },
-    { value: '자신감', label: '자신감' },
-    { value: '기쁨', label: '기쁨' },
-    { value: '행복함', label: '행복함' },
-    { value: '뿌듯함', label: '뿌듯함' },
-    { value: '츄릅', label: '츄릅' },
-    { value: '쑥스러움', label: '쑥스러움' },
-    { value: '인생..', label: '인생..' },
-    { value: '꾸엑', label: '꾸엑' },
-    { value: '지침', label: '지침' },
-    { value: '놀람', label: '놀람' },
-    { value: '니가?', label: '니가?' },
-    { value: '현타', label: '현타' },
-    { value: '그래요', label: '그래요' },
-    { value: '당황', label: '당황' },
-    { value: '소노', label: '소노' },
-    { value: '슬픔', label: '슬픔' },
-    { value: '억울함', label: '억울함' },
-    { value: '불안함', label: '불안함' },
-    { value: '어이없음', label: '어이없음' },
-    { value: '울고싶음', label: '울고싶음' },
-    { value: '우울함', label: '우울함' },
-    { value: '안타까움', label: '안타까움' },
-    { value: '화남', label: '화남' },
-    { value: '열받음', label: '열받음' }
-  ];
+  // 이모지 목록을 API에서 가져오기
+  useEffect(() => {
+    const fetchMoodOptions = async () => {
+      try {
+        setIsLoadingMoods(true);
+        const response = await fetchEmotions();
+        
+        // API 응답이 있는지 확인
+        if (response && response.data) {
+          // API 응답을 컴포넌트에 맞는 형식으로 변환
+          const formattedMoods = response.data.map((emoji, index) => ({
+            value: String(emoji.emotion_id || index + 1),
+            label: emoji.emotion || `감정${index + 1}`
+          }));
+          
+          setMoodOptions(formattedMoods);
+        } else {
+          throw new Error('유효하지 않은 응답');
+        }
+        setMoodError(null);
+      } catch (error) {
+        console.error('이모지 목록을 불러오는데 실패했습니다:', error);
+        setMoodError('이모지 목록을 불러오는데 실패했습니다.');
+        
+        // 에러 발생 시 기본 이모지 목록 사용
+        setMoodOptions([
+          { value: '1', label: '짜릿해' },
+          { value: '2', label: '즐거움' },
+          { value: '3', label: '사랑' },
+          { value: '4', label: '기대감' },
+          { value: '5', label: '자신감' },
+          { value: '6', label: '기쁨' },
+          { value: '7', label: '행복함' },
+          { value: '8', label: '뿌듯함' },
+          { value: '9', label: '쥬릅' },
+          { value: '10', label: '쑥스러움' },
+          { value: '11', label: '인생..' },
+          { value: '12', label: '꾸엑' },
+          { value: '13', label: '지침' },
+          { value: '14', label: '놀람' },
+          { value: '15', label: '니가?' },
+          { value: '16', label: '현타' },
+          { value: '17', label: '그래요' },
+          { value: '18', label: '당황' },
+          { value: '19', label: '소노' },
+          { value: '20', label: '슬픔' },
+          { value: '21', label: '억울함' },
+          { value: '22', label: '불안함' },
+          { value: '23', label: '어이없음' },
+          { value: '24', label: '울고싶음' },
+          { value: '25', label: '우울함' },
+          { value: '26', label: '안타까움' },
+          { value: '27', label: '화남' },
+          { value: '28', label: '열받음' }
+        ]);
+      } finally {
+        setIsLoadingMoods(false);
+      }
+    };
+
+    fetchMoodOptions();
+  }, []);
 
   // 모달 닫기 핸들러 (뒤로가기)
   const handleCancelModalCloseAndGoBack = () => {
@@ -137,16 +172,26 @@ const DiaryEditor = () => {
 
           <div className="mt-8">
             <h3 className="text-lg font-medium mb-4 dark:text-darkBg">오늘의 기분</h3>
-            <div className="grid grid-cols-4 gap-3">
-              {moodOptions.map((option) => (
-                <MoodButton
-                  key={option.value}
-                  mood={mood}
-                  value={option.value}
-                  onClick={handleMoodChange}
-                />
-              ))}
-            </div>
+            {isLoadingMoods ? (
+              <div className="text-center py-4">
+                <span className="text-gray-500">이모지를 불러오는 중...</span>
+              </div>
+            ) : moodError ? (
+              <div className="text-center py-4">
+                <span className="text-red-500">{moodError}</span>
+              </div>
+            ) : (
+              <div className="grid grid-cols-4 gap-3">
+                {moodOptions.map((option) => (
+                  <MoodButton
+                    key={option.value}
+                    mood={mood}
+                    value={option.value}
+                    onClick={handleMoodChange}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

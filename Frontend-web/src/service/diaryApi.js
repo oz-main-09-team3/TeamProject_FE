@@ -18,3 +18,6 @@ export const deleteDiary = (diaryId) => api.delete(`/api/diary/${diaryId}/`);
 
 // 한 달 달력용 대표 감정+ID 조회
 export const fetchDiaryCalendar = () => api.get("/api/diary/calendar/");
+
+// 감정 목록 조회
+export const fetchEmotions = () => api.get("/api/emotions/");

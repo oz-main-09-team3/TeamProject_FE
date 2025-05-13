@@ -3,14 +3,46 @@ import RowCard from "../components/RowCard";
 import MonthlyCalendar from "../components/calendar/MonthlyCalendar";
 import { useNavigate } from "react-router-dom";
 import { Heart } from "lucide-react";
-import { fetchDiaries } from "../service/diaryApi";
+import { fetchDiaries, fetchEmotions } from "../service/diaryApi";
 
 function MainPage() {
   const navigate = useNavigate();
   const [diaryList, setDiaryList] = useState([]);
+  const [emotionMap, setEmotionMap] = useState({});
   const [loadingId, setLoadingId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // 감정 목록을 불러와서 매핑 테이블 생성
+  const getEmotions = async () => {
+    try {
+      const response = await fetchEmotions();
+      console.log("Emotions API response:", response); // 감정 API 응답 확인
+      
+      if (response && response.data) {
+        const emotions = {};
+        response.data.forEach(emotion => {
+          console.log("Individual emotion:", emotion); // 각 감정 데이터 로그
+          
+          // emotion_id를 키로 사용
+          emotions[emotion.emotion_id] = {
+            name: emotion.emotion,
+            emoji: emotion.emoji
+          };
+          // 한글 이름도 키로 추가
+          emotions[emotion.emotion] = {
+            name: emotion.emotion,
+            emoji: emotion.emoji,
+            id: emotion.emotion_id
+          };
+        });
+        console.log("Final emotionMap:", emotions); // 최종 emotionMap 확인
+        setEmotionMap(emotions);
+      }
+    } catch (err) {
+      console.error('감정 목록 불러오기 실패:', err);
+    }
+  };
 
   const getDiaries = async () => {
     try {
@@ -39,17 +71,25 @@ function MainPage() {
         return;
       }
       
-      const formattedDiaries = diariesData.map(diary => ({
-        id: diary.diary_id || diary.id,
-        header: diary.content ? diary.content.substring(0, 30) + "..." : "제목 없음",
-        body: diary.content || "내용 없음",
-        liked: false,
-        emotionId: diary.emotion_id,
-        createdAt: diary.created_at,
-        profileUrl: diary.profile,
-        user: diary.user
-      }));
+      console.log("First diary data:", diariesData[0]); // 첫 번째 일기 데이터 확인
       
+      const formattedDiaries = diariesData.map(diary => {
+        console.log("Individual diary:", diary); // 각 일기 데이터 로그
+        return {
+          id: diary.diary_id || diary.id,
+          header: diary.content ? diary.content.substring(0, 30) + "..." : "제목 없음",
+          body: diary.content || "내용 없음",
+          liked: false,
+          emotionId: diary.emotion_id,
+          emotion: diary.emotion,  // 한글 감정 텍스트
+          emoji: diary.emoji,     // 이모지 이미지 경로
+          createdAt: diary.created_at,
+          profileUrl: diary.profile,
+          user: diary.user
+        };
+      });
+      
+      console.log("Formatted diaries:", formattedDiaries); // 포맷된 일기 목록 확인
       setDiaryList(formattedDiaries);
     } catch (err) {
       console.error('일기 목록 불러오기 실패:', err);
@@ -61,7 +101,8 @@ function MainPage() {
   };
 
   useEffect(() => {
-    getDiaries();
+    // 감정 목록과 일기 목록을 모두 불러오기
+    Promise.all([getEmotions(), getDiaries()]);
   }, []);
 
   const handleLike = async (id, e) => {
@@ -94,13 +135,22 @@ function MainPage() {
     }
   };
 
-  const getEmojiSrc = (emotionId) => {
-    const emotionMappings = {
-      1: "/happy.png",
-      2: "/sad.png",
-      3: "/angry.png",
-    };
-    return emotionMappings[emotionId] || "/profile.png";
+  // 감정에 따라 이모지 이미지 경로 반환
+  const getEmojiSrc = (diary) => {
+    // diary에 직접 emoji가 있으면 사용
+    if (diary.emoji) {
+      return diary.emoji;
+    }
+    
+    // emotionMap에서 찾기
+    const emotionInfo = emotionMap[diary.emotion] || emotionMap[diary.emotionId];
+    
+    if (emotionInfo && emotionInfo.emoji) {
+      return emotionInfo.emoji;
+    }
+    
+    // 이모지가 없으면 null 반환
+    return null;
   };
 
   if (isLoading) {
@@ -139,32 +189,37 @@ function MainPage() {
                 아직 작성된 일기가 없습니다.
               </div>
             ) : (
-              diaryList.map((diary) => (
-                <div key={diary.id}>
-                  <RowCard
-                    emojiSrc={getEmojiSrc(diary.emotionId)}
-                    headerText={diary.header}
-                    bodyText={diary.body}
-                    rightIcon={
-                      <button 
-                        className="text-2xl"
-                        onClick={(e) => handleLike(diary.id, e)}
-                        disabled={loadingId === diary.id}
-                        style={{ opacity: loadingId === diary.id ? 0.5 : 1 }}
-                      >
-                        <Heart
-                          className={`w-6 h-6 ${
-                            diary.liked
-                              ? "fill-red-500 text-red-500"
-                              : "text-lighttext dark:text-darktext"
-                          }`}
-                        />
-                      </button>
-                    }
-                    onClick={() => navigate('/diary', { state: { diary } })}
-                  />
-                </div>
-              ))
+              diaryList.map((diary) => {
+                const emojiPath = getEmojiSrc(diary);
+                console.log('Diary emoji path:', diary.emotion, emojiPath); // 디버깅용
+                
+                return (
+                  <div key={diary.id}>
+                    <RowCard
+                      emojiSrc={emojiPath}
+                      headerText={diary.header}
+                      bodyText={diary.body}
+                      rightIcon={
+                        <button 
+                          className="text-2xl"
+                          onClick={(e) => handleLike(diary.id, e)}
+                          disabled={loadingId === diary.id}
+                          style={{ opacity: loadingId === diary.id ? 0.5 : 1 }}
+                        >
+                          <Heart
+                            className={`w-6 h-6 ${
+                              diary.liked
+                                ? "fill-red-500 text-red-500"
+                                : "text-lighttext dark:text-darktext"
+                            }`}
+                          />
+                        </button>
+                      }
+                      onClick={() => navigate('/diary', { state: { diary } })}
+                    />
+                  </div>
+                );
+              })
             )}
           </div>
         </div>

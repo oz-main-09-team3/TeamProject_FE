@@ -4,109 +4,21 @@ import MoodButton from "../components/diary/MoodButton";
 import { useDiaryEditor } from "../hooks/useDiaryEditor";
 import Modal from "../components/Modal";
 import { ChevronLeft, Save } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
-import { fetchDiary, updateDiary } from "../service/diaryApi";
+import { useNavigate } from "react-router-dom";
+import { fetchEmotions } from "../service/diaryApi";
 
 /**
- * 일기 수정 페이지 컴포넌트
- * @returns {JSX.Element} 일기 수정 페이지
+ * 일기 작성 페이지 컴포넌트
+ * @returns {JSX.Element} 일기 작성 페이지
  */
-const DiaryEditPage = () => {
+const DiaryEditor = () => {
   const navigate = useNavigate();
-  const { id } = useParams(); // URL에서 일기 ID 가져오기
   const [isSavedModalOpen, setIsSavedModalOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [originalDiary, setOriginalDiary] = useState(null);
+  const [moodOptions, setMoodOptions] = useState([]); // 빈 배열로 초기화
+  const [isLoadingMoods, setIsLoadingMoods] = useState(true);
   
-  const {
-    mood,
-    isEditing,
-    isCancelModalOpen,
-    isSaveModalOpen,
-    editorContainerRef,
-    formatDate,
-    handleMoodChange,
-    handleGoBack,
-    handleSave,
-    handleConfirmSave,
-    handleCancelSave,
-    handleConfirmCancel,
-    handleCancelModalClose,
-    setIsSaveModalOpen,
-    setMood,
-    editorInstance,
-  } = useDiaryEditor('');
-
-  // emotion_id를 mood string으로 변환하는 헬퍼 함수
-  const getEmotionIdToMoodMap = () => ({
-    1: '행복함',
-    2: '슬픔', 
-    3: '화남',
-    // API 스펙에 따라 추가 매핑 필요
-  });
-
-  // mood string을 emotion_id로 변환하는 헬퍼 함수
-  const getMoodToEmotionIdMap = () => {
-    const map = {};
-    const emotionToMood = getEmotionIdToMoodMap();
-    Object.keys(emotionToMood).forEach(key => {
-      map[emotionToMood[key]] = parseInt(key);
-    });
-    return map;
-  };
-
-  // 기존 일기 데이터 불러오기
-  useEffect(() => {
-    const loadDiary = async () => {
-      if (!id) {
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        setIsLoading(true);
-        const response = await fetchDiary(id);
-        console.log('일기 불러오기 성공:', response.data);
-        
-        const diaryData = response.data;
-        setOriginalDiary(diaryData);
-        
-        // 에디터에 기존 내용 설정 (에디터가 준비된 후에 설정됨)
-        if (editorInstance && diaryData.content) {
-          editorInstance.setHTML(diaryData.content);
-        }
-        
-        // 기존 감정 설정
-        if (diaryData.emotion_id) {
-          const emotionToMoodMap = getEmotionIdToMoodMap();
-          const mappedMood = emotionToMoodMap[diaryData.emotion_id];
-          if (mappedMood) {
-            setMood(mappedMood);
-          }
-        }
-        
-      } catch (error) {
-        console.error('일기 불러오기 실패:', error);
-        alert('일기를 불러오는데 실패했습니다.');
-        navigate(-1);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    loadDiary();
-  }, [id, navigate, setMood]);
-
-  // 에디터가 준비되면 내용 설정
-  useEffect(() => {
-    if (editorInstance && originalDiary?.content && !isLoading) {
-      editorInstance.setHTML(originalDiary.content);
-    }
-  }, [editorInstance, originalDiary, isLoading]);
-
-  // 기분 옵션 배열
-  const moodOptions = [
+  // 기본 감정 목록 (API 실패 시 폴백)
+  const defaultMoodOptions = [
     { value: '짜릿해', label: '짜릿해' },
     { value: '즐거움', label: '즐거움' },
     { value: '사랑', label: '사랑' },
@@ -130,12 +42,94 @@ const DiaryEditPage = () => {
     { value: '억울함', label: '억울함' },
     { value: '불안함', label: '불안함' },
     { value: '어이없음', label: '어이없음' },
-    { value: '울고싶음', label: '울고싶음' },
+    { value: '후고싱음', label: '후고싱음' },
     { value: '우울함', label: '우울함' },
     { value: '안타까움', label: '안타까움' },
     { value: '화남', label: '화남' },
     { value: '열받음', label: '열받음' }
   ];
+  
+  // 감정 목록 불러오기
+  useEffect(() => {
+    const fetchMoods = async () => {
+      try {
+        const response = await fetchEmotions();
+        console.log('전체 응답 객체:', response);
+        console.log('응답 상태 코드:', response.status);
+        console.log('응답 헤더:', response.headers);
+        console.log('응답 데이터 타입:', typeof response.data);
+        console.log('응답 데이터:', response.data);
+        
+        // response.data가 존재하는지 체크
+        if (response.data !== undefined && response.data !== null) {
+          console.log('response.data 존재함');
+          
+          // 배열인지 확인
+          if (Array.isArray(response.data)) {
+            console.log('response.data는 배열입니다. 길이:', response.data.length);
+            
+            if (response.data.length > 0) {
+              console.log('첫 번째 요소:', response.data[0]);
+              console.log('첫 번째 요소의 키들:', Object.keys(response.data[0]));
+            } else {
+              console.log('빈 배열입니다');
+            }
+            
+            // EmotionSerializer 형식에 맞게 파싱
+            const formattedMoods = response.data.map((emotion) => ({
+              value: emotion.emotion,  // emotion 필드가 실제 감정 텍스트
+              label: emotion.emotion,
+              id: emotion.id,
+              emoji: emotion.emoji,
+              image_url: emotion.image_url
+            }));
+            
+            console.log('변환된 감정 목록:', formattedMoods);
+            console.log('변환된 목록 길이:', formattedMoods.length);
+            setMoodOptions(formattedMoods);
+            
+          } else {
+            console.log('response.data는 배열이 아닙니다. 타입:', typeof response.data);
+            console.log('response.data 내용:', response.data);
+          }
+        } else {
+          console.log('response.data가 null 또는 undefined입니다');
+          console.log('전체 response 객체의 키들:', Object.keys(response));
+        }
+        
+        setIsLoadingMoods(false);
+      } catch (error) {
+        console.error('감정 목록을 불러오는데 실패했습니다:', error);
+        console.error('에러 타입:', error.name);
+        console.error('에러 메시지:', error.message);
+        console.error('에러 스택:', error.stack);
+        
+        // API 실패 시 기본 목록 사용
+        setMoodOptions(defaultMoodOptions);
+        setIsLoadingMoods(false);
+      }
+    };
+    
+    fetchMoods();
+  }, []);
+  
+  // useDiaryEditor 훅을 사용하여 에디터 관련 로직 관리
+  const {
+    mood,
+    isEditing,
+    isSaveModalOpen,
+    isCancelModalOpen,
+    editorContainerRef,
+    formatDate,
+    handleMoodChange,
+    handleGoBack,
+    handleSave,
+    handleConfirmSave,
+    handleCancelSave,
+    handleConfirmCancel,
+    handleCancelModalClose,
+    setIsSaveModalOpen,
+  } = useDiaryEditor();
 
   // 모달 닫기 핸들러 (뒤로가기)
   const handleCancelModalCloseAndGoBack = () => {
@@ -150,62 +144,25 @@ const DiaryEditPage = () => {
 
   // 저장 확인 모달에서 '저장' 클릭 시 실행
   const handleConfirmSaveAndShowSaved = async () => {
-    try {
-      if (!editorInstance) {
-        alert('에디터가 준비되지 않았습니다.');
-        return;
-      }
-
-      const content = editorInstance.getHTML();
-      const moodToEmotionMap = getMoodToEmotionIdMap();
-      const emotionId = moodToEmotionMap[mood] || 0;
-
-      const updateData = {
-        content: content,
-        emotion_id: emotionId,
-      };
-
-      console.log('수정 데이터:', updateData);
-      await updateDiary(id, updateData);
-      
-      handleCancelSave(); // 저장 모달 닫기
+    const saveSuccess = await handleConfirmSave();
+    if (saveSuccess) {
       setIsSavedModalOpen(true);
-    } catch (error) {
-      console.error('일기 수정 실패:', error);
-      alert('일기 수정에 실패했습니다.');
     }
   };
 
-  // 저장 완료 모달 닫기
+  // 저장 완료 모달 닫고 메인페이지로 이동
   const handleCloseSavedModal = () => {
     setIsSavedModalOpen(false);
-    navigate(`/diary/${id}`); // 상세 페이지로 이동
+    navigate('/main'); // 메인페이지로 이동
   };
-
-  const handleEdit = () => {
-    setIsEditModalOpen(true);
-  };
-
-  const handleConfirmEdit = () => {
-    setIsEditModalOpen(false);
-    navigate(`/diary/edit/${id}`);
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="text-2xl text-lighttext dark:text-darktext">
-          일기를 불러오는 중...
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen pt-20 text-lighttext dark:text-darkBrown transition-colors duration-300 flex justify-center items-center px-4 py-8">
       <div className="w-full max-w-6xl bg-white shadow-md rounded-xl flex flex-col md:flex-row overflow-hidden">
         <div className="w-full md:w-2/3 p-6 flex flex-col">
+          {/* 에디터 카드 컨테이너 */}
           <div className="flex flex-col gap-6">
+            {/* 툴바 */}
             <div className="flex justify-between items-center">
               <button
                 className="p-3 bg-lightYellow dark:bg-darkCopper dark:text-darktext rounded-full w-10 h-10 flex items-center justify-center hover:bg-lightYellow/80 dark:hover:bg-darkCopper/80 transition-colors"
@@ -217,18 +174,20 @@ const DiaryEditPage = () => {
                 <button
                   className="w-10 h-10 bg-lightYellow dark:bg-darkCopper dark:text-darktext rounded-full flex items-center justify-center hover:bg-lightYellow/80 dark:hover:bg-darkCopper/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={() => setIsSaveModalOpen(true)}
-                  disabled={!isEditing}
+                  disabled={!isEditing || !mood}
                 >
                   <Save className="w-5 h-5" />
                 </button>
               </div>
             </div>
 
+            {/* 날짜와 상태 표시 */}
             <div className="flex justify-between items-center mb-4">
               <div className="text-2xl font-bold dark:text-darkBg">{formatDate()}</div>
-              <div className="editor-status">수정 중...</div>
+              <div className="editor-status">작성 중...</div>
             </div>
 
+            {/* 에디터 컨테이너 */}
             <div className="editor-container">
               <div ref={editorContainerRef} className="min-h-[400px]" />
             </div>
@@ -245,19 +204,39 @@ const DiaryEditPage = () => {
 
           <div className="mt-8">
             <h3 className="text-lg font-medium mb-4 dark:text-darkBg">오늘의 기분</h3>
-            <div className="grid grid-cols-4 gap-3">
-              {moodOptions.map((option) => (
-                <MoodButton
-                  key={option.value}
-                  mood={mood}
-                  value={option.value}
-                  onClick={handleMoodChange}
-                />
-              ))}
-            </div>
+            {isLoadingMoods ? (
+              <div className="flex justify-center items-center h-48">
+                <span>감정 목록을 불러오는 중...</span>
+              </div>
+            ) : (
+              <div className="grid grid-cols-4 gap-3">
+                {moodOptions.map((option) => (
+                  <MoodButton
+                    key={option.id || option.value}
+                    mood={mood}
+                    value={option.value}
+                    label={option.label}
+                    imageUrl={option.image_url}
+                    onClick={handleMoodChange}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+      {/* 모달들 */}
+      <Modal
+        isOpen={isSaveModalOpen}
+        onClose={() => setIsSaveModalOpen(false)}
+        title="저장하시겠습니까?"
+        content="작성한 내용이 저장됩니다."
+        confirmText="저장"
+        cancelText="취소"
+        onConfirm={handleConfirmSaveAndShowSaved}
+        onCancel={() => setIsSaveModalOpen(false)}
+      />
 
       <Modal
         isOpen={isCancelModalOpen}
@@ -272,21 +251,10 @@ const DiaryEditPage = () => {
       />
 
       <Modal
-        isOpen={isSaveModalOpen}
-        onClose={handleCancelSave}
-        title="저장하시겠습니까?"
-        content="수정한 내용이 저장됩니다."
-        confirmText="저장"
-        cancelText="취소"
-        onConfirm={handleConfirmSaveAndShowSaved}
-        onCancel={handleCancelSave}
-      />
-
-      <Modal
         isOpen={isSavedModalOpen}
         onClose={handleCloseSavedModal}
         title="저장 완료"
-        content="일기가 수정되었습니다."
+        content="저장되었습니다."
         confirmText="확인"
         cancelText=""
         onConfirm={handleCloseSavedModal}
@@ -297,4 +265,4 @@ const DiaryEditPage = () => {
   );
 };
 
-export default DiaryEditPage;
+export default DiaryEditor;
