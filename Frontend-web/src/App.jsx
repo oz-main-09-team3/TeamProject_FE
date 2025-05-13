@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useState } from "react";
 import MainPage from "./pages/MainPage";
 import MyPage from "./pages/MyPage";
@@ -16,6 +16,8 @@ import ListWrapper from "./components/ListWrapper";
 import FriendDiaryView from "./pages/FriendDiaryView";
 import DiaryEditPage from "./pages/DiaryEditPage";
 import DiaryDetailPage from "./pages/DiaryDetailPage";
+import Layout from './components/Layout';
+import { HelmetProvider, Helmet } from 'react-helmet-async';
 
 function AppLayoutWithNavbar() {
   const [showFriends, setShowFriends] = useState(false);
@@ -67,16 +69,17 @@ function AppLayoutWithNavbar() {
   );
 }
 
-export default function App() {
+function App() {
   return (
-    <Router>
-      <Routes>
-        {/* 루트 경로는 로딩 페이지로 설정 (네비게이션 바 없음) */}
-        <Route path="/" element={<LoadingPage />} />
-        
-        {/* 나머지 모든 경로는 네비게이션 바가 있는 레이아웃으로 처리 */}
-        <Route path="/*" element={<AppLayoutWithNavbar />} />
-      </Routes>
-    </Router>
+    <BrowserRouter>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<LoadingPage />} />
+          <Route path="/*" element={<AppLayoutWithNavbar />} />
+        </Routes>
+      </Layout>
+    </BrowserRouter>
   );
 }
+
+export default App;
