@@ -161,5 +161,7 @@ export const useDiaryEditor = (initialContent = '') => {
     handleConfirmCancel,
     handleCancelModalClose,
     setIsSaveModalOpen,
+    setMood,  // 추가
+    editorRef,  // 추가
   };
 };
