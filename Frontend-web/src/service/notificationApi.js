@@ -1,4 +1,4 @@
-import api from "./axiosInstance";
+import api from "./axios";
 
 // 알림 조회
 export const fetchNotifications = () => api.get("/api/notifications/");
