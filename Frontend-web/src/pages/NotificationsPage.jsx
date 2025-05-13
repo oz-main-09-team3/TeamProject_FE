@@ -1,37 +1,81 @@
+import { useEffect, useState } from "react";
+import {
+  fetchNotifications,
+  updateNotification,
+  deleteNotification,
+} from "../service/notificationApi";
 import RowCard from "../components/RowCard";
 import testimage from "../assets/profile.png";
 import emptyImage from "../assets/empty.png";
-import { useState } from "react";
 
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      title: "새로운 친구 요청",
-      detail: "김오즈님이 친구 요청을 보냈어요!",
-      isRead: false,
-    },
-    {
-      id: 2,
-      title: "감정 기록 알림",
-      detail: "오늘 하루 감정을 기록해보세요!",
-      isRead: true,
-    },
-    {
-      id: 3,
-      title: "기록 리마인드",
-      detail: "어제 기록을 잊지 않으셨나요?",
-      isRead: false,
-    },
-  ]);
+  const [notifications, setNotifications] = useState([]);
+
+  useEffect(() => {
+    async function load() {
+      console.log("📡 알림 불러오는 중...");
+      try {
+        const res = await fetchNotifications(); // API 호출
+        console.log("알림 응답:", res.data);
+
+        const parsed = res.data.map((item) => ({
+          id: item.notification.notification_id,
+          title: item.notification.notificationtype,
+          detail: item.notification.notificationmessage,
+          isRead: false,
+        }));
+
+        setNotifications(parsed);
+      } catch (err) {
+        console.error("❌ 알림 불러오기 실패:", err);
+        console.error("에러 응답:", err.response?.data || err.message);
+      }
+    }
+
+    load(); //함수 실행
+  }, []);
 
   const handleNotificationClick = (id) => {
-    setNotifications(notifications.map(noti => 
-      noti.id === id ? { ...noti, isRead: true } : noti
-    ));
+    setNotifications((prev) =>
+      prev.map((noti) =>
+        noti.id === id ? { ...noti, isRead: true } : noti
+      )
+    );
   };
 
-  const moodImageSrc = testimage;
+  //알림 수정
+  const handleEdit = async (id) => {
+    try {
+      await updateNotification(id, {
+        notificationtype: "수정됨",
+        notificationmessage: "수정된 알림 메시지입니다.",
+      });
+      alert("수정 완료");
+
+      //목록 다시 불러오기
+      const res = await fetchNotifications();
+      const updated = res.data.map((item) => ({
+        id: item.notification.notification_id,
+        title: item.notification.notificationtype,
+        detail: item.notification.notificationmessage,
+        isRead: false,
+      }));
+      setNotifications(updated);
+    } catch (err) {
+      console.error("❌ 수정 실패:", err);
+    }
+  };
+
+  //알림 삭제
+  const handleDelete = async (id) => {
+    try {
+      await deleteNotification(id);
+      alert("삭제 완료");
+      setNotifications((prev) => prev.filter((noti) => noti.id !== id));
+    } catch (err) {
+      console.error("❌ 삭제 실패:", err);
+    }
+  };
 
   return (
     <div className="notifications-panel flex flex-col gap-4 w-full">
@@ -39,7 +83,7 @@ export default function NotificationsPage() {
         notifications.map((noti) => (
           <RowCard
             key={noti.id}
-            emojiSrc={moodImageSrc}
+            emojiSrc={testimage}
             headerText={
               <div className="flex items-center gap-2">
                 {noti.title}
@@ -51,7 +95,7 @@ export default function NotificationsPage() {
             bodyText={noti.detail}
             onClick={() => handleNotificationClick(noti.id)}
             className={`transition-all duration-200 ${
-              !noti.isRead ? 'bg-lightYellow/10 dark:bg-darkBrown/20' : ''
+              !noti.isRead ? "bg-lightYellow/10 dark:bg-darkBrown/20" : ""
             }`}
           />
         ))
