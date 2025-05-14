@@ -175,9 +175,9 @@ function MainPage() {
   }
 
   return (
-    <main className="min-h-screen transition-colors duration-300">
-      <section className="m-8 section-container border bg-yl100 dark:bg-darktext border-lightGold dark:border-darkCopper rounded-xl">
-        <div className="flex flex-col lg:flex-row gap-8 items-stretch">
+    <main className="min-h-screen flex flex-col items-center justify-center transition-colors duration-300">
+      <section className="mx-auto max-w-5xl w-full m-8 section-container border bg-yl100 dark:bg-darktext border-lightGold dark:border-darkCopper rounded-xl">
+        <div className="flex flex-col lg:flex-row gap-8 items-stretch justify-center">
           <div className="w-full lg:w-1/2 bg-white p-4 sm:p-6 rounded-lg shadow-md">
             <div className="aspect-[7/6]">
               <MonthlyCalendar />
