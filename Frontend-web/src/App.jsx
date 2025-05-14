@@ -71,14 +71,20 @@ function AppLayoutWithNavbar() {
 
 function App() {
   return (
-    <BrowserRouter>
-      <Layout>
+    <HelmetProvider>
+      <BrowserRouter>
         <Routes>
+          {/* 네비게이션바 없는 로딩페이지 */}
           <Route path="/" element={<LoadingPage />} />
-          <Route path="/*" element={<AppLayoutWithNavbar />} />
+          {/* 네비게이션바 포함 나머지 페이지 */}
+          <Route path="/*" element={
+            <Layout>
+              <AppLayoutWithNavbar />
+            </Layout>
+          } />
         </Routes>
-      </Layout>
-    </BrowserRouter>
+      </BrowserRouter>
+    </HelmetProvider>
   );
 }
 
