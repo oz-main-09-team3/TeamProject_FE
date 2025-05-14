@@ -7,7 +7,7 @@ import { ChevronLeft, Save } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { fetchEmotions } from "../service/diaryApi";
 import { Helmet } from 'react-helmet-async';
-import { EMOJI_TEXT_MAP, getEmojiText, getDefaultEmojis } from '../constants/Emoji';
+import { EMOJI_TEXT_MAP, getDefaultEmojis } from '../constants/Emoji';
 
 /**
  * 일기 작성 페이지 컴포넌트

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import RowCard from "../components/RowCard";
 import MonthlyCalendar from "../components/calendar/MonthlyCalendar";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Heart } from "lucide-react";
 import { fetchDiaries, fetchEmotions } from "../service/diaryApi";
 import { EMOJI_TEXT_MAP } from '../constants/Emoji';
@@ -11,6 +11,7 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 function MainPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [diaryList, setDiaryList] = useState([]);
   const [emotionMap, setEmotionMap] = useState({});
   const [loadingId, setLoadingId] = useState(null);
@@ -79,9 +80,29 @@ function MainPage() {
       
       const formattedDiaries = diariesData.map(diary => {
         console.log("Individual diary with emotion:", diary, diary.emotion);
-        // emotion 필드의 타입과 값 확인
-        const emotionValue = diary.emotion || diary.emotion_id || diary.id;
-        console.log("Emotion value:", emotionValue, "Type:", typeof emotionValue);
+        
+        // emotion 필드 처리
+        let emotionValue;
+        
+        // emotion이 객체인 경우
+        if (diary.emotion && typeof diary.emotion === 'object') {
+          emotionValue = diary.emotion;
+          console.log("Emotion is object:", emotionValue);
+        } 
+        // emotion이 숫자나 문자열인 경우
+        else if (diary.emotion) {
+          emotionValue = diary.emotion;
+        }
+        // emotion_id가 있는 경우
+        else if (diary.emotion_id) {
+          emotionValue = diary.emotion_id;
+        }
+        // 기본값
+        else {
+          emotionValue = diary.id;
+        }
+        
+        console.log("Final emotion value:", emotionValue, "Type:", typeof emotionValue);
         
         return {
           id: diary.diary_id || diary.id,
@@ -89,6 +110,7 @@ function MainPage() {
           body: diary.content || "내용 없음",
           liked: false,
           emotionId: emotionValue,
+          emotion: diary.emotion, // 원본 데이터 저장
           createdAt: diary.created_at,
           profileUrl: diary.profile,
           user: diary.user
@@ -110,6 +132,13 @@ function MainPage() {
     // 감정 목록과 일기 목록을 모두 불러오기
     Promise.all([getEmotions(), getDiaries()]);
   }, []);
+
+  // 수정 페이지에서 돌아왔을 때 새로고침
+  useEffect(() => {
+    if (location.state?.refresh) {
+      getDiaries();
+    }
+  }, [location.state]);
 
   const handleLike = async (id, e) => {
     e.stopPropagation();
@@ -143,11 +172,18 @@ function MainPage() {
 
   // 감정에 따라 이모지 이미지 경로 반환
   const getEmojiSrc = (diary) => {
-    console.log('Getting emoji for diary:', diary.emotionId, typeof diary.emotionId);
+    let emotionId = diary.emotionId;
+    
+    // emotionId가 객체인 경우 id 추출
+    if (emotionId && typeof emotionId === 'object') {
+      emotionId = emotionId.id;
+    }
+    
+    console.log('Final emotionId for image:', emotionId, 'Type:', typeof emotionId);
     
     // emotionId가 유효한 숫자인지 확인
-    if (diary.emotionId && !isNaN(diary.emotionId)) {
-      return `${BACKEND_URL}/static/emotions/${diary.emotionId}.png`;
+    if (emotionId && !isNaN(emotionId)) {
+      return `${BACKEND_URL}/static/emotions/${emotionId}.png`;
     }
     
     // emotionId가 없거나 유효하지 않으면 기본 이미지
@@ -193,6 +229,7 @@ function MainPage() {
               diaryList.map((diary) => {
                 const emojiPath = getEmojiSrc(diary);
                 console.log('Diary emoji path:', {
+                  diaryId: diary.id,
                   emotionId: diary.emotionId,
                   emotion: diary.emotion,
                   path: emojiPath

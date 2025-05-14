@@ -5,6 +5,8 @@ import testimage from "../assets/profile.png";
 import { ChevronLeft, Pencil, Trash2, Heart } from "lucide-react";
 import { fetchDiary, deleteDiary } from "../service/diaryApi";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 const DiaryDetailPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -31,7 +33,7 @@ const DiaryDetailPage = () => {
         title: response.data.content ? response.data.content.substring(0, 30) : "제목 없음",
         content: response.data.content || "",
         date: new Date(response.data.created_at).toLocaleDateString('ko-KR'),
-        emotionId: response.data.emotion_id,
+        emotionId: response.data.emotion_id || response.data.emotion,
         userId: response.data.user,
         userName: response.data.username,
         userProfile: response.data.profile,
@@ -59,7 +61,8 @@ const DiaryDetailPage = () => {
         diary_id: passedDiary.id || passedDiary.diary_id,
         title: passedDiary.header || passedDiary.title,
         content: passedDiary.body || passedDiary.content,
-        date: passedDiary.createdAt ? new Date(passedDiary.createdAt).toLocaleDateString('ko-KR') : new Date().toLocaleDateString('ko-KR')
+        date: passedDiary.createdAt ? new Date(passedDiary.createdAt).toLocaleDateString('ko-KR') : new Date().toLocaleDateString('ko-KR'),
+        emotionId: passedDiary.emotionId
       });
       setIsLoading(false);
     } else {
@@ -78,7 +81,9 @@ const DiaryDetailPage = () => {
   const handleConfirmEdit = () => {
     setIsEditModalOpen(false);
     const diaryId = diary.diary_id || diary.id;
-    navigate(`/diary/edit/${diaryId}`);
+    navigate(`/diary/edit/${diaryId}`, { 
+      state: { diary: diary } 
+    });
   };
 
   const handleCancelEdit = () => {
@@ -106,12 +111,14 @@ const DiaryDetailPage = () => {
   };
 
   const getEmojiSrc = (emotionId) => {
-    const emotionMappings = {
-      1: "/happy.png",
-      2: "/sad.png",
-      3: "/angry.png",
-    };
-    return emotionMappings[emotionId] || testimage;
+    console.log('Getting emoji for emotionId:', emotionId);
+    
+    if (emotionId && !isNaN(emotionId)) {
+      return `${BACKEND_URL}/static/emotions/${emotionId}.png`;
+    }
+    
+    // 기본 이미지
+    return `${BACKEND_URL}/static/emotions/1.png`;
   };
 
   if (isLoading) {
