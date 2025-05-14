@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import Modal from "../components/Modal";
-import testimage from "../assets/profile.png";
 import { ChevronLeft, Pencil, Trash2, Heart } from "lucide-react";
 import { fetchDiary, deleteDiary } from "../service/diaryApi";
 
@@ -27,21 +26,32 @@ const DiaryDetailPage = () => {
       
       console.log("Diary detail response:", response);
       
+      const diaryData = response.data || response;
+      
       const formattedDiary = {
-        diary_id: response.data.diary_id,
-        id: response.data.diary_id,
-        title: response.data.content ? response.data.content.substring(0, 30) : "제목 없음",
-        content: response.data.content || "",
-        date: new Date(response.data.created_at).toLocaleDateString('ko-KR'),
-        emotionId: response.data.emotion_id || response.data.emotion,
-        userId: response.data.user,
-        userName: response.data.username,
-        userProfile: response.data.profile,
-        liked: false,
-        visibility: response.data.visibility,
-        image: response.data.image
+        diary_id: diaryData.diary_id,
+        id: diaryData.diary_id,
+        title: diaryData.content ? diaryData.content.substring(0, 30) : "제목 없음",
+        content: diaryData.content || "",
+        date: new Date(diaryData.created_at).toLocaleDateString('ko-KR'),
+        emotionId: diaryData.emotion?.emotion_id || 1,
+        emotionText: diaryData.emotion?.emotion || "",
+        emotionEmoji: diaryData.emotion?.emoji || "",
+        emotionUrl: diaryData.emotion?.image_url || "",
+        userId: diaryData.user?.user_id,
+        userName: diaryData.user?.username,
+        userNickname: diaryData.user?.nickname,
+        userProfile: diaryData.user?.profile,
+        liked: false, 
+        likeCount: diaryData.like_count || 0,
+        visibility: diaryData.visibility,
+        images: diaryData.images || [],
+        comments: diaryData.comments || [],
+        createdAt: diaryData.created_at,
+        updatedAt: diaryData.updated_at
       };
       
+      console.log("Formatted diary:", formattedDiary);
       setDiary(formattedDiary);
     } catch (err) {
       console.error('일기 상세 조회 실패:', err);
@@ -62,7 +72,8 @@ const DiaryDetailPage = () => {
         title: passedDiary.header || passedDiary.title,
         content: passedDiary.body || passedDiary.content,
         date: passedDiary.createdAt ? new Date(passedDiary.createdAt).toLocaleDateString('ko-KR') : new Date().toLocaleDateString('ko-KR'),
-        emotionId: passedDiary.emotionId
+        emotionId: passedDiary.emotionId,
+        emotionUrl: passedDiary.emotionUrl,
       });
       setIsLoading(false);
     } else {
@@ -110,15 +121,32 @@ const DiaryDetailPage = () => {
     navigate('/main');
   };
 
-  const getEmojiSrc = (emotionId) => {
-    console.log('Getting emoji for emotionId:', emotionId);
+  const getEmojiSrc = (diary) => {
+    console.log('getEmojiSrc called with:', {
+      emotionId: diary.emotionId,
+      emotionUrl: diary.emotionId.image_url
+    });
     
-    if (emotionId && !isNaN(emotionId)) {
-      return `${BACKEND_URL}/static/emotions/${emotionId}.png`;
+    // emotionImageUrl이 있으면 우선 사용
+    if (diary.emotionId.image_url) {
+      // 상대 경로인 경우 BACKEND_URL과 결합
+      const imageUrl = `${BACKEND_URL}${diary.emotionId.image_url}`;
+      console.log('Using emotionImageUrl:', imageUrl);
+      return imageUrl;
+    }
+    
+    // emotionId로 경로 생성
+    const numericId = Number(diary.emotionId);
+    if (!isNaN(numericId) && numericId > 0) {
+      const emojiPath = `${BACKEND_URL}/static/emotions/${numericId}.png`;
+      console.log('Generated path from emotionId:', emojiPath);
+      return emojiPath;
     }
     
     // 기본 이미지
-    return `${BACKEND_URL}/static/emotions/1.png`;
+    const defaultPath = `${BACKEND_URL}/static/emotions/1.png`;
+    console.log('Using default path:', defaultPath);
+    return defaultPath;
   };
 
   if (isLoading) {
@@ -207,9 +235,16 @@ const DiaryDetailPage = () => {
                 <div className="w-28 h-28 rounded-full flex justify-center items-center overflow-hidden relative">
                   <div className="absolute inset-0 rounded-full"></div>
                   <img
-                    src={getEmojiSrc(diary.emotionId)}
+                    src={getEmojiSrc(diary)}
                     alt="현재 기분"
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      console.error('Emoji image failed to load:', e.target.src);
+                      e.target.src = `${BACKEND_URL}/static/emotions/1.png`;
+                    }}
+                    onLoad={(e) => {
+                      console.log('Emoji image loaded successfully:', e.target.src);
+                    }}
                   />
                 </div>
               </div>
@@ -221,14 +256,63 @@ const DiaryDetailPage = () => {
               <div className="w-full rounded-lg border border-lightGold dark:border-darkCopper shadow-sm p-5 dark:text-darkBg bg-white min-h-[320px]">
                 <div className="mt-4">
                   <div className="font-bold text-xl mb-4">{diary.title}</div>
-                  <div className="text-gray-700 dark:text-gray-300">{diary.content}</div>
-                  {diary.image && (
-                    <div className="mt-4">
-                      <img 
-                        src={diary.image} 
-                        alt="일기 이미지" 
-                        className="max-w-full h-auto rounded-lg"
-                      />
+                  <div className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{diary.content}</div>
+                  
+                  {/* 이미지 표시 */}
+                  {diary.images && diary.images.length > 0 && (
+                    <div className="mt-6 space-y-4">
+                      {diary.images.map((image) => (
+                        <img 
+                          key={image.diary_image_id}
+                          src={image.image_url} 
+                          alt="일기 이미지" 
+                          className="max-w-full h-auto rounded-lg"
+                        />
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* 작성자 정보 */}
+                  <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center gap-3">
+                      {diary.userProfile && (
+                        <img 
+                          src={diary.userProfile} 
+                          alt={diary.userNickname} 
+                          className="w-10 h-10 rounded-full"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                      )}
+                      <div>
+                        <div className="font-medium">{diary.userNickname}</div>
+                        <div className="text-sm text-gray-500">@{diary.userName}</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* 좋아요 수 표시 */}
+                  {diary.likeCount > 0 && (
+                    <div className="mt-4 flex items-center gap-2 text-sm text-gray-600">
+                      <Heart className="w-4 h-4" />
+                      <span>{diary.likeCount}명이 좋아합니다</span>
+                    </div>
+                  )}
+                  
+                  {/* 댓글 표시 (선택사항) */}
+                  {diary.comments && diary.comments.length > 0 && (
+                    <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                      <h3 className="font-medium mb-3">댓글 {diary.comments.length}개</h3>
+                      {diary.comments.map((comment) => (
+                        <div key={comment.comment_id} className="mb-3">
+                          <div className="text-sm font-medium">사용자 {comment.user_id}</div>
+                          <div className="text-gray-700">{comment.content}</div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            {new Date(comment.created_at).toLocaleString('ko-KR')}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>

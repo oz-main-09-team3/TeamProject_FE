@@ -4,9 +4,7 @@ import MonthlyCalendar from "../components/calendar/MonthlyCalendar";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Heart } from "lucide-react";
 import { fetchDiaries, fetchEmotions } from "../service/diaryApi";
-import { EMOJI_TEXT_MAP } from '../constants/Emoji';
 
-// 파일 상단에 추가
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 function MainPage() {
@@ -18,7 +16,6 @@ function MainPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // 감정 목록을 불러와서 매핑 테이블 생성
   const getEmotions = async () => {
     try {
       const response = await fetchEmotions();
@@ -29,12 +26,10 @@ function MainPage() {
         response.data.forEach(emotion => {
           console.log("Individual emotion:", emotion);
           
-          // id를 키로 사용 (emotion_id 대신 id 사용)
           emotions[emotion.id] = {
             name: emotion.emotion,
             image_url: emotion.image_url
           };
-          // 한글 이름도 키로 추가
           emotions[emotion.emotion] = {
             name: emotion.emotion,
             image_url: emotion.image_url,

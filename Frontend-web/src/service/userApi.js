@@ -1,4 +1,4 @@
-import api from "./axiosInstance";
+import api from "./axios";
 
 // 내 정보 조회
 export const getMyInfo = () => api.get("/api/users/me/");
