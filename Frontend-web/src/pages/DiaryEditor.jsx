@@ -7,7 +7,7 @@ import { ChevronLeft, Save } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { fetchEmotions } from "../service/diaryApi";
 import { Helmet } from 'react-helmet-async';
-import { EMOJI_TEXT_MAP, getEmojiText, getDefaultEmojis } from '../constants/Emoji';
+import { EMOJI_TEXT_MAP, getDefaultEmojis } from '../constants/Emoji';
 
 /**
  * 일기 작성 페이지 컴포넌트
@@ -47,11 +47,17 @@ const DiaryEditor = () => {
         
         // API 응답이 있는지 확인
         if (response && response.data) {
-          // API 응답에 텍스트 추가하여 사용
+          // API 응답을 그대로 사용하되, 텍스트는 EMOJI_TEXT_MAP에서 가져오기
           const transformedData = response.data.map(item => ({
-            ...item,
-            emotion: EMOJI_TEXT_MAP[Number(item.id)] || `감정${item.id}`
+            id: item.id,
+            emotion: item.emotion, // API에서 받은 emotion 텍스트 유지
+            display_emotion: EMOJI_TEXT_MAP[Number(item.id)] || item.emotion, // 표시용 텍스트
+            image_url: item.image_url
           }));
+          
+          console.log('API emotions:', response.data);
+          console.log('Transformed data:', transformedData);
+          
           setMoodOptions(transformedData);
         } else {
           throw new Error('유효하지 않은 응답');
@@ -62,7 +68,10 @@ const DiaryEditor = () => {
         setMoodError('이모지 목록을 불러오는데 실패했습니다.');
         
         // 에러 발생 시 기본 이모지 목록 사용
-        setMoodOptions(getDefaultEmojis());
+        setMoodOptions(getDefaultEmojis().map(item => ({
+          ...item,
+          display_emotion: item.emotion
+        })));
       } finally {
         setIsLoadingMoods(false);
       }
@@ -99,7 +108,8 @@ const DiaryEditor = () => {
   // 선택된 mood의 텍스트 찾기
   const getSelectedMoodText = () => {
     if (!mood) return '없음';
-    return EMOJI_TEXT_MAP[Number(mood)] || '없음';
+    const selectedOption = moodOptions.find(option => String(option.id) === String(mood));
+    return selectedOption ? selectedOption.display_emotion : EMOJI_TEXT_MAP[Number(mood)] || '없음';
   };
 
   return (
@@ -162,8 +172,11 @@ const DiaryEditor = () => {
                   <MoodButton
                     key={option.id}
                     mood={getSelectedMoodText()}
-                    value={option.emotion}
-                    onClick={() => handleMoodChange(String(option.id))}
+                    value={option.display_emotion} // 표시용 텍스트 사용
+                    onClick={() => {
+                      console.log(`Selected mood ID: ${option.id}, emotion: ${option.emotion}`);
+                      handleMoodChange(String(option.id));
+                    }}
                   />
                 ))}
               </div>

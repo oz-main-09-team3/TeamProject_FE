@@ -35,9 +35,10 @@ export const useDiaryEditor = (initialContent = '') => {
 
   /**
    * 감정 선택 핸들러
-   * @param {string} newMood - 선택된 새로운 감정
+   * @param {string} newMood - 선택된 새로운 감정 ID
    */
   const handleMoodChange = (newMood) => {
+    console.log('handleMoodChange called with:', newMood);
     setMood(newMood);
     setIsEditing(true);
   };
@@ -50,22 +51,14 @@ export const useDiaryEditor = (initialContent = '') => {
     try {
       const content = editorRef.current ? editorRef.current.getMarkdown() : '';
       
-      const emotionMap = {
-        '짜릿해': 1, '즐거움': 2, '사랑': 3, '기대감': 4, '자신감': 5,
-        '기쁨': 6, '행복함': 7, '뿌듯함': 8, '츄릅': 9, '쑥스러움': 10,
-        '인생..': 11, '꾸엑': 12, '지침': 13, '놀람': 14, '니가?': 15,
-        '현타': 16, '그래요': 17, '당황': 18, '소노': 19, '슬픔': 20,
-        '억울함': 21, '불안함': 22, '어이없음': 23, '울고싶음': 24,
-        '우울함': 25, '안타까움': 26, '화남': 27, '열받음': 28
-      };
-      
       if (!mood) {
         alert('기분을 선택해주세요.');
         return false;
       }
       
+      // mood가 이미 ID이므로 그대로 사용
       const diaryData = {
-        emotion_id: emotionMap[mood],
+        emotion_id: parseInt(mood, 10), // 문자열을 숫자로 변환
         content: content,
         visibility: true,
         images: []

@@ -1,22 +1,30 @@
-import { useReducer, useRef, useState } from "react";
+import { useReducer, useRef, useState, useEffect } from "react";
 import { Camera } from "lucide-react";
 import ColorThief from 'colorthief';
 import Modal from '../components/Modal';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { updateMyInfo } from "../service/userApi";
 
-const initialState = {
-  nickname: "몽이마덜",
-  phoneNumber: "",
-  email: "mong@naver.com",
-  birthdate: "1997-04-17",
-  profileImage: "/profile.png"
-};
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 function reducer(state, action) {
   return { ...state, [action.name]: action.value };
 }
 
 export default function EditUserInfo() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  const receivedUserInfo = location.state?.userInfo;
+  
+  const initialState = {
+    nickname: receivedUserInfo?.nickname || receivedUserInfo?.username || "",
+    phone_number: receivedUserInfo?.phone_number || receivedUserInfo?.phone || "",
+    email: receivedUserInfo?.email || "",
+    birth_date: receivedUserInfo?.birth_date || receivedUserInfo?.birthdate || "",
+    profile_image: receivedUserInfo?.profile_image || "/profile.png"
+  };
+
   const [state, dispatch] = useReducer(reducer, initialState);
   const [borderColor, setBorderColor] = useState('transparent');
   const [emailError, setEmailError] = useState('');
@@ -25,14 +33,47 @@ export default function EditUserInfo() {
   const [showModal, setShowModal] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
   const [modalType, setModalType] = useState('warning');
+  const [profileImageFile, setProfileImageFile] = useState(null);
   const fileInputRef = useRef(null);
   const imageRef = useRef(null);
-  const navigate = useNavigate();
+
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      return date.toISOString().split('T')[0];
+    } catch {
+      return dateString;
+    }
+  };
+
+  useEffect(() => {
+    if (initialState.birth_date) {
+      dispatch({ 
+        name: 'birth_date', 
+        value: formatDateForInput(initialState.birth_date) 
+      });
+    }
+  }, []);
+
+  const getProfileImageUrl = () => {
+
+    if (state.profile_image && state.profile_image.startsWith('data:')) {
+      return state.profile_image;
+    }
+    if (state.profile_image) {
+      if (state.profile_image.startsWith('http')) {
+        return state.profile_image;
+      }
+      return `${BACKEND_URL}${state.profile_image}`;
+    }
+    return "/profile.png";
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    // 미래 날짜 방지: 미래 날짜면 today로 자동 변경
-    if (name === 'birthdate') {
+    
+    if (name === 'birth_date') {
       const todayStr = new Date().toISOString().split('T')[0];
       if (value > todayStr) {
         dispatch({ name, value: todayStr });
@@ -42,7 +83,6 @@ export default function EditUserInfo() {
     }
     dispatch({ name, value });
 
-    // 이메일 유효성 검사
     if (name === 'email') {
       const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
       if (!emailRegex.test(value)) {
@@ -52,8 +92,7 @@ export default function EditUserInfo() {
       }
     }
 
-    // 전화번호 유효성 검사
-    if (name === 'phoneNumber') {
+    if (name === 'phone_number') {
       const phoneRegex = /^01([0|1|6|7|8|9])-?([0-9]{3,4})-?([0-9]{4})$/;
       if (value && !phoneRegex.test(value)) {
         setPhoneError('올바른 전화번호 형식이 아닙니다.');
@@ -62,15 +101,13 @@ export default function EditUserInfo() {
       }
     }
 
-    // 생년월일 유효성 검사
-    if (name === 'birthdate') {
+    if (name === 'birth_date') {
       const today = new Date();
       const birthDate = new Date(value);
       const minDate = new Date('1900-01-01');
       const age = today.getFullYear() - birthDate.getFullYear();
       const monthDiff = today.getMonth() - birthDate.getMonth();
       
-      // 만 나이 계산 (생일이 지났는지 확인)
       const isBirthdayPassed = monthDiff > 0 || (monthDiff === 0 && today.getDate() >= birthDate.getDate());
       const actualAge = isBirthdayPassed ? age : age - 1;
       
@@ -86,9 +123,9 @@ export default function EditUserInfo() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // 입력란 순서대로(전화번호 → 이메일 → 생년월일) 가장 먼저 발견된 에러만 모달에 띄움
+    
     if (phoneError) {
       setModalMessage('전화번호 형식이 올바르지 않습니다.');
       setModalType('warning');
@@ -107,12 +144,42 @@ export default function EditUserInfo() {
       setShowModal(true);
       return;
     }
-    // 모든 입력이 올바르면 성공 모달
-    setModalMessage('저장되었습니다.');
-    setModalType('success');
-    setShowModal(true);
-    // 실제 저장 로직은 여기에 추가
-    console.log("수정된 정보:", state);
+
+    try {
+      const updateData = {
+        nickname: state.nickname,
+        phone_num: state.phone_number,
+        email: state.email,
+        birthday: state.birth_date,
+      };
+      
+      if (profileImageFile) {
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          updateData.profile = reader.result.split(',')[1]; 
+          
+          const response = await updateMyInfo(updateData);
+          console.log("Update response:", response);
+          
+          setModalMessage('저장되었습니다.');
+          setModalType('success');
+          setShowModal(true);
+        };
+        reader.readAsDataURL(profileImageFile);
+      } else {
+        const response = await updateMyInfo(updateData);
+        console.log("Update response:", response);
+        
+        setModalMessage('저장되었습니다.');
+        setModalType('success');
+        setShowModal(true);
+      }
+    } catch (error) {
+      console.error("Failed to update user info:", error);
+      setModalMessage('정보 수정에 실패했습니다. 다시 시도해주세요.');
+      setModalType('warning');
+      setShowModal(true);
+    }
   };
 
   const handleImageClick = () => {
@@ -128,11 +195,12 @@ export default function EditUserInfo() {
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
+      setProfileImageFile(file); 
+      
       const reader = new FileReader();
       reader.onloadend = () => {
-        dispatch({ name: 'profileImage', value: reader.result });
+        dispatch({ name: 'profile_image', value: reader.result });
         
-        // 이미지가 로드된 후 색상 추출
         const img = new Image();
         img.src = reader.result;
         img.onload = () => {
@@ -151,14 +219,12 @@ export default function EditUserInfo() {
     }
   };
 
-  // 현재 날짜를 YYYY-MM-DD 형식으로 가져오기
   const today = new Date().toISOString().split('T')[0];
 
   return (
     <>
       <main className="flex items-center justify-center min-h-screen bg-lightBg dark:bg-darkdark px-4">
         <div className="w-full max-w-xl relative pt-[92px] pb-8 flex flex-col items-center bg-white dark:bg-darktext rounded-3xl shadow-lg">
-          {/* 프로필 이미지 */}
           <div className="absolute -top-[92px]">
             <div className="relative group">
               <div 
@@ -167,9 +233,12 @@ export default function EditUserInfo() {
               >
                 <img
                   ref={imageRef}
-                  src={state.profileImage}
+                  src={getProfileImageUrl()}
                   alt="프로필 이미지"
                   className="object-cover w-full h-full"
+                  onError={(e) => {
+                    e.target.src = "/profile.png";
+                  }}
                 />
               </div>
               <div 
@@ -189,7 +258,6 @@ export default function EditUserInfo() {
           </div>
 
           <form onSubmit={handleSubmit} className="w-full space-y-5 mt-6 px-6">
-            {/* 상단 두 칸 */}
             <div className="flex flex-col md:flex-row gap-6">
               <FormInput
                 label="닉네임"
@@ -201,9 +269,9 @@ export default function EditUserInfo() {
                 <label className="block mb-2 text-sm font-semibold text-lighttext dark:text-darkBg">전화번호</label>
                 <input 
                   type="tel"
-                  name="phoneNumber"
+                  name="phone_number"
                   placeholder="010-1234-5678"
-                  value={state.phoneNumber}
+                  value={state.phone_number}
                   onChange={handleChange}
                   className={`form-input text-lighttext dark:text-darkBg placeholder:text-gray-500 dark:placeholder:text-gray-500 ${phoneError ? 'border-red-500' : ''}`}
                 />
@@ -231,8 +299,8 @@ export default function EditUserInfo() {
               <label className="block mb-2 text-sm font-semibold text-lighttext dark:text-darkBg">생년월일</label>
               <input 
                 type="date"
-                name="birthdate"
-                value={state.birthdate}
+                name="birth_date"
+                value={state.birth_date}
                 onChange={handleChange}
                 max={today}
                 min="1900-01-01"
@@ -254,7 +322,6 @@ export default function EditUserInfo() {
         </div>
       </main>
 
-      {/* 공통 Modal 컴포넌트 사용 */}
       <Modal
         isOpen={showModal}
         onClose={closeModal}
@@ -268,7 +335,6 @@ export default function EditUserInfo() {
   );
 }
 
-// forminput 을 사용해서 공통컴포넌트
 function FormInput({ label, ...rest }) {
   return (
     <div className="flex-1 text-left">
