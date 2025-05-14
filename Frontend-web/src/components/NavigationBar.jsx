@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { FaCalendarAlt, FaUserFriends, FaBell, FaUser } from "react-icons/fa";
+import { FaCalendarAlt, FaUserFriends, FaBell, FaUser, FaPen } from "react-icons/fa";
 import { SunIcon, MoonIcon, Menu, X } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import LogoD from "../assets/LogoD.png";
@@ -97,6 +97,12 @@ export default function NavigationBar({
       to: '/main',
       label: '캘린더',
       icon: <FaCalendarAlt size={22} />,
+    },
+    {
+      key: 'write',
+      to: '/diary/new',
+      label: '일기 작성',
+      icon: <FaPen size={22} />,
     },
     {
       key: 'friends',

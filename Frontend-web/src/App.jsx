@@ -53,17 +53,33 @@ function AppLayoutWithNavbar() {
 
       {/* 사이드바 */}
       {showFriends && (
-        <ListWrapper>
-          <h2 className="text-2xl font-bold mb-6">친구 목록</h2>
-          <FriendList onFriendClick={() => setShowFriends(false)} />
-        </ListWrapper>
+        <>
+          {/* 오버레이 */}
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => setShowFriends(false)}
+          />
+          {/* 사이드바 */}
+          <ListWrapper>
+            <h2 className="text-2xl font-bold mb-6">친구 목록</h2>
+            <FriendList onFriendClick={() => setShowFriends(false)} />
+          </ListWrapper>
+        </>
       )}
 
       {showNotifications && (
-        <ListWrapper>
-          <h2 className="text-2xl font-bold mb-6">알림</h2>
-          <NotificationsPage />
-        </ListWrapper>
+        <>
+          {/* 오버레이 */}
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => setShowNotifications(false)}
+          />
+          {/* 사이드바 */}
+          <ListWrapper>
+            <h2 className="text-2xl font-bold mb-6">알림</h2>
+            <NotificationsPage />
+          </ListWrapper>
+        </>
       )}
     </div>
   );

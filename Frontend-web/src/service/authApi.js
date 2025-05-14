@@ -1,4 +1,4 @@
-import api from "./axiosInstance";
+import api from "./axiosInstance.js";
 
 // 구글 소셜 로그인 (인가 코드로 JWT 발급)
 export const loginGoogle = ({ code, redirect_uri }) =>
