@@ -71,14 +71,16 @@ function AppLayoutWithNavbar() {
 
 function App() {
   return (
-    <BrowserRouter>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<LoadingPage />} />
-          <Route path="/*" element={<AppLayoutWithNavbar />} />
-        </Routes>
-      </Layout>
-    </BrowserRouter>
+    <HelmetProvider>
+      <BrowserRouter>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<LoadingPage />} />
+            <Route path="/*" element={<AppLayoutWithNavbar />} />
+          </Routes>
+        </Layout>
+      </BrowserRouter>
+    </HelmetProvider>
   );
 }
 
