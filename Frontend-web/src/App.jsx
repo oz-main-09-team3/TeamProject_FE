@@ -53,33 +53,17 @@ function AppLayoutWithNavbar() {
 
       {/* 사이드바 */}
       {showFriends && (
-        <>
-          {/* 오버레이 */}
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => setShowFriends(false)}
-          />
-          {/* 사이드바 */}
-          <ListWrapper>
-            <h2 className="text-2xl font-bold mb-6">친구 목록</h2>
-            <FriendList onFriendClick={() => setShowFriends(false)} />
-          </ListWrapper>
-        </>
+        <ListWrapper>
+          <h2 className="text-2xl font-bold mb-6">친구 목록</h2>
+          <FriendList onFriendClick={() => setShowFriends(false)} />
+        </ListWrapper>
       )}
 
       {showNotifications && (
-        <>
-          {/* 오버레이 */}
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => setShowNotifications(false)}
-          />
-          {/* 사이드바 */}
-          <ListWrapper>
-            <h2 className="text-2xl font-bold mb-6">알림</h2>
-            <NotificationsPage />
-          </ListWrapper>
-        </>
+        <ListWrapper>
+          <h2 className="text-2xl font-bold mb-6">알림</h2>
+          <NotificationsPage />
+        </ListWrapper>
       )}
     </div>
   );
@@ -89,16 +73,12 @@ function App() {
   return (
     <HelmetProvider>
       <BrowserRouter>
-        <Routes>
-          {/* 네비게이션바 없는 로딩페이지 */}
-          <Route path="/" element={<LoadingPage />} />
-          {/* 네비게이션바 포함 나머지 페이지 */}
-          <Route path="/*" element={
-            <Layout>
-              <AppLayoutWithNavbar />
-            </Layout>
-          } />
-        </Routes>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<LoadingPage />} />
+            <Route path="/*" element={<AppLayoutWithNavbar />} />
+          </Routes>
+        </Layout>
       </BrowserRouter>
     </HelmetProvider>
   );

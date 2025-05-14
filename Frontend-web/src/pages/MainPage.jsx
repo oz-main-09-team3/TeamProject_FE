@@ -4,6 +4,10 @@ import MonthlyCalendar from "../components/calendar/MonthlyCalendar";
 import { useNavigate } from "react-router-dom";
 import { Heart } from "lucide-react";
 import { fetchDiaries, fetchEmotions } from "../service/diaryApi";
+import { EMOJI_TEXT_MAP } from '../constants/Emoji';
+
+// 파일 상단에 추가
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 function MainPage() {
   const navigate = useNavigate();
@@ -17,26 +21,26 @@ function MainPage() {
   const getEmotions = async () => {
     try {
       const response = await fetchEmotions();
-      console.log("Emotions API response:", response); // 감정 API 응답 확인
+      console.log("Emotions API response:", response);
       
       if (response && response.data) {
         const emotions = {};
         response.data.forEach(emotion => {
-          console.log("Individual emotion:", emotion); // 각 감정 데이터 로그
+          console.log("Individual emotion:", emotion);
           
-          // emotion_id를 키로 사용
-          emotions[emotion.emotion_id] = {
+          // id를 키로 사용 (emotion_id 대신 id 사용)
+          emotions[emotion.id] = {
             name: emotion.emotion,
-            emoji: emotion.emoji
+            image_url: emotion.image_url
           };
           // 한글 이름도 키로 추가
           emotions[emotion.emotion] = {
             name: emotion.emotion,
-            emoji: emotion.emoji,
-            id: emotion.emotion_id
+            image_url: emotion.image_url,
+            id: emotion.id
           };
         });
-        console.log("Final emotionMap:", emotions); // 최종 emotionMap 확인
+        console.log("Final emotionMap:", emotions);
         setEmotionMap(emotions);
       }
     } catch (err) {
@@ -71,25 +75,27 @@ function MainPage() {
         return;
       }
       
-      console.log("First diary data:", diariesData[0]); // 첫 번째 일기 데이터 확인
+      console.log("First diary data:", diariesData[0]);
       
       const formattedDiaries = diariesData.map(diary => {
-        console.log("Individual diary:", diary); // 각 일기 데이터 로그
+        console.log("Individual diary with emotion:", diary, diary.emotion);
+        // emotion 필드의 타입과 값 확인
+        const emotionValue = diary.emotion || diary.emotion_id || diary.id;
+        console.log("Emotion value:", emotionValue, "Type:", typeof emotionValue);
+        
         return {
           id: diary.diary_id || diary.id,
           header: diary.content ? diary.content.substring(0, 30) + "..." : "제목 없음",
           body: diary.content || "내용 없음",
           liked: false,
-          emotionId: diary.emotion_id,
-          emotion: diary.emotion,  // 한글 감정 텍스트
-          emoji: diary.emoji,     // 이모지 이미지 경로
+          emotionId: emotionValue,
           createdAt: diary.created_at,
           profileUrl: diary.profile,
           user: diary.user
         };
       });
       
-      console.log("Formatted diaries:", formattedDiaries); // 포맷된 일기 목록 확인
+      console.log("Formatted diaries:", formattedDiaries);
       setDiaryList(formattedDiaries);
     } catch (err) {
       console.error('일기 목록 불러오기 실패:', err);
@@ -137,20 +143,15 @@ function MainPage() {
 
   // 감정에 따라 이모지 이미지 경로 반환
   const getEmojiSrc = (diary) => {
-    // diary에 직접 emoji가 있으면 사용
-    if (diary.emoji) {
-      return diary.emoji;
+    console.log('Getting emoji for diary:', diary.emotionId, typeof diary.emotionId);
+    
+    // emotionId가 유효한 숫자인지 확인
+    if (diary.emotionId && !isNaN(diary.emotionId)) {
+      return `${BACKEND_URL}/static/emotions/${diary.emotionId}.png`;
     }
     
-    // emotionMap에서 찾기
-    const emotionInfo = emotionMap[diary.emotion] || emotionMap[diary.emotionId];
-    
-    if (emotionInfo && emotionInfo.emoji) {
-      return emotionInfo.emoji;
-    }
-    
-    // 이모지가 없으면 null 반환
-    return null;
+    // emotionId가 없거나 유효하지 않으면 기본 이미지
+    return `${BACKEND_URL}/static/emotions/1.png`; // 기본 이미지
   };
 
   if (isLoading) {
@@ -191,7 +192,11 @@ function MainPage() {
             ) : (
               diaryList.map((diary) => {
                 const emojiPath = getEmojiSrc(diary);
-                console.log('Diary emoji path:', diary.emotion, emojiPath); // 디버깅용
+                console.log('Diary emoji path:', {
+                  emotionId: diary.emotionId,
+                  emotion: diary.emotion,
+                  path: emojiPath
+                });
                 
                 return (
                   <div key={diary.id}>

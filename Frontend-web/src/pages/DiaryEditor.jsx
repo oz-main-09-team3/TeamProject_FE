@@ -7,6 +7,7 @@ import { ChevronLeft, Save } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { fetchEmotions } from "../service/diaryApi";
 import { Helmet } from 'react-helmet-async';
+import { EMOJI_TEXT_MAP, getEmojiText, getDefaultEmojis } from '../constants/Emoji';
 
 /**
  * 일기 작성 페이지 컴포넌트
@@ -46,13 +47,12 @@ const DiaryEditor = () => {
         
         // API 응답이 있는지 확인
         if (response && response.data) {
-          // API 응답을 컴포넌트에 맞는 형식으로 변환
-          const formattedMoods = response.data.map((emoji, index) => ({
-            value: String(emoji.emotion_id || index + 1),
-            label: emoji.emotion || `감정${index + 1}`
+          // API 응답에 텍스트 추가하여 사용
+          const transformedData = response.data.map(item => ({
+            ...item,
+            emotion: EMOJI_TEXT_MAP[Number(item.id)] || `감정${item.id}`
           }));
-          
-          setMoodOptions(formattedMoods);
+          setMoodOptions(transformedData);
         } else {
           throw new Error('유효하지 않은 응답');
         }
@@ -62,36 +62,7 @@ const DiaryEditor = () => {
         setMoodError('이모지 목록을 불러오는데 실패했습니다.');
         
         // 에러 발생 시 기본 이모지 목록 사용
-        setMoodOptions([
-          { value: '1', label: '짜릿해' },
-          { value: '2', label: '즐거움' },
-          { value: '3', label: '사랑' },
-          { value: '4', label: '기대감' },
-          { value: '5', label: '자신감' },
-          { value: '6', label: '기쁨' },
-          { value: '7', label: '행복함' },
-          { value: '8', label: '뿌듯함' },
-          { value: '9', label: '쥬릅' },
-          { value: '10', label: '쑥스러움' },
-          { value: '11', label: '인생..' },
-          { value: '12', label: '꾸엑' },
-          { value: '13', label: '지침' },
-          { value: '14', label: '놀람' },
-          { value: '15', label: '니가?' },
-          { value: '16', label: '현타' },
-          { value: '17', label: '그래요' },
-          { value: '18', label: '당황' },
-          { value: '19', label: '소노' },
-          { value: '20', label: '슬픔' },
-          { value: '21', label: '억울함' },
-          { value: '22', label: '불안함' },
-          { value: '23', label: '어이없음' },
-          { value: '24', label: '울고싶음' },
-          { value: '25', label: '우울함' },
-          { value: '26', label: '안타까움' },
-          { value: '27', label: '화남' },
-          { value: '28', label: '열받음' }
-        ]);
+        setMoodOptions(getDefaultEmojis());
       } finally {
         setIsLoadingMoods(false);
       }
@@ -123,6 +94,12 @@ const DiaryEditor = () => {
   const handleCloseSavedModal = () => {
     setIsSavedModalOpen(false);
     navigate('/main'); // 메인페이지로 이동
+  };
+
+  // 선택된 mood의 텍스트 찾기
+  const getSelectedMoodText = () => {
+    if (!mood) return '없음';
+    return EMOJI_TEXT_MAP[Number(mood)] || '없음';
   };
 
   return (
@@ -175,7 +152,7 @@ const DiaryEditor = () => {
               이모지는 하나만 골라주세요!
             </h3>
             <div className="text-sm text-gray-500 mb-4">
-              현재 선택: <span className="font-medium">{mood || '없음'}</span>
+              현재 선택: <span className="font-medium">{getSelectedMoodText()}</span>
             </div>
 
             <div className="mt-8">
@@ -183,10 +160,10 @@ const DiaryEditor = () => {
               <div className="grid grid-cols-4 gap-3">
                 {moodOptions.map((option) => (
                   <MoodButton
-                    key={option.value}
-                    mood={mood}
-                    value={option.value}
-                    onClick={handleMoodChange}
+                    key={option.id}
+                    mood={getSelectedMoodText()}
+                    value={option.emotion}
+                    onClick={() => handleMoodChange(String(option.id))}
                   />
                 ))}
               </div>
