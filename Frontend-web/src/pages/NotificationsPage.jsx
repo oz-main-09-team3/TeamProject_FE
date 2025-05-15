@@ -13,7 +13,7 @@ export default function NotificationsPage() {
 
   useEffect(() => {
     async function load() {
-      console.log("📡 알림 불러오는 중...");
+      console.log(" 알림 불러오는 중...");
       try {
         const res = await fetchNotifications(); // API 호출
         console.log("알림 응답:", res.data);
