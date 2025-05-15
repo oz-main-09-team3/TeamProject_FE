@@ -5,6 +5,8 @@ import Modal from '../components/Modal';
 import { useNavigate, useLocation } from "react-router-dom";
 import { updateMyInfo } from "../service/userApi";
 import BackButton from "../components/BackButton";
+import Button from "../components/Button";
+import FormInput from "../components/FormInput";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -225,7 +227,7 @@ export default function EditUserInfo() {
   return (
     <>
       <main className="flex items-center justify-center min-h-screen bg-lightBg dark:bg-darkdark px-4">
-        <div className="w-full max-w-md relative pt-[100px] pb-8 flex flex-col gap-3 items-center bg-white dark:bg-darktext rounded-3xl shadow-lg">
+        <div className="w-full max-w-md relative pt-[100px] pb-8 flex flex-col gap-3 items-center bg-yl100 dark:bg-darktext rounded-3xl shadow-lg">
           <BackButton to="/mypage/info" />
 
           <div className="absolute -top-[92px]">
@@ -261,69 +263,52 @@ export default function EditUserInfo() {
           </div>
 
           <form onSubmit={handleSubmit} className="w-full mt-2 px-6">
-            <div className="flex flex-col gap-8">
-              <div className="flex flex-col gap-3">
-                <div className="flex flex-col md:flex-row gap-3">
-                  <FormInput
-                    label="닉네임"
-                    name="nickname"
-                    value={state.nickname}
-                    onChange={handleChange}
-                  />
-                  <div className="flex-1 text-left">
-                    <label className="block text-sm font-semibold text-lighttext dark:text-darkBg">전화번호</label>
-                    <input 
-                      type="tel"
-                      name="phone_number"
-                      placeholder="010-1234-5678"
-                      value={state.phone_number}
-                      onChange={handleChange}
-                      className={`form-input p-1.5 text-lighttext dark:text-darkBg placeholder:text-gray-500 dark:placeholder:text-gray-500 ${phoneError ? 'border-red-500' : ''}`}
-                    />
-                    {phoneError && (
-                      <p className="mt-1 text-sm text-red-500">{phoneError}</p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex-1 text-left">
-                  <label className="block text-sm font-semibold text-lighttext dark:text-darkBg">이메일</label>
-                  <input 
-                    type="text"
-                    name="email"
-                    value={state.email}
-                    onChange={handleChange}
-                    className={`form-input p-1.5 text-lighttext dark:text-darkBg placeholder:text-gray-500 dark:placeholder:text-gray-500 ${emailError ? 'border-red-500' : ''}`}
-                  />
-                  {emailError && (
-                    <p className="mt-1 text-sm text-red-500">{emailError}</p>
-                  )}
-                </div>
-
-                <div className="flex-1 text-left">
-                  <label className="block text-sm font-semibold text-lighttext dark:text-darkBg">생년월일</label>
-                  <input 
-                    type="date"
-                    name="birth_date"
-                    value={state.birth_date}
-                    onChange={handleChange}
-                    max={today}
-                    min="1900-01-01"
-                    className={`form-input p-1.5 text-lighttext dark:text-darkBg placeholder:text-gray-500 dark:placeholder:text-gray-500 ${birthdateError ? 'border-red-500' : ''}`}
-                    onInvalid={e => e.target.setCustomValidity('')}
-                  />
-                  {birthdateError && (
-                    <p className="mt-1 text-sm text-red-500">{birthdateError}</p>
-                  )}
-                </div>
+            <div className="flex flex-col gap-8 items-center">
+              <div className="flex flex-col gap-3 w-full max-w-[500px]">
+                <FormInput
+                  label="닉네임"
+                  name="nickname"
+                  value={state.nickname}
+                  onChange={handleChange}
+                  className="w-full"
+                />
+                <FormInput
+                  label="전화번호"
+                  name="phone_number"
+                  type="tel"
+                  placeholder="010-1234-5678"
+                  value={state.phone_number}
+                  onChange={handleChange}
+                  error={phoneError}
+                  className="w-full"
+                />
+                <FormInput
+                  label="이메일"
+                  name="email"
+                  type="text"
+                  value={state.email}
+                  onChange={handleChange}
+                  error={emailError}
+                  className="w-full"
+                />
+                <FormInput
+                  label="생년월일"
+                  name="birth_date"
+                  type="date"
+                  value={state.birth_date}
+                  onChange={handleChange}
+                  min="1900-01-01"
+                  max={today}
+                  error={birthdateError}
+                  className="w-full"
+                />
               </div>
 
-              <button
-                type="submit"
-                className="w-full p-1.5 rounded-full font-semibold transition bg-lightGold hover:bg-lightOrange dark:bg-darkOrange dark:hover:bg-darkCopper dark:text-darkBg"
-              >
-                저장하기
-              </button>
+              <div className="w-full max-w-[500px]">
+                <Button type="submit" className="w-full">
+                  저장하기
+                </Button>
+              </div>
             </div>
           </form>
         </div>
@@ -339,17 +324,5 @@ export default function EditUserInfo() {
         type={modalType}
       />
     </>
-  );
-}
-
-function FormInput({ label, ...rest }) {
-  return (
-    <div className="flex-1 text-left">
-      <label className="block text-sm font-semibold text-lighttext dark:text-darkBg">{label}</label>
-      <input 
-        {...rest} 
-        className="form-input p-1.5 text-lighttext dark:text-darkBg placeholder:text-gray-500 dark:placeholder:text-gray-500" 
-      />
-    </div>
   );
 }

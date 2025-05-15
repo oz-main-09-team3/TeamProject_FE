@@ -3,8 +3,7 @@ import { useNavigate } from "react-router-dom";
 import RowCard from "../components/RowCard";
 import Modal from "../components/Modal";
 import MENU_ITEMS_ORIGIN from "../constants/menuItems.jsx";
-import { FiUserX } from "react-icons/fi";
-import LogoutCard from "../components/LogoutCard";
+import { FiUserX, FiLogOut } from "react-icons/fi";
 
 // 회원 탈퇴 아이템을 찾아서 아이콘 교체
 const MENU_ITEMS = MENU_ITEMS_ORIGIN.map(item =>
@@ -40,7 +39,7 @@ export default function MyPage() {
 
   return (
      <main className="flex items-center justify-center min-h-screen px-4 bg-lightBg dark:bg-darkdark">
-      <div className="w-full max-w-md relative pt-[100px] pb-8 flex flex-col items-center bg-white dark:bg-darktext rounded-3xl shadow-lg">
+      <div className="w-full max-w-md relative pt-[100px] pb-8 flex flex-col gap-2 items-center bg-yl100 dark:bg-darktext rounded-3xl shadow-lg">
         {/* 프로필 이미지: 카드 내부 상단 중앙 */}
         <div className="absolute -top-[92px]">
           <div className="w-[184px] h-[184px] rounded-full overflow-hidden shadow-md">
@@ -52,7 +51,7 @@ export default function MyPage() {
           </div>
         </div>
         {/* 카드 리스트: flex-1, flex-col, justify-end로 하단 정렬 */}
-        <div className="w-full h-full flex-1 flex flex-col justify-end px-6 space-y-2">
+        <div className="w-full mt-2 px-6 flex flex-col gap-2">
           {MENU_ITEMS.filter(item => item.id !== 'withdraw').map((item) => (
             <RowCard
               key={item.id}
@@ -64,12 +63,12 @@ export default function MyPage() {
             />
           ))}
           {/* 로그아웃 카드 */}
-          <LogoutCard
-            onAfterLogout={() => navigate('/')}
-            className="flex items-center justify-between w-full p-4 sm:p-5 rounded-2xl shadow-md cursor-pointer transition bg-lightBg hover:bg-lightYellow dark:bg-darkdark dark:hover:bg-darkBrown flex-shrink-0"
-            imgClassName="w-10 h-10 sm:w-12 sm:h-12"
-            textClassName="text-lighttext dark:text-darktext"
-            iconClassName="text-lighttext dark:text-darktext"
+          <RowCard
+            emojiSrc="/profile.png"
+            headerText="로그아웃"
+            bodyText="계정에서 로그아웃합니다"
+            rightIcon={<FiLogOut size={22} />}
+            onClick={handleLogout}
           />
           {/* 회원 탈퇴 카드 */}
           {MENU_ITEMS.filter(item => item.id === 'withdraw').map((item) => (

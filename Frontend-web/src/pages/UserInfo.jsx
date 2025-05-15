@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { getMyInfo } from "../service/userApi";
 import BackButton from "../components/BackButton";
+import Button from "../components/Button";
 
 // 파일 상단에 추가
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -62,6 +63,16 @@ export default function UserInfo() {
     }
   };
 
+  // 전화번호 포맷팅 (010-xxxx-xxxx)
+  const formatPhoneNumber = (phone) => {
+    if (!phone) return "정보 없음";
+    const onlyNums = phone.replace(/[^0-9]/g, '');
+    if (onlyNums.length < 4) return onlyNums;
+    if (onlyNums.length < 8) return onlyNums.slice(0, 3) + '-' + onlyNums.slice(3);
+    if (onlyNums.length < 11) return onlyNums.slice(0, 3) + '-' + onlyNums.slice(3, 7) + '-' + onlyNums.slice(7);
+    return onlyNums.slice(0, 3) + '-' + onlyNums.slice(3, 7) + '-' + onlyNums.slice(7, 11);
+  };
+
   if (isLoading) {
     return (
       <main className="flex items-center justify-center min-h-screen bg-lightBg dark:bg-darkdark">
@@ -114,7 +125,7 @@ export default function UserInfo() {
 
               <div className="flex justify-between text-sm">
                 <span className="font-semibold text-lighttext dark:text-darkBg">전화번호</span>
-                <span className="text-lighttext dark:text-darkBg">{userInfo?.phone_num || "정보 없음"}</span>
+                <span className="text-lighttext dark:text-darkBg">{formatPhoneNumber(userInfo?.phone_num)}</span>
               </div>
 
               <div className="flex justify-between text-sm">
@@ -129,12 +140,11 @@ export default function UserInfo() {
             </div>
 
             {/* 회원 정보 수정 버튼 */}
-            <button
+            <Button
               onClick={() => navigate("/mypage/edit", { state: { userInfo } })}
-              className="w-full p-1.5 rounded-full font-semibold transition bg-lightGold hover:bg-lightOrange dark:bg-darkOrange dark:hover:bg-darkCopper dark:text-darkBg"
             >
               회원 정보 수정
-            </button>
+            </Button>
           </div>
         </div>
       </div>

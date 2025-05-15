@@ -29,14 +29,14 @@ export default function FriendsList({ onFriendClick }) {
   return (
     <div className="friends-panel flex flex-col w-full text-lighttext dark:text-darktext text-xl">
       {/* 검색창 컴포넌트 */}
-      <div className="flex items-center gap-2 mb-4 px-4 py-2 bg-white dark:bg-darkBrown rounded-full shadow focus-within:ring-2 focus-within:ring-lightOrange dark:focus-within:ring-darkOrange transition-all text-2xl">
-        <Search size={20} className="text-lighttext dark:text-darktext" />
+      <div className="flex items-center gap-2 mb-4 px-4 py-1 bg-white dark:bg-darkBrown rounded-full shadow focus-within:ring-2 focus-within:ring-lightOrange dark:focus-within:ring-darkOrange transition-all text-2xl">
+        <Search size={16} className="text-lighttext dark:text-darktext" />
         <input
           type="text"
           placeholder="친구 검색"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="bg-transparent flex-1 px-2 outline-none focus:outline-none focus:shadow-none text-lighttext dark:text-darktext placeholder-lighttext dark:placeholder-darktext"
+          className="bg-transparent flex-1 p-1 outline-none focus:outline-none focus:shadow-none text-lighttext dark:text-darktext placeholder-lighttext dark:placeholder-darktext text-sm"
           style={{ outline: 'none', boxShadow: 'none', border: 'none' }}
         />
       </div>
