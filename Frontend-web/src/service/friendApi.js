@@ -1,4 +1,11 @@
-import api from "./axiosInstance";
+import api from "./axios";
+
+// QR 코드 이미지 생성
+export const generateQRCode = (username) =>
+  api.get(`/api/qrcode/`, {
+    params: { username },
+    responseType: 'arraybuffer'  // 이미지 데이터를 받기 위해
+  });
 
 // 친구 초대 (QR 코드 데이터 등 페이로드로 전달)
 export const inviteFriend = (payload) =>
