@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Camera, ChevronLeft } from "lucide-react";
 import Modal from "../components/Modal";
 import { useNavigate } from "react-router-dom";
-import { generateQRCode, inviteFriend } from "../service/friendapi";
+import { generateQRCode, inviteFriend } from "../service/friendApi";
 import { getMyInfo } from "../service/userApi";
 
 const FriendInviteSystem = () => {
