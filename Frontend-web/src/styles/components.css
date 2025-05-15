@@ -47,7 +47,7 @@
 
   /* ✍️ Forms */
   .form-input {
-    @apply w-full p-3 text-sm border border-lightGold dark:border-darkOrange rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-300;
+    @apply w-full p-3 text-sm border border-lightGold dark:border-darkOrange rounded-lg focus:ring-2 focus:ring-[#FF9D00] dark:focus:ring-[#FFB34A];
   }
 
   /* 🖼️ Images */
