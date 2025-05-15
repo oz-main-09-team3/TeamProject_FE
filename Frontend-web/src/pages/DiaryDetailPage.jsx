@@ -3,6 +3,7 @@ import { useNavigate, useLocation, useParams } from "react-router-dom";
 import Modal from "../components/Modal";
 import { ChevronLeft, Pencil, Trash2, Heart } from "lucide-react";
 import { fetchDiary, deleteDiary } from "../service/diaryApi";
+import MarkdownRenderer from "../components/MarkdownRenderer";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -31,7 +32,6 @@ const DiaryDetailPage = () => {
       const formattedDiary = {
         diary_id: diaryData.diary_id,
         id: diaryData.diary_id,
-        title: diaryData.content ? diaryData.content.substring(0, 30) : "제목 없음",
         content: diaryData.content || "",
         date: new Date(diaryData.created_at).toLocaleDateString('ko-KR'),
         emotionId: diaryData.emotion?.emotion_id || 1,
@@ -69,7 +69,6 @@ const DiaryDetailPage = () => {
       setDiary({
         ...passedDiary,
         diary_id: passedDiary.id || passedDiary.diary_id,
-        title: passedDiary.header || passedDiary.title,
         content: passedDiary.body || passedDiary.content,
         date: passedDiary.createdAt ? new Date(passedDiary.createdAt).toLocaleDateString('ko-KR') : new Date().toLocaleDateString('ko-KR'),
         emotionId: passedDiary.emotionId,
@@ -255,8 +254,10 @@ const DiaryDetailPage = () => {
 
               <div className="w-full rounded-lg border border-lightGold dark:border-darkCopper shadow-sm p-5 dark:text-darkBg bg-white min-h-[320px]">
                 <div className="mt-4">
-                  <div className="font-bold text-xl mb-4">{diary.title}</div>
-                  <div className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{diary.content}</div>
+                  <MarkdownRenderer 
+                    content={diary.content} 
+                    className="text-gray-700 dark:text-gray-300"
+                  />
                   
                   {/* 이미지 표시 */}
                   {diary.images && diary.images.length > 0 && (
