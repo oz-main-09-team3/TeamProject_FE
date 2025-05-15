@@ -4,8 +4,6 @@ import MonthlyCalendar from "../components/calendar/MonthlyCalendar";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Heart } from "lucide-react";
 import { fetchDiaries, fetchEmotions } from "../service/diaryApi";
-import { fetchEmotionTrend, fetchEmotionCount } from "../service/emotionApi";
-import { Chart } from "@toast-ui/react-chart";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -19,8 +17,6 @@ function MainPage() {
   const [loadingId, setLoadingId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [trendData, setTrendData] = useState(null);
-  const [countData, setCountData] = useState(null);
 
   const getEmotions = async () => {
     try {
@@ -98,66 +94,10 @@ function MainPage() {
     }
   };
 
-  const loadEmotionTrend = async () => {
-    try {
-      const today = new Date();
-      const to = today.toISOString().slice(0, 10);
-      const fromDate = new Date(today);
-      fromDate.setMonth(fromDate.getMonth() - 1);
-      const from = fromDate.toISOString().slice(0, 10);
-
-      const trendRes = await fetchEmotionTrend({ from, to });
-      console.log("Emotion Trend 응답:", trendRes);
-      const data = trendRes?.data;
-
-      if (data?.emotion && Array.isArray(data.labels) && Array.isArray(data.values)) {
-        const trendFormatted = {
-          categories: data.labels,
-          series: [
-            {
-              name: data.emotion.emotion,
-              data: data.values,
-            },
-          ],
-        };
-        setTrendData(trendFormatted);
-      }
-    } catch (err) {
-      console.error("감정 통계 API 호출 실패:", err);
-    }
-  };
-
-  const loadEmotionCount = async () => {
-    try {
-      const today = new Date();
-      const to = today.toISOString().slice(0, 10);
-      const fromDate = new Date(today);
-      fromDate.setMonth(fromDate.getMonth() - 1);
-      const from = fromDate.toISOString().slice(0, 10);
-
-      const res = await fetchEmotionCount({ from, to });
-      console.log("Emotion Count 응답:", res);
-
-      if (Array.isArray(res?.data) && res.data.length > 0) {
-        const pieFormatted = {
-          series: res.data.map((item) => ({
-            name: item?.emotion?.emotion ?? "Unknown",
-            data: item?.count ?? 0,
-          })),
-        };
-        setCountData(pieFormatted);
-      }
-    } catch (err) {
-      console.error("감정 비율 API 호출 실패:", err);
-    }
-  };
-
   useEffect(() => {
     Promise.all([
       getEmotions(),
       getDiaries(),
-      loadEmotionTrend(),
-      loadEmotionCount(),
     ]);
   }, []);
 
@@ -251,32 +191,6 @@ function MainPage() {
                 onDateClick={handleDateClick}
               />
             </div>
-
-            {trendData?.series?.length > 0 && (
-              <div className="mt-6">
-                <Chart
-                  data={trendData}
-                  options={{
-                    chart: { width: 460, height: 300, title: "월별 감정 변화" },
-                    yAxis: { title: "횟수" },
-                    xAxis: { title: "날짜" },
-                  }}
-                  type="bar"
-                />
-              </div>
-            )}
-
-            {countData?.series?.length > 0 && (
-              <div className="mt-6">
-                <Chart
-                  data={countData}
-                  options={{
-                    chart: { width: 400, height: 300, title: "감정 이모지 사용 비율" },
-                  }}
-                  type="pie"
-                />
-              </div>
-            )}
           </div>
 
           <div className="w-full lg:w-1/2 flex flex-col gap-4">
