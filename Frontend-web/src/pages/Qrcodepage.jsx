@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Camera, ChevronLeft } from "lucide-react";
 import Modal from "../components/Modal";
 import { useNavigate } from "react-router-dom";
-import { generateQRCode, inviteFriend } from "../service/friendApi";
+import { generateQRCode, inviteFriend } from "../service/friendapi";
 import { getMyInfo } from "../service/userApi";
 
 const FriendInviteSystem = () => {
@@ -21,9 +21,8 @@ const FriendInviteSystem = () => {
   const fetchUserInfo = async () => {
     const token = localStorage.getItem('token');
     
-    console.log("토큰 확인:", token ? "있음" : "없음");
-    
     if (!token) {
+      console.log("토큰 없음 - 로그인 필요");
       alert("로그인이 필요합니다.");
       navigate('/login');
       return null;
@@ -31,19 +30,30 @@ const FriendInviteSystem = () => {
     
     setUserLoading(true);
     try {
+      console.log("사용자 정보 API 호출 시작");
       const response = await getMyInfo();
-      console.log("사용자 정보 응답:", response);
+      console.log("API 응답 전체:", response);
+      
       const userData = response.data;
-      setUsername(userData.username || userData.email || userData.name);
+      console.log("사용자 데이터:", userData);
+      
+      // username 필드 확인 후 대체 필드 사용
+      const identifier = userData.username || userData.email || userData.name || userData.id;
+      console.log("사용자 식별자:", identifier);
+      
+      setUsername(identifier);
       return userData;
     } catch (error) {
-      console.error("사용자 정보 조회 실패:", error);
-      console.error("에러 응답:", error.response);
+      console.error("사용자 정보 조회 실패 - 전체 에러:", error);
+      console.error("에러 응답 데이터:", error.response?.data);
+      console.error("에러 응답 상태:", error.response?.status);
+      
       if (error.response?.status === 401) {
-        // 토큰 만료 또는 유효하지 않음
         localStorage.removeItem('token');
         alert("세션이 만료되었습니다. 다시 로그인해주세요.");
         navigate('/login');
+      } else {
+        alert(`오류 발생: ${error.response?.data?.message || '알 수 없는 오류'}`);
       }
       return null;
     } finally {
@@ -57,8 +67,12 @@ const FriendInviteSystem = () => {
     
     setIsLoading(true);
     try {
-      const userIdentifier = userInfo.username || userInfo.email || userInfo.name;
+      // 사용자 식별자 결정
+      const userIdentifier = userInfo.username || userInfo.email || userInfo.id;
+      console.log("QR 코드 생성 요청 - 사용자 식별자:", userIdentifier);
+      
       const response = await generateQRCode(userIdentifier);
+      console.log("QR 코드 응답:", response);
       
       // ArrayBuffer를 Blob으로 변환
       const blob = new Blob([response.data], { type: 'image/png' });
@@ -67,7 +81,14 @@ const FriendInviteSystem = () => {
       setQrCodeUrl(url);
     } catch (error) {
       console.error("QR 코드 생성 실패:", error);
-      alert("QR 코드 생성에 실패했습니다.");
+      console.error("에러 응답:", error.response);
+      
+      if (error.response?.status === 404) {
+        // QR 코드가 없는 경우 - 새로 생성 요청이 필요할 수 있음
+        alert("QR 코드를 찾을 수 없습니다. 새로 생성해주세요.");
+      } else {
+        alert(`QR 코드 생성 실패: ${error.response?.data?.detail || '알 수 없는 오류'}`);
+      }
     } finally {
       setIsLoading(false);
     }

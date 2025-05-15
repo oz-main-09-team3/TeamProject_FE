@@ -41,6 +41,12 @@ export default function NavigationBar({
       const sidebar = document.querySelector('.sidebar-container');
       const notificationsPanel = document.querySelector('.notifications-panel');
       const friendsPanel = document.querySelector('.friends-panel');
+      const hamburgerButton = document.querySelector('.hamburger-button');
+      
+      // 햄버거 버튼 클릭은 무시
+      if (hamburgerButton && hamburgerButton.contains(event.target)) {
+        return;
+      }
       
       if (
         (sidebar && sidebar.contains(event.target)) ||
@@ -48,6 +54,11 @@ export default function NavigationBar({
         (friendsPanel && friendsPanel.contains(event.target))
       ) {
         return;
+      }
+
+      // 모바일 메뉴 외부 클릭 시 닫기
+      if (isMobileMenuOpen && sidebar && !sidebar.contains(event.target)) {
+        setIsMobileMenuOpen(false);
       }
 
       if (
@@ -74,7 +85,7 @@ export default function NavigationBar({
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isFriendsOpen, isNotificationsOpen, onFriendsClick, onNotificationsClick]);
+  }, [isFriendsOpen, isNotificationsOpen, isMobileMenuOpen, onFriendsClick, onNotificationsClick]);
 
   const toggleTheme = () => setIsDark((prev) => !prev);
 
@@ -93,16 +104,21 @@ export default function NavigationBar({
             }
             setIsMobileMenuOpen(false);
           }
+          if (isMobileMenuOpen && !onClick) {
+            setIsMobileMenuOpen(false);
+          }
         }}
-        className={`relative group flex items-center gap-3 w-full md:w-auto p-2 md:p-0
-          ${active ? "text-lightOrange dark:text-darkOrange" : "text-lighttext dark:text-darktext"}`}
+        className={`relative flex items-center gap-3 w-full md:w-auto p-2 md:p-0 group
+          ${active ? "nav-icon-active font-semibold" : "nav-icon font-medium"}`}
         aria-label={label}
       >
-        <div className="transition-transform duration-200 md:hover:scale-110">
+        <div className="transition-transform duration-100">
           {children}
         </div>
-        <span className="md:hidden text-lighttext dark:text-darktext">{label}</span>
-        <div className="hidden md:block absolute bottom-full mb-1 left-1/2 -translate-x-1/2 whitespace-nowrap bg-black text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50">
+        <span className={`md:hidden ${active ? "text-lightOrange dark:text-darkOrange font-semibold" : "text-lighttext dark:text-darktext font-medium"}`}>
+          {label}
+        </span>
+        <div className="hidden md:block absolute top-full mt-1 left-1/2 -translate-x-1/2 whitespace-nowrap bg-lightGold dark:bg-darkBrown text-lighttext dark:text-darktext text-[10px] rounded-sm px-1.5 py-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50">
           {label}
         </div>
       </button>
@@ -114,9 +130,7 @@ export default function NavigationBar({
     setIsFriendsOpen(nextState);
     setIsNotificationsOpen(false);
     onFriendsClick();
-    if (isMobileMenuOpen) {
-      setIsMobileMenuOpen(false);
-    }
+    setIsMobileMenuOpen(false);
   };
 
   const handleNotificationsClick = () => {
@@ -131,7 +145,7 @@ export default function NavigationBar({
     <div
       className="fixed top-0 left-0 w-full md:h-[72px] h-auto px-4 sm:px-6 md:px-10 
                 flex items-center justify-between
-                z-50 md:shadow-sm md:bg-lightBg md:dark:bg-darkBg bg-lightYellow dark:bg-darkBg transition-colors duration-300"
+                z-50 md:shadow-sm md:bg-lightBg md:dark:bg-darkBg bg-lightYellow dark:bg-darkBg transition-colors duration-100"
     >
       <div className="hidden md:block absolute inset-0 h-[72px] bg-lightYellow dark:bg-darkBg z-[-1]" />
       
@@ -151,7 +165,7 @@ export default function NavigationBar({
 
       <button
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        className="md:hidden text-lighttext dark:text-darktext py-4"
+        className="md:hidden text-lighttext dark:text-darktext py-4 hamburger-button"
         aria-label="메뉴 열기/닫기"
       >
         {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
@@ -191,7 +205,7 @@ export default function NavigationBar({
             toggleTheme();
             setIsMobileMenuOpen(false);
           }}
-          className="flex items-center gap-3 p-2 md:p-0 text-lighttext dark:text-darktext md:hover:scale-110 transition w-full md:w-auto"
+          className="flex items-center gap-3 p-2 md:p-0 text-lighttext dark:text-darktext hover:scale-105 md:hover:scale-105 transition w-full md:w-auto"
           aria-label="모드 전환"
         >
           {isDark ? <SunIcon size={22} /> : <MoonIcon size={22} />}
