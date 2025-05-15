@@ -13,6 +13,8 @@ function MainPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [diaryList, setDiaryList] = useState([]);
+  const [filteredDiaryList, setFilteredDiaryList] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(null);
   const [emotionMap, setEmotionMap] = useState({});
   const [loadingId, setLoadingId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -87,6 +89,7 @@ function MainPage() {
       });
 
       setDiaryList(formattedDiaries);
+      setFilteredDiaryList(formattedDiaries);
     } catch (err) {
       console.error("일기 목록 불러오기 실패:", err);
       setError("일기를 불러오는데 실패했습니다.");
@@ -164,6 +167,21 @@ function MainPage() {
     }
   }, [location.state]);
 
+  const handleDateClick = (dateKey) => {
+    if (selectedDate === dateKey) {
+      setSelectedDate(null);
+      setFilteredDiaryList(diaryList);
+    } else {
+      setSelectedDate(dateKey);
+      const filtered = diaryList.filter(diary => {
+        const diaryDate = new Date(diary.createdAt);
+        const diaryDateKey = `${diaryDate.getFullYear()}-${(diaryDate.getMonth() + 1).toString().padStart(2, '0')}-${diaryDate.getDate().toString().padStart(2, '0')}`;
+        return diaryDateKey === dateKey;
+      });
+      setFilteredDiaryList(filtered);
+    }
+  };
+
   const handleLike = async (id, e) => {
     e.stopPropagation();
     if (loadingId !== null) return;
@@ -176,6 +194,12 @@ function MainPage() {
       await new Promise((resolve) => setTimeout(resolve, 300));
 
       setDiaryList((prevList) =>
+        prevList.map((diary) =>
+          diary.id === id ? { ...diary, liked: newLikedStatus } : diary
+        )
+      );
+      
+      setFilteredDiaryList((prevList) =>
         prevList.map((diary) =>
           diary.id === id ? { ...diary, liked: newLikedStatus } : diary
         )
@@ -219,41 +243,63 @@ function MainPage() {
     <main className="min-h-screen flex flex-col items-center justify-center transition-colors duration-300">
       <section className="mx-auto max-w-5xl w-full m-8 section-container border bg-yl100 dark:bg-darktext border-lightGold dark:border-darkCopper rounded-xl">
         <div className="flex flex-col lg:flex-row gap-8 items-stretch justify-center">
-          <div className="w-full lg:w-1/2 bg-white p-4 sm:p-6 rounded-lg shadow-md">
+          <div className="w-full lg:w-1/2 bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow-md">
             <div className="aspect-[7/6]">
-              <MonthlyCalendar />
+              <MonthlyCalendar 
+                diaries={diaryList}
+                emotionMap={emotionMap}
+                onDateClick={handleDateClick}
+              />
             </div>
 
             {trendData?.series?.length > 0 && (
-              <Chart
-                data={trendData}
-                options={{
-                  chart: { width: 460, height: 300, title: "월별 감정 변화" },
-                  yAxis: { title: "횟수" },
-                  xAxis: { title: "날짜" },
-                }}
-                type="bar"
-              />
+              <div className="mt-6">
+                <Chart
+                  data={trendData}
+                  options={{
+                    chart: { width: 460, height: 300, title: "월별 감정 변화" },
+                    yAxis: { title: "횟수" },
+                    xAxis: { title: "날짜" },
+                  }}
+                  type="bar"
+                />
+              </div>
             )}
 
             {countData?.series?.length > 0 && (
-              <Chart
-                data={countData}
-                options={{
-                  chart: { width: 400, height: 300, title: "감정 이모지 사용 비율" },
-                }}
-                type="pie"
-              />
+              <div className="mt-6">
+                <Chart
+                  data={countData}
+                  options={{
+                    chart: { width: 400, height: 300, title: "감정 이모지 사용 비율" },
+                  }}
+                  type="pie"
+                />
+              </div>
             )}
           </div>
 
           <div className="w-full lg:w-1/2 flex flex-col gap-4">
-            {diaryList.length === 0 ? (
+            {selectedDate && (
+              <div className="mb-4 p-3 bg-yellow-100 dark:bg-gray-700 rounded-lg">
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  {selectedDate}의 일기를 보고 있습니다.
+                  <button 
+                    onClick={() => handleDateClick(selectedDate)}
+                    className="ml-2 text-blue-600 dark:text-blue-400 underline"
+                  >
+                    전체 보기
+                  </button>
+                </p>
+              </div>
+            )}
+            
+            {filteredDiaryList.length === 0 ? (
               <div className="text-center text-gray-500 py-8">
-                아직 작성된 일기가 없습니다.
+                {selectedDate ? "선택한 날짜에 작성된 일기가 없습니다." : "아직 작성된 일기가 없습니다."}
               </div>
             ) : (
-              diaryList.map((diary) => {
+              filteredDiaryList.map((diary) => {
                 const emojiPath = getEmojiSrc(diary);
                 return (
                   <div key={diary.id}>

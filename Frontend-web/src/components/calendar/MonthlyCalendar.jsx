@@ -1,124 +1,189 @@
-import React, { useRef, useEffect, useState } from "react";
-import Calendar from "@toast-ui/react-calendar";
-import "@toast-ui/calendar/dist/toastui-calendar.min.css";
-import { calendarOptions } from "./calendarOptions";
+import React, { useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
-function MonthlyCalendar() {
-  const calendarRef = useRef(null);
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
+function MonthlyCalendar({ diaries = [], emotionMap = {}, onDateClick }) {
   const [currentDate, setCurrentDate] = useState(new Date());
 
-  // 수정된 캘린더 옵션 - 일정 관련 뷰 비활성화
-  const modifiedOptions = {
-    ...calendarOptions,
-    isReadOnly: true,  // 읽기 전용 모드
-    scheduleView: false,  // 일정 뷰 비활성화
-    taskView: false,  // 작업 뷰 비활성화
-    useDetailPopup: false,  // 상세 팝업 비활성화
-    useCreationPopup: false,  // 생성 팝업 비활성화
+  const formatDateKey = (date) => {
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
-  useEffect(() => {
-    const styleEl = document.createElement("style");
-    styleEl.innerHTML = `
-      .toastui-calendar-daygrid-cell-date,
-      .toastui-calendar-weekday-grid-date {
-        text-align: center !important;
-        justify-content: center !important;
-        padding-left: 0 !important;
-        padding-right: 0 !important;
-        margin-left: -4px !important;
-      }
-
-      .toastui-calendar-day-name-item {
-        text-align: left !important;
-        justify-content: flex-start !important;
-        padding-left: 10px !important;
-      }
-
-      .toastui-calendar-day-name-item.toastui-calendar-sun,
-      .toastui-calendar-daygrid-cell.toastui-calendar-sun .toastui-calendar-daygrid-cell-date {
-        color: #FF0000 !important;
-      }
-
-      .toastui-calendar-daygrid-cell {
-        aspect-ratio: 1 / 1 !important;
-        height: auto !important;
-      }
-
-      .toastui-calendar-grid-row {
-        display: grid !important;
-        grid-template-columns: repeat(7, 1fr) !important;
-      }
+  const getDiaryByDate = () => {
+    const diaryMap = {};
+    
+    diaries.forEach(diary => {
+      const date = new Date(diary.createdAt);
+      const dateKey = formatDateKey(date);
       
-      /* 파란색 선택 배경 제거 */
-      .toastui-calendar-daygrid-cell.toastui-calendar-selected {
-        background-color: transparent !important;
+      if (!diaryMap[dateKey] || new Date(diary.createdAt) > new Date(diaryMap[dateKey].createdAt)) {
+        diaryMap[dateKey] = diary;
       }
-    `;
-    document.head.appendChild(styleEl);
+    });
+    
+    return diaryMap;
+  };
 
-    return () => {
-      if (document.head.contains(styleEl)) {
-        document.head.removeChild(styleEl);
-      }
-    };
-  }, []);
+  const diaryMap = getDiaryByDate();
 
-  const handleClickNextButton = () => {
-    const calendarInstance = calendarRef.current?.getInstance();
-    if (calendarInstance) {
-      calendarInstance.next();
-      setCurrentDate((prev) => {
-        const next = new Date(prev);
-        next.setMonth(prev.getMonth() + 1);
-        return next;
+  const getEmojiSrc = (diary) => {
+    let emotionId = diary.emotionId;
+    if (emotionId && typeof emotionId === 'object') {
+      emotionId = emotionId.id;
+    }
+    return `${BACKEND_URL}/static/emotions/${emotionId || 1}.png`;
+  };
+
+  const getMonthData = () => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const startWeek = firstDay.getDay();
+    const daysInMonth = lastDay.getDate();
+    
+    return { year, month, firstDay, lastDay, startWeek, daysInMonth };
+  };
+
+  const generateCalendarDays = () => {
+    const { year, month, startWeek, daysInMonth } = getMonthData();
+    const days = [];
+    
+    const prevMonth = new Date(year, month, 0);
+    const prevMonthDays = prevMonth.getDate();
+    for (let i = startWeek - 1; i >= 0; i--) {
+      days.push({
+        date: new Date(year, month - 1, prevMonthDays - i),
+        isCurrentMonth: false,
+        isPrevMonth: true
       });
+    }
+    
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push({
+        date: new Date(year, month, i),
+        isCurrentMonth: true,
+        isPrevMonth: false
+      });
+    }
+    
+    const remainingDays = 42 - days.length;
+    for (let i = 1; i <= remainingDays; i++) {
+      days.push({
+        date: new Date(year, month + 1, i),
+        isCurrentMonth: false,
+        isPrevMonth: false
+      });
+    }
+    
+    return days;
+  };
+
+  const handleDateClick = (date) => {
+    const dateKey = formatDateKey(date);
+    if (onDateClick) {
+      onDateClick(dateKey);
     }
   };
 
-  const handleClickPrevButton = () => {
-    const calendarInstance = calendarRef.current?.getInstance();
-    if (calendarInstance) {
-      calendarInstance.prev();
-      setCurrentDate((prev) => {
-        const prevDate = new Date(prev);
-        prevDate.setMonth(prev.getMonth() - 1);
-        return prevDate;
-      });
-    }
+  const goToPrevMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1));
   };
+
+  const goToNextMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1));
+  };
+
+  const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
+  const calendarDays = generateCalendarDays();
+  const today = new Date();
+  const todayKey = formatDateKey(today);
 
   return (
-    <div className="w-full">
-      {/* 년/월 표시 */}
-      <div className="flex items-center justify-between mb-4 dark:text-darkBg">
-        <h2 className="text-2xl font-bold">
+    <div className="w-full h-full flex flex-col">
+      {/* 헤더 */}
+      <div className="flex items-center justify-between mb-2 px-2">
+        <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
           {currentDate.getFullYear()}년 {currentDate.getMonth() + 1}월
         </h2>
-        <div className="calendar-buttons flex gap-2">
+        <div className="flex gap-2">
           <button
-            onClick={handleClickPrevButton}
-            className="calendar-nav-button"
+            onClick={goToPrevMonth}
+            className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           >
-            이전 달
+            <ChevronLeft className="w-4 h-4" />
           </button>
           <button
-            onClick={handleClickNextButton}
-            className="calendar-nav-button"
+            onClick={goToNextMonth}
+            className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           >
-            다음 달
+            <ChevronRight className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      {/* 캘린더 컨테이너 */}
-      <div className="aspect-[7/6] w-full">
-        <Calendar
-          ref={calendarRef}
-          view="month"
-          className="w-full h-full"
-          {...modifiedOptions}
-        />
+      {/* 요일 헤더 */}
+      <div className="grid grid-cols-7 gap-0 mb-1">
+        {weekDays.map((day, index) => (
+          <div
+            key={day}
+            className={`text-left pl-2 font-bold text-sm py-1 ${
+              index === 0 ? 'text-red-500' : index === 6 ? 'text-blue-500' : 'text-gray-700 dark:text-gray-300'
+            }`}
+          >
+            {day}
+          </div>
+        ))}
+      </div>
+
+      {/* 날짜 그리드 */}
+      <div className="grid grid-cols-7 gap-0 flex-1">
+        {calendarDays.map((day, index) => {
+          const dateKey = formatDateKey(day.date);
+          const diary = diaryMap[dateKey];
+          const isToday = dateKey === todayKey;
+          const dayOfWeek = day.date.getDay();
+          
+          return (
+            <div
+              key={index}
+              onClick={() => handleDateClick(day.date)}
+              className={`
+                relative border border-gray-200 dark:border-gray-700 cursor-pointer
+                flex items-center justify-center aspect-square
+                transition-colors duration-200
+                ${day.isCurrentMonth ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800'}
+                ${isToday ? 'bg-blue-50 dark:bg-blue-900/20' : ''}
+                hover:bg-yellow-50 dark:hover:bg-yellow-900/20
+              `}
+            >
+              {/* 날짜 번호 - 좌측 상단 */}
+              <span
+                className={`
+                  absolute top-1 left-2 text-xs font-medium
+                  ${!day.isCurrentMonth ? 'text-gray-400 dark:text-gray-600' : ''}
+                  ${dayOfWeek === 0 ? 'text-red-500' : ''}
+                  ${isToday ? 'font-bold' : ''}
+                `}
+              >
+                {day.date.getDate()}
+              </span>
+              
+              {/* 이모지 - 중앙 */}
+              {diary && (
+                <img
+                  src={getEmojiSrc(diary)}
+                  alt="emotion"
+                  className="w-7 h-7 object-contain"
+                />
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
