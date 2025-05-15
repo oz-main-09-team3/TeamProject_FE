@@ -17,7 +17,6 @@ const FriendInviteSystem = () => {
   
   const navigate = useNavigate();
 
-  // 토큰으로 사용자 정보 가져오기
   const fetchUserInfo = async () => {
     const token = localStorage.getItem('token');
     
@@ -37,7 +36,6 @@ const FriendInviteSystem = () => {
       const userData = response.data;
       console.log("사용자 데이터:", userData);
       
-      // username 필드 확인 후 대체 필드 사용
       const identifier = userData.username || userData.email || userData.name || userData.id;
       console.log("사용자 식별자:", identifier);
       
