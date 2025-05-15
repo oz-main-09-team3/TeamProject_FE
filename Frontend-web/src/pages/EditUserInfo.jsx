@@ -1,9 +1,10 @@
 import { useReducer, useRef, useState, useEffect } from "react";
-import { Camera } from "lucide-react";
+import { Camera, ChevronLeft } from "lucide-react";
 import ColorThief from 'colorthief';
 import Modal from '../components/Modal';
 import { useNavigate, useLocation } from "react-router-dom";
 import { updateMyInfo } from "../service/userApi";
+import BackButton from "../components/BackButton";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -224,7 +225,9 @@ export default function EditUserInfo() {
   return (
     <>
       <main className="flex items-center justify-center min-h-screen bg-lightBg dark:bg-darkdark px-4">
-        <div className="w-full max-w-xl relative pt-[92px] pb-8 flex flex-col items-center bg-white dark:bg-darktext rounded-3xl shadow-lg">
+        <div className="w-full max-w-md relative pt-[100px] pb-8 flex flex-col gap-3 items-center bg-white dark:bg-darktext rounded-3xl shadow-lg">
+          <BackButton to="/mypage/info" />
+
           <div className="absolute -top-[92px]">
             <div className="relative group">
               <div 
@@ -257,67 +260,71 @@ export default function EditUserInfo() {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="w-full space-y-5 mt-6 px-6">
-            <div className="flex flex-col md:flex-row gap-6">
-              <FormInput
-                label="닉네임"
-                name="nickname"
-                value={state.nickname}
-                onChange={handleChange}
-              />
-              <div className="flex-1 text-left">
-                <label className="block mb-2 text-sm font-semibold text-lighttext dark:text-darkBg">전화번호</label>
-                <input 
-                  type="tel"
-                  name="phone_number"
-                  placeholder="010-1234-5678"
-                  value={state.phone_number}
-                  onChange={handleChange}
-                  className={`form-input text-lighttext dark:text-darkBg placeholder:text-gray-500 dark:placeholder:text-gray-500 ${phoneError ? 'border-red-500' : ''}`}
-                />
-                {phoneError && (
-                  <p className="mt-1 text-sm text-red-500">{phoneError}</p>
-                )}
+          <form onSubmit={handleSubmit} className="w-full mt-2 px-6">
+            <div className="flex flex-col gap-8">
+              <div className="flex flex-col gap-3">
+                <div className="flex flex-col md:flex-row gap-3">
+                  <FormInput
+                    label="닉네임"
+                    name="nickname"
+                    value={state.nickname}
+                    onChange={handleChange}
+                  />
+                  <div className="flex-1 text-left">
+                    <label className="block text-sm font-semibold text-lighttext dark:text-darkBg">전화번호</label>
+                    <input 
+                      type="tel"
+                      name="phone_number"
+                      placeholder="010-1234-5678"
+                      value={state.phone_number}
+                      onChange={handleChange}
+                      className={`form-input p-1.5 text-lighttext dark:text-darkBg placeholder:text-gray-500 dark:placeholder:text-gray-500 ${phoneError ? 'border-red-500' : ''}`}
+                    />
+                    {phoneError && (
+                      <p className="mt-1 text-sm text-red-500">{phoneError}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex-1 text-left">
+                  <label className="block text-sm font-semibold text-lighttext dark:text-darkBg">이메일</label>
+                  <input 
+                    type="text"
+                    name="email"
+                    value={state.email}
+                    onChange={handleChange}
+                    className={`form-input p-1.5 text-lighttext dark:text-darkBg placeholder:text-gray-500 dark:placeholder:text-gray-500 ${emailError ? 'border-red-500' : ''}`}
+                  />
+                  {emailError && (
+                    <p className="mt-1 text-sm text-red-500">{emailError}</p>
+                  )}
+                </div>
+
+                <div className="flex-1 text-left">
+                  <label className="block text-sm font-semibold text-lighttext dark:text-darkBg">생년월일</label>
+                  <input 
+                    type="date"
+                    name="birth_date"
+                    value={state.birth_date}
+                    onChange={handleChange}
+                    max={today}
+                    min="1900-01-01"
+                    className={`form-input p-1.5 text-lighttext dark:text-darkBg placeholder:text-gray-500 dark:placeholder:text-gray-500 ${birthdateError ? 'border-red-500' : ''}`}
+                    onInvalid={e => e.target.setCustomValidity('')}
+                  />
+                  {birthdateError && (
+                    <p className="mt-1 text-sm text-red-500">{birthdateError}</p>
+                  )}
+                </div>
               </div>
-            </div>
 
-            <div className="flex-1 text-left">
-              <label className="block mb-2 text-sm font-semibold text-lighttext dark:text-darkBg">이메일</label>
-              <input 
-                type="text"
-                name="email"
-                value={state.email}
-                onChange={handleChange}
-                className={`form-input text-lighttext dark:text-darkBg placeholder:text-gray-500 dark:placeholder:text-gray-500 ${emailError ? 'border-red-500' : ''}`}
-              />
-              {emailError && (
-                <p className="mt-1 text-sm text-red-500">{emailError}</p>
-              )}
+              <button
+                type="submit"
+                className="w-full p-1.5 rounded-full font-semibold transition bg-lightGold hover:bg-lightOrange dark:bg-darkOrange dark:hover:bg-darkCopper dark:text-darkBg"
+              >
+                저장하기
+              </button>
             </div>
-
-            <div className="flex-1 text-left">
-              <label className="block mb-2 text-sm font-semibold text-lighttext dark:text-darkBg">생년월일</label>
-              <input 
-                type="date"
-                name="birth_date"
-                value={state.birth_date}
-                onChange={handleChange}
-                max={today}
-                min="1900-01-01"
-                className={`form-input text-lighttext dark:text-darkBg placeholder:text-gray-500 dark:placeholder:text-gray-500 ${birthdateError ? 'border-red-500' : ''}`}
-                onInvalid={e => e.target.setCustomValidity('')}
-              />
-              {birthdateError && (
-                <p className="mt-1 text-sm text-red-500">{birthdateError}</p>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              className="w-full py-3 rounded-full font-semibold transition bg-lightGold hover:bg-lightOrange dark:bg-darkOrange dark:hover:bg-darkCopper dark:text-darkBg"
-            >
-              저장하기
-            </button>
           </form>
         </div>
       </main>
@@ -338,10 +345,10 @@ export default function EditUserInfo() {
 function FormInput({ label, ...rest }) {
   return (
     <div className="flex-1 text-left">
-      <label className="block mb-2 text-sm font-semibold text-lighttext dark:text-darkBg">{label}</label>
+      <label className="block text-sm font-semibold text-lighttext dark:text-darkBg">{label}</label>
       <input 
         {...rest} 
-        className="form-input text-lighttext dark:text-darkBg placeholder:text-gray-500 dark:placeholder:text-gray-500" 
+        className="form-input p-1.5 text-lighttext dark:text-darkBg placeholder:text-gray-500 dark:placeholder:text-gray-500" 
       />
     </div>
   );

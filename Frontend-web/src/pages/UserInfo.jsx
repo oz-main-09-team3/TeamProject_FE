@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { getMyInfo } from "../service/userApi";
+import BackButton from "../components/BackButton";
 
 // 파일 상단에 추가
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -84,15 +85,9 @@ export default function UserInfo() {
   return (
     <main className="flex items-center justify-center min-h-screen bg-lightBg dark:bg-darkdark px-4">
       {/* 전체 카드: 프로필 + 회원 정보 */}
-      <div className="w-full max-w-md bg-yl100 dark:bg-darktext rounded-3xl shadow-lg px-6 pt-[92px] pb-8 relative flex flex-col items-center">
+      <div className="w-full max-w-md relative pt-[100px] pb-8 flex flex-col gap-3 items-center bg-yl100 dark:bg-darktext rounded-3xl shadow-lg">
         {/* 뒤로 가기 버튼 */}
-        <button
-          onClick={() => navigate('/mypage')}
-          className="p-3 bg-lightYellow dark:bg-darkCopper dark:text-darktext rounded-full w-10 h-10 flex items-center justify-center hover:bg-lightYellow/80 dark:hover:bg-darkCopper/80 transition-colors absolute left-4 top-4 z-10"
-          title="뒤로 가기"
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </button>
+        <BackButton to="/mypage" />
         
         {/* 프로필 이미지 */}
         <div className="absolute -top-[92px]">
@@ -109,32 +104,39 @@ export default function UserInfo() {
         </div>
 
         {/* 회원 정보 내용 */}
-        <div className="w-full mt-6 space-y-6 text-sm text-lighttext dark:text-darkBg">
-          <div className="flex justify-between">
-            <span className="font-semibold">닉네임</span>
-            <span>{userInfo?.nickname || "정보 없음"}</span>
-          </div>
-          <div className="flex justify-between mb-4">
-            <span className="font-semibold">전화번호</span>
-            <span>{userInfo?.phone_num || "정보 없음"}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="font-semibold">이메일</span>
-            <span>{userInfo?.email || "정보 없음"}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="font-semibold">생년월일</span>
-            <span>{formatDate(userInfo?.birth_date || userInfo?.birthday)}</span>
+        <div className="w-full mt-2 px-6">
+          <div className="flex flex-col gap-8">
+            <div className="flex flex-col gap-3">
+              <div className="flex justify-between text-sm">
+                <span className="font-semibold text-lighttext dark:text-darkBg">닉네임</span>
+                <span className="text-lighttext dark:text-darkBg">{userInfo?.nickname || "정보 없음"}</span>
+              </div>
+
+              <div className="flex justify-between text-sm">
+                <span className="font-semibold text-lighttext dark:text-darkBg">전화번호</span>
+                <span className="text-lighttext dark:text-darkBg">{userInfo?.phone_num || "정보 없음"}</span>
+              </div>
+
+              <div className="flex justify-between text-sm">
+                <span className="font-semibold text-lighttext dark:text-darkBg">이메일</span>
+                <span className="text-lighttext dark:text-darkBg">{userInfo?.email || "정보 없음"}</span>
+              </div>
+
+              <div className="flex justify-between text-sm">
+                <span className="font-semibold text-lighttext dark:text-darkBg">생년월일</span>
+                <span className="text-lighttext dark:text-darkBg">{formatDate(userInfo?.birth_date || userInfo?.birthday)}</span>
+              </div>
+            </div>
+
+            {/* 회원 정보 수정 버튼 */}
+            <button
+              onClick={() => navigate("/mypage/edit", { state: { userInfo } })}
+              className="w-full p-1.5 rounded-full font-semibold transition bg-lightGold hover:bg-lightOrange dark:bg-darkOrange dark:hover:bg-darkCopper dark:text-darkBg"
+            >
+              회원 정보 수정
+            </button>
           </div>
         </div>
-
-        {/* 회원 정보 수정 버튼 */}
-        <button
-          onClick={() => navigate("/mypage/edit", { state: { userInfo } })}
-          className="w-full mt-10 py-3 rounded-full font-semibold transition bg-lightGold hover:bg-lightOrange dark:bg-darkOrange dark:hover:bg-darkCopper dark:text-darkBg"
-        >
-          회원 정보 수정
-        </button>
       </div>
     </main>
   );
