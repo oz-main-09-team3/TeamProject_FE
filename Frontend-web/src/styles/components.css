@@ -65,7 +65,7 @@
 
   /* 🧭 Icons / UI */
   .nav-icon {
-    @apply relative group hover:scale-110 transition text-lighttext dark:text-darktext;
+    @apply relative hover:scale-105 md:hover:scale-125 transition text-lighttext dark:text-darktext;
   }
 
   .nav-icon-active {
