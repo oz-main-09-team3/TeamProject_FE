@@ -4,9 +4,6 @@ import Modal from "../components/Modal";
 import { useNavigate } from "react-router-dom";
 import { generateQRCode, inviteFriend } from "../service/friendApi";
 import { getMyInfo } from "../service/userApi";
-import BackButton from "../components/BackButton";
-import Button from "../components/Button";
-import FormInput from "../components/FormInput";
 
 const FriendInviteSystem = () => {
   const [username, setUsername] = useState("");
@@ -20,13 +17,11 @@ const FriendInviteSystem = () => {
   
   const navigate = useNavigate();
 
-  // 토큰으로 사용자 정보 가져오기
   const fetchUserInfo = async () => {
     const token = localStorage.getItem('token');
     
-    console.log("토큰 확인:", token ? "있음" : "없음");
-    
     if (!token) {
+      console.log("토큰 없음 - 로그인 필요");
       alert("로그인이 필요합니다.");
       navigate('/login');
       return null;
@@ -34,19 +29,29 @@ const FriendInviteSystem = () => {
     
     setUserLoading(true);
     try {
+      console.log("사용자 정보 API 호출 시작");
       const response = await getMyInfo();
-      console.log("사용자 정보 응답:", response);
+      console.log("API 응답 전체:", response);
+      
       const userData = response.data;
-      setUsername(userData.username || userData.email || userData.name);
+      console.log("사용자 데이터:", userData);
+      
+      const identifier = userData.username || userData.email || userData.name || userData.id;
+      console.log("사용자 식별자:", identifier);
+      
+      setUsername(identifier);
       return userData;
     } catch (error) {
-      console.error("사용자 정보 조회 실패:", error);
-      console.error("에러 응답:", error.response);
+      console.error("사용자 정보 조회 실패 - 전체 에러:", error);
+      console.error("에러 응답 데이터:", error.response?.data);
+      console.error("에러 응답 상태:", error.response?.status);
+      
       if (error.response?.status === 401) {
-        // 토큰 만료 또는 유효하지 않음
         localStorage.removeItem('token');
         alert("세션이 만료되었습니다. 다시 로그인해주세요.");
         navigate('/login');
+      } else {
+        alert(`오류 발생: ${error.response?.data?.message || '알 수 없는 오류'}`);
       }
       return null;
     } finally {
@@ -60,8 +65,12 @@ const FriendInviteSystem = () => {
     
     setIsLoading(true);
     try {
-      const userIdentifier = userInfo.username || userInfo.email || userInfo.name;
+      // 사용자 식별자 결정
+      const userIdentifier = userInfo.username || userInfo.email || userInfo.id;
+      console.log("QR 코드 생성 요청 - 사용자 식별자:", userIdentifier);
+      
       const response = await generateQRCode(userIdentifier);
+      console.log("QR 코드 응답:", response);
       
       // ArrayBuffer를 Blob으로 변환
       const blob = new Blob([response.data], { type: 'image/png' });
@@ -70,7 +79,14 @@ const FriendInviteSystem = () => {
       setQrCodeUrl(url);
     } catch (error) {
       console.error("QR 코드 생성 실패:", error);
-      alert("QR 코드 생성에 실패했습니다.");
+      console.error("에러 응답:", error.response);
+      
+      if (error.response?.status === 404) {
+        // QR 코드가 없는 경우 - 새로 생성 요청이 필요할 수 있음
+        alert("QR 코드를 찾을 수 없습니다. 새로 생성해주세요.");
+      } else {
+        alert(`QR 코드 생성 실패: ${error.response?.data?.detail || '알 수 없는 오류'}`);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -130,17 +146,23 @@ const FriendInviteSystem = () => {
   };
 
   return (
-    <main className="flex items-center justify-center min-h-screen w-full px-4 pt-[100px]">
-      <div className="flex flex-col items-center p-8 w-full max-w-md bg-yl100 dark:text-darkBg rounded-3xl shadow-lg text-lighttext relative pt-8">
+    <main className="flex items-center justify-center min-h-screen px-4 pt-[100px]">
+      <div className="flex flex-col items-center p-8 w-full max-w-lg bg-yl100 dark:text-darkBg rounded-3xl shadow-lg text-lighttext relative pt-8">
         {/* 뒤로 가기 버튼 */}
-        <BackButton to="/mypage" />
+        <button
+          onClick={() => navigate('/mypage')}
+          className="p-3 bg-lightYellow dark:bg-darkCopper dark:text-darktext rounded-full w-10 h-10 flex items-center justify-center hover:bg-lightYellow/80 dark:hover:bg-darkCopper/80 transition-colors absolute left-4 top-4 z-10"
+          title="뒤로 가기"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
 
-        <h1 className="text-2xl font-bold mb-4 text-center">
+        <h1 className="text-2xl font-bold mb-6 text-center">
           친구 초대 시스템
         </h1>
 
         {/* 내 초대 코드 */}
-        <section className="flex flex-col items-center w-full">
+        <section className="flex flex-col items-center mb-8 w-full">
           <h2 className="text-lg font-semibold mb-2">내 초대 코드</h2>
           <div className="border-2 border-lightGold dark:border-darkOrange rounded-lg p-4 mb-4 bg-white">
             {isLoading || userLoading ? (
@@ -161,37 +183,35 @@ const FriendInviteSystem = () => {
           </div>
 
           {/* 사용자 이름 표시 */}
-          <div className="flex flex-col items-center gap-2 mb-4 w-full">
-            <FormInput
+          <div className="flex flex-col sm:flex-row items-center w-full gap-2 mb-4">
+            <input
+              type="text"
               value={username}
-              readOnly={true}
+              readOnly
+              className="form-input flex-1"
               placeholder="사용자 이름"
             />
-            <Button
+            <button
               type="button"
-              variant="secondary"
               onClick={() => navigator.clipboard.writeText(username)}
-              className="w-full"
+              className="secondary-button w-full sm:w-auto px-6 py-2 text-base rounded-full whitespace-nowrap flex items-center justify-center min-w-[80px]"
             >
               복사
-            </Button>
+            </button>
           </div>
 
-          <div className="flex flex-col items-center gap-2 mb-4 w-full">
-            <Button
-              onClick={async () => {
-                const userInfo = await fetchUserInfo();
-                if (userInfo) {
-                  await fetchQRCode(userInfo);
-                }
-              }}
-              disabled={isLoading || userLoading}
-              variant="primary"
-              className="w-full"
-            >
-              {isLoading || userLoading ? "생성 중..." : "QR 코드 새로고침"}
-            </Button>
-          </div>
+          <button
+            onClick={async () => {
+              const userInfo = await fetchUserInfo();
+              if (userInfo) {
+                await fetchQRCode(userInfo);
+              }
+            }}
+            className="primary-button w-full"
+            disabled={isLoading || userLoading}
+          >
+            {isLoading || userLoading ? "생성 중..." : "QR 코드 새로고침"}
+          </button>
         </section>
 
         {/* 친구 추가 */}
@@ -199,36 +219,36 @@ const FriendInviteSystem = () => {
           <h2 className="text-lg font-semibold mb-4 text-center">친구 추가</h2>
 
           {/* 추가 버튼 */}
-          <div className="flex flex-col items-center gap-2 mb-4">
-            <FormInput
+          <div className="flex flex-col sm:flex-row items-center w-full gap-2 mb-4">
+            <input
+              type="text"
               placeholder="친구 사용자명 입력"
+              className="form-input flex-1"
               value={inputCode}
               onChange={(e) => setInputCode(e.target.value)}
             />
-            <Button
+            <button
               type="button"
-              variant="secondary"
               onClick={() => {
                 if (inputCode.trim()) {
                   setPendingCode(inputCode);
                   setIsModalOpen(true);
                 }
               }}
+              className="secondary-button w-full sm:w-auto px-6 py-2 text-base rounded-full whitespace-nowrap flex items-center justify-center min-w-[80px]"
               disabled={!inputCode.trim()}
-              className="w-full"
             >
               추가
-            </Button>
+            </button>
           </div>
 
-          <Button
+          <button
             onClick={() => setShowScanner(true)}
-            variant="primary"
-            className="w-full flex items-center justify-center"
+            className="primary-button w-full flex items-center justify-center"
           >
             <Camera className="mr-2" size={20} />
             QR 코드 스캔
-          </Button>
+          </button>
         </section>
       </div>
 
@@ -236,28 +256,27 @@ const FriendInviteSystem = () => {
       {showScanner && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10">
           <div className="bg-white p-6 rounded-lg w-80">
-            <h3 className="text-lg font-semibold mb-2 text-center text-darkBg">
+            <h3 className="text-lg font-semibold mb-4 text-center">
               QR 코드를 스캔하세요
             </h3>
             <div className="bg-gray-100 w-full h-64 flex items-center justify-center mb-4">
-              <Button onClick={simulateScan} variant="primary" className="w-full">
+              <button onClick={simulateScan} className="primary-button">
                 스캔 시뮬레이션
-              </Button>
+              </button>
             </div>
-            <Button
+            <button
               onClick={() => setShowScanner(false)}
-              variant="secondary"
-              className="w-full"
+              className="secondary-button w-full"
             >
               취소
-            </Button>
+            </button>
           </div>
         </div>
       )}
 
       {/* 확인 모달 */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center">
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
           <Modal
             type="info"
             title="친구 추가"
