@@ -4,19 +4,20 @@ import MonthlyCalendar from "../components/calendar/MonthlyCalendar";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Heart } from "lucide-react";
 import { fetchDiaries, fetchEmotions } from "../service/diaryApi";
+import { useDiaryContext } from "../contexts/DiaryContext"; 
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 function MainPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [diaryList, setDiaryList] = useState([]);
   const [filteredDiaryList, setFilteredDiaryList] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
-  const [emotionMap, setEmotionMap] = useState({});
   const [loadingId, setLoadingId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const { diaryList, setDiaryList, emotionMap, setEmotionMap } = useDiaryContext();
 
   const getEmotions = async () => {
     try {
@@ -60,17 +61,7 @@ function MainPage() {
       }
 
       const formattedDiaries = diariesData.map((diary) => {
-        let emotionValue;
-        if (diary.emotion && typeof diary.emotion === "object") {
-          emotionValue = diary.emotion;
-        } else if (diary.emotion) {
-          emotionValue = diary.emotion;
-        } else if (diary.emotion_id) {
-          emotionValue = diary.emotion_id;
-        } else {
-          emotionValue = diary.id;
-        }
-
+        let emotionValue = diary.emotion || diary.emotion_id || diary.id;
         return {
           id: diary.diary_id || diary.id,
           header: diary.content ? diary.content.substring(0, 30) + "..." : "제목 없음",
@@ -84,7 +75,7 @@ function MainPage() {
         };
       });
 
-      setDiaryList(formattedDiaries);
+      setDiaryList(formattedDiaries); 
       setFilteredDiaryList(formattedDiaries);
     } catch (err) {
       console.error("일기 목록 불러오기 실패:", err);
@@ -138,7 +129,7 @@ function MainPage() {
           diary.id === id ? { ...diary, liked: newLikedStatus } : diary
         )
       );
-      
+
       setFilteredDiaryList((prevList) =>
         prevList.map((diary) =>
           diary.id === id ? { ...diary, liked: newLikedStatus } : diary
@@ -185,7 +176,7 @@ function MainPage() {
         <div className="flex flex-col lg:flex-row gap-8 items-stretch justify-center">
           <div className="w-full lg:w-1/2 bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow-md">
             <div className="aspect-[7/6]">
-              <MonthlyCalendar 
+              <MonthlyCalendar
                 diaries={diaryList}
                 emotionMap={emotionMap}
                 onDateClick={handleDateClick}
@@ -198,7 +189,7 @@ function MainPage() {
               <div className="mb-4 p-3 bg-yellow-100 dark:bg-gray-700 rounded-lg">
                 <p className="text-sm text-gray-700 dark:text-gray-300">
                   {selectedDate}의 일기를 보고 있습니다.
-                  <button 
+                  <button
                     onClick={() => handleDateClick(selectedDate)}
                     className="ml-2 text-blue-600 dark:text-blue-400 underline"
                   >
@@ -207,7 +198,7 @@ function MainPage() {
                 </p>
               </div>
             )}
-            
+
             {filteredDiaryList.length === 0 ? (
               <div className="text-center text-gray-500 py-8">
                 {selectedDate ? "선택한 날짜에 작성된 일기가 없습니다." : "아직 작성된 일기가 없습니다."}
