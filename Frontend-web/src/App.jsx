@@ -7,7 +7,7 @@ import NavigationBar from "./components/NavigationBar";
 import FriendList from "./pages/FriendsList";
 import FriendInviteSystem from "./pages/Qrcodepage";
 import ChartPage from "./pages/Chart";
-import LoadingPage from "./pages/Loadingpage";
+import LoginPage from "./pages/Login";
 import UserInfo from "./pages/UserInfo";
 import DiaryEditor from "./pages/DiaryEditor";
 import EditUserInfo from "./pages/EditUserInfo";
@@ -73,12 +73,14 @@ function App() {
   return (
     <HelmetProvider>
       <BrowserRouter>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<LoadingPage />} />
-            <Route path="/*" element={<AppLayoutWithNavbar />} />
-          </Routes>
-        </Layout>
+        <Routes>
+          <Route path="/" element={<LoginPage />} />
+          <Route path="/*" element={
+            <Layout>
+              <AppLayoutWithNavbar />
+            </Layout>
+          } />
+        </Routes>
       </BrowserRouter>
     </HelmetProvider>
   );

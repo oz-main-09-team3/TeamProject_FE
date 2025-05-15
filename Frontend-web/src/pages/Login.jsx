@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom"; 
-import loadingLight from "../assets/Phone - l.svg";
-import loadingDark from "../assets/Phone - D.svg";
-import loadingWebDark from "../assets/LoadingpageD.png";
-import loadingWebLight from "../assets/Loadingpage.png"; 
+import loginLight from "../assets/Phone - l.svg";
+import loginDark from "../assets/Phone - D.svg";
+import loginWebDark from "../assets/LoginpageD.png";
+import loginWebLight from "../assets/Loginpage.png"; 
 import kakaoLoginImg from "../assets/kakaotalk.png";
 import naverLoginImg from "../assets/btnW_아이콘사각.png";
 import googleLoginImg from "../assets/web_light_sq_na@1x.png";
@@ -48,8 +48,8 @@ const useMediaQuery = (query) => {
   return matches;
 };
 
-// LoadingPage 컴포넌트
-const LoadingPage = () => {
+// Loginpage 컴포넌트
+const Loginpage = () => {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem("theme");
@@ -71,9 +71,9 @@ const LoadingPage = () => {
 
   const getBackgroundImage = () => {
     if (isMobile) {
-      return isDarkMode ? loadingDark : loadingLight;
+      return isDarkMode ? loginDark : loginLight;
     } else {
-      return isDarkMode ? loadingWebDark : loadingWebLight;
+      return isDarkMode ? loginWebDark : loginWebLight;
     }
   };
 
@@ -174,4 +174,4 @@ const LoadingPage = () => {
   );
 };
 
-export default LoadingPage;
+export default Loginpage;
