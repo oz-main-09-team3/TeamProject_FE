@@ -1,30 +1,76 @@
+import { useEffect, useState } from "react";
 import RowCard from "../components/RowCard";
 import { ArrowRight, Search } from "lucide-react";
 import testimage from "../assets/profile.png";
 import emptyImage from "../assets/empty.png";
 import { useSearch } from "../hooks/useSearch";
 import { useNavigate } from "react-router-dom";
+import { getFriendsList } from "../service/friendApi";
 
 /**
  * 친구 목록을 보여주는 컴포넌트
- * TODO: API 연동 후 하드코딩된 데이터를 API 호출로 대체
- * TODO: 친구 클릭 시 상세 페이지로 이동하는 기능 추가
+ * API 연동된 친구 목록 표시 및 검색 기능 제공
  */
 export default function FriendsList({ onFriendClick }) {
-  // 임시 친구 목록 데이터 (API 연동 시 제거)
-  const friends = [
-    "김오즈",
-    "홍길동",
-    "엄세욱",
-    "김은지",
-    "정봉석",
-    "김오즈",
-    "홍길동",
-  ];
-
+  const [friends, setFriends] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
   // 검색 기능을 위한 커스텀 훅 사용
   const { searchTerm, setSearchTerm, filteredItems: filteredFriends } = useSearch(friends);
   const navigate = useNavigate();
+
+  // 컴포넌트 마운트 시 친구 목록 데이터 가져오기
+  useEffect(() => {
+    const fetchFriends = async () => {
+      try {
+        setIsLoading(true);
+        const response = await getFriendsList();
+        // API 응답에서 친구 목록 데이터 추출
+        // 응답 형식에 따라 적절히 수정 필요
+        const friendsData = response.data;
+        setFriends(friendsData);
+      } catch (err) {
+        console.error("친구 목록을 불러오는데 실패했습니다:", err);
+        setError("친구 목록을 불러오는데 실패했습니다.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchFriends();
+  }, []);
+
+  // 친구 클릭 핸들러
+  const handleFriendClick = (friend) => {
+    if (onFriendClick) onFriendClick();
+    // 친구 ID를 사용하여 상세 페이지로 이동
+    navigate(`/friend-diary/${friend.id}`);
+  };
+
+  // 로딩 중 상태 표시
+  if (isLoading) {
+    return (
+      <div className="friends-panel flex flex-col w-full items-center justify-center min-h-[200px]">
+        <p className="text-lighttext dark:text-darktext">로딩 중...</p>
+      </div>
+    );
+  }
+
+  // 에러 상태 표시
+  if (error) {
+    return (
+      <div className="friends-panel flex flex-col w-full items-center justify-center min-h-[200px]">
+        <p className="text-red-500">{error}</p>
+        <button 
+          className="mt-2 px-4 py-2 bg-lightOrange dark:bg-darkOrange rounded-md text-white"
+          onClick={() => window.location.reload()}
+        >
+          다시 시도
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="friends-panel flex flex-col w-full text-lighttext dark:text-darktext text-xl">
@@ -45,21 +91,18 @@ export default function FriendsList({ onFriendClick }) {
       <div className="flex flex-col gap-2 P-1 flex-1 justify-center items-center min-h-[200px]">
         {filteredFriends.length > 0 ? (
           // 검색 결과가 있을 경우 친구 목록 표시
-          filteredFriends.map((friend, index) => (
+          filteredFriends.map((friend) => (
             <RowCard
-              key={index}
-              emojiSrc={testimage}
-              headerText={friend}
+              key={friend.id}
+              emojiSrc={friend.profile || testimage}
+              headerText={friend.nickname || "친구"}
               rightIcon={
                 <ArrowRight
                   size={22}
                   className="text-lighttext dark:text-darktext"
                 />
               }
-              onClick={() => {
-                if (onFriendClick) onFriendClick();
-                navigate('/friend-diary');
-              }}
+              onClick={() => handleFriendClick(friend)}
             />
           ))
         ) : (

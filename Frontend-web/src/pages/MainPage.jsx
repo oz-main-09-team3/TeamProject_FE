@@ -163,6 +163,21 @@ function MainPage() {
     return `${BACKEND_URL}/static/emotions/1.png`;
   };
 
+  const formatDate = (dateString) => {
+    if (!dateString) return "날짜 없음";
+    
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString; 
+    
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    
+    return `${year}년 ${month}월 ${day}일 ${hours}:${minutes}`;
+  };
+
   if (isLoading) {
     return (
       <main className="min-h-screen pt-[100px] flex items-center justify-center">
@@ -178,6 +193,15 @@ function MainPage() {
       </main>
     );
   }
+
+  const truncateContent = (content, maxLength = 40) => {
+    if (!content) return "내용 없음";
+    
+    const firstLine = content.split('\n')[0].trim();
+    
+    if (firstLine.length <= maxLength) return firstLine;
+    return firstLine.substring(0, maxLength) + "...";
+  };
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center transition-colors duration-300">
@@ -219,8 +243,8 @@ function MainPage() {
                   <div key={diary.id}>
                     <RowCard
                       emojiSrc={emojiPath}
-                      headerText={diary.header}
-                      bodyText={diary.body}
+                      headerText={truncateContent(diary.body)}
+                      bodyText={formatDate(diary.createdAt)}
                       rightIcon={
                         <button
                           className="text-2xl"
