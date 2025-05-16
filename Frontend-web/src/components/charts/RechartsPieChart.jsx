@@ -1,5 +1,7 @@
 import React from 'react';
 import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer } from 'recharts';
+import { EMOJI_COLORS } from '../../constants/EmojiColors'; 
+import { EMOJI_TEXT_MAP } from '../../constants/Emoji'; 
 
 /**
  * Recharts 라이브러리를 사용한 파이 차트 컴포넌트
@@ -18,7 +20,6 @@ const RechartsPieChart = ({
   isLoading = false,
   error = null
 }) => {
-  // 데이터 변환 (Toast UI 차트 형식 → Recharts 형식)
   const transformData = (inputData) => {
     if (!inputData || !inputData.series || !Array.isArray(inputData.series)) {
       return [];
@@ -32,15 +33,34 @@ const RechartsPieChart = ({
   
   const chartData = transformData(data);
   
-  // 차트 색상 배열
-  const COLORS = ['#4B9CD3', '#7B68EE', '#20B2AA', '#FF7F50', '#9370DB', '#FFA07A', '#3CB371', '#6A5ACD', '#FF6347'];
+  const findEmojiIdByName = (name) => {
+    for (const [id, text] of Object.entries(EMOJI_TEXT_MAP)) {
+      if (text === name) {
+        return parseInt(id);
+      }
+    }
+    return null;
+  };
   
-  // 커스텀 툴팁 컴포넌트
+  const getEmotionColorByName = (name) => {
+    const emojiId = findEmojiIdByName(name);
+    if (emojiId && EMOJI_COLORS[emojiId]) {
+      return EMOJI_COLORS[emojiId];
+    }
+    
+    return '#CCCCCC';
+  };
+  
+  const DEFAULT_COLORS = Object.values(EMOJI_COLORS).slice(0, 10);
+  
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
+      const emotionName = payload[0].name;
+      const emotionColor = getEmotionColorByName(emotionName);
+      
       return (
         <div className="p-2 bg-yl100 dark:bg-darkBg shadow-lg rounded-md border border-lightGold dark:border-darkCopper">
-          <p className="font-bold text-lighttext dark:text-darktext">{payload[0].name}</p>
+          <p className="font-bold text-lighttext dark:text-darktext" style={{ color: emotionColor }}>{emotionName}</p>
           <p className="text-lighttext dark:text-darktext">{`${payload[0].value}개`}</p>
         </div>
       );
@@ -74,9 +94,6 @@ const RechartsPieChart = ({
 
   return (
     <div className="w-full">
-      {/* {title && (
-        <h3 className="text-center font-medium mb-4">{title}</h3>
-      )} */}
       <ResponsiveContainer width="100%" height={height}>
         <PieChart>
           <Pie
@@ -89,12 +106,26 @@ const RechartsPieChart = ({
             fill="#8884d8"
             dataKey="value"
           >
-            {chartData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-            ))}
+            {chartData.map((entry, index) => {
+              const color = getEmotionColorByName(entry.name) || DEFAULT_COLORS[index % DEFAULT_COLORS.length];
+              return (
+                <Cell 
+                  key={`cell-${index}`} 
+                  fill={color} 
+                />
+              );
+            })}
           </Pie>
           <Tooltip content={<CustomTooltip />} />
-          <Legend layout="horizontal" verticalAlign="bottom" align="center" />
+          <Legend 
+            layout="horizontal" 
+            verticalAlign="bottom" 
+            align="center"
+            formatter={(value, entry, index) => {
+              const color = getEmotionColorByName(value);
+              return <span style={{ color }}>{value}</span>;
+            }}
+          />
         </PieChart>
       </ResponsiveContainer>
     </div>
