@@ -1,8 +1,10 @@
+
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import Modal from "../components/Modal";
 import { ChevronLeft, Pencil, Trash2, Heart } from "lucide-react";
 import { fetchDiary, deleteDiary } from "../service/diaryApi";
+import { addLike, removeLike } from "../service/likeApi"; // 좋아요 API 가져오기
 import MarkdownRenderer from "../components/MarkdownRenderer";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -17,6 +19,7 @@ const DiaryDetailPage = () => {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLikeLoading, setIsLikeLoading] = useState(false); // 좋아요 로딩 상태
   const [error, setError] = useState(null);
 
   const getDiaryDetail = async (diaryId) => {
@@ -28,6 +31,9 @@ const DiaryDetailPage = () => {
       console.log("Diary detail response:", response);
       
       const diaryData = response.data || response;
+      
+      // 좋아요 상태 확인 (is_liked 필드가 있으면 사용)
+      const isLiked = diaryData.is_liked !== undefined ? diaryData.is_liked : false;
       
       const formattedDiary = {
         diary_id: diaryData.diary_id,
@@ -42,7 +48,7 @@ const DiaryDetailPage = () => {
         userName: diaryData.user?.username,
         userNickname: diaryData.user?.nickname,
         userProfile: diaryData.user?.profile,
-        liked: false, 
+        liked: isLiked, // 좋아요 상태 설정
         likeCount: diaryData.like_count || 0,
         visibility: diaryData.visibility,
         images: diaryData.images || [],
@@ -73,6 +79,9 @@ const DiaryDetailPage = () => {
         date: passedDiary.createdAt ? new Date(passedDiary.createdAt).toLocaleDateString('ko-KR') : new Date().toLocaleDateString('ko-KR'),
         emotionId: passedDiary.emotionId,
         emotionUrl: passedDiary.emotionUrl,
+        // 좋아요 상태가 전달되었으면 사용, 아니면 기본값 false
+        liked: passedDiary.liked !== undefined ? passedDiary.liked : false,
+        likeCount: passedDiary.likeCount || 0
       });
       setIsLoading(false);
     } else {
@@ -118,6 +127,45 @@ const DiaryDetailPage = () => {
   const handleCloseSuccessModal = () => {
     setIsSuccessModalOpen(false);
     navigate('/main');
+  };
+
+  // 좋아요 기능 처리
+  const handleDiaryLike = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (isLikeLoading || !diary) return;
+    
+    try {
+      setIsLikeLoading(true);
+      const diaryId = diary.diary_id || diary.id;
+      
+      // 좋아요 상태에 따라 API 호출
+      if (!diary.liked) {
+        // 좋아요 추가
+        await addLike(diaryId);
+        // 좋아요 상태 업데이트
+        setDiary((prev) => ({
+          ...prev,
+          liked: true,
+          likeCount: (prev.likeCount || 0) + 1
+        }));
+      } else {
+        // 좋아요 취소
+        await removeLike(diaryId);
+        // 좋아요 상태 업데이트
+        setDiary((prev) => ({
+          ...prev,
+          liked: false,
+          likeCount: Math.max((prev.likeCount || 0) - 1, 0) // 음수가 되지 않도록
+        }));
+      }
+    } catch (err) {
+      console.error('좋아요 처리 실패:', err);
+      alert("좋아요 처리 중 오류가 발생했습니다.");
+    } finally {
+      setIsLikeLoading(false);
+    }
   };
 
   const getEmojiSrc = (diary) => {
@@ -178,12 +226,6 @@ const DiaryDetailPage = () => {
     );
   }
 
-  const handleDiaryLike = async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    // 좋아요 기능 구현 예정
-  };
-
   return (
     <div className="flex items-center justify-center min-h-screen px-4">
       <div className="w-full max-w-6xl mx-auto shadow-xl p-10 font-sans rounded-2xl border-4 border-lightGold dark:border-darkOrange bg-yl100 dark:bg-darktext text-lighttext dark:text-darkbg transition-colors duration-300">
@@ -200,8 +242,11 @@ const DiaryDetailPage = () => {
             <div className="flex gap-2">
               <button
                 onClick={handleDiaryLike}
-                className="p-3 bg-lightYellow dark:bg-darkCopper dark:text-darktext rounded-full w-10 h-10 flex items-center justify-center hover:bg-lightYellow/80 dark:hover:bg-darkCopper/80 transition-colors"
+                className={`p-3 ${
+                  isLikeLoading ? 'opacity-70' : ''
+                } bg-lightYellow dark:bg-darkCopper dark:text-darktext rounded-full w-10 h-10 flex items-center justify-center hover:bg-lightYellow/80 dark:hover:bg-darkCopper/80 transition-colors`}
                 title={diary.liked ? "좋아요 취소" : "좋아요"}
+                disabled={isLikeLoading}
               >
                 <Heart
                   className={`w-5 h-5 ${
@@ -296,7 +341,7 @@ const DiaryDetailPage = () => {
                   {/* 좋아요 수 표시 */}
                   {diary.likeCount > 0 && (
                     <div className="mt-4 flex items-center gap-2 text-sm text-gray-600">
-                      <Heart className="w-4 h-4" />
+                      <Heart className={`w-4 h-4 ${diary.liked ? "fill-red-500 text-red-500" : ""}`} />
                       <span>{diary.likeCount}명이 좋아합니다</span>
                     </div>
                   )}
