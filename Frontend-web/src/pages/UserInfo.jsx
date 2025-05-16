@@ -25,6 +25,7 @@ export default function UserInfo() {
         // API 응답 구조에 따라 데이터 추출
         const userData = response.data || response;
         setUserInfo(userData);
+        console.log("[UserInfo.jsx] getMyInfo() 응답 userInfo:", userData);
       } catch (err) {
         console.error("Failed to fetch user info:", err);
         setError("사용자 정보를 불러오는데 실패했습니다.");
@@ -102,14 +103,14 @@ export default function UserInfo() {
         
         {/* 프로필 이미지 */}
         <div className="absolute -top-[92px]">
-          <div className="w-[184px] h-[184px] rounded-full overflow-hidden shadow-md">
+          <div
+            className="w-[184px] h-[184px] rounded-full overflow-hidden shadow-xl border-4"
+            style={{ borderColor: "transparent" }}
+          >
             <img
               src={getProfileImageUrl()}
-              alt="프로필 이미지"
-              className="object-cover w-full h-full"
-              onError={(e) => {
-                e.target.src = "/profile.png"; // 이미지 로드 실패 시 기본 이미지
-              }}
+              alt={userInfo?.nickname || "프로필 이미지"}
+              className="w-full h-full object-cover"
             />
           </div>
         </div>
@@ -141,7 +142,10 @@ export default function UserInfo() {
 
             {/* 회원 정보 수정 버튼 */}
             <Button
-              onClick={() => navigate("/mypage/edit", { state: { userInfo } })}
+              onClick={() => {
+                console.log("[UserInfo.jsx] 수정 버튼 클릭 시 userInfo:", userInfo);
+                navigate("/mypage/edit", { state: { userInfo } });
+              }}
             >
               회원 정보 수정
             </Button>

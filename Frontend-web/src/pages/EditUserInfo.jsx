@@ -3,7 +3,7 @@ import { Camera, ChevronLeft } from "lucide-react";
 import ColorThief from 'colorthief';
 import Modal from '../components/Modal';
 import { useNavigate, useLocation } from "react-router-dom";
-import { updateMyInfo } from "../service/userApi";
+import { updateMyInfo, getMyInfo } from "../service/userApi";
 import BackButton from "../components/BackButton";
 import Button from "../components/Button";
 import FormInput from "../components/FormInput";
@@ -19,14 +19,26 @@ export default function EditUserInfo() {
   const location = useLocation();
   
   const receivedUserInfo = location.state?.userInfo;
+  console.log("[EditUserInfo.jsx] location.state?.userInfo:", receivedUserInfo);
   
+  // 전화번호를 010-xxxx-xxxx 형식으로 포맷팅하는 함수
+  const formatPhoneNumber = (phone) => {
+    if (!phone) return "";
+    const onlyNums = phone.replace(/[^0-9]/g, '');
+    if (onlyNums.length < 4) return onlyNums;
+    if (onlyNums.length < 8) return onlyNums.slice(0, 3) + '-' + onlyNums.slice(3);
+    if (onlyNums.length < 11) return onlyNums.slice(0, 3) + '-' + onlyNums.slice(3, 7) + '-' + onlyNums.slice(7);
+    return onlyNums.slice(0, 3) + '-' + onlyNums.slice(3, 7) + '-' + onlyNums.slice(7, 11);
+  };
+
   const initialState = {
     nickname: receivedUserInfo?.nickname || receivedUserInfo?.username || "",
-    phone_number: receivedUserInfo?.phone_number || receivedUserInfo?.phone || "",
+    phone_number: formatPhoneNumber(receivedUserInfo?.phone_number || receivedUserInfo?.phone || receivedUserInfo?.phone_num || ""),
     email: receivedUserInfo?.email || "",
-    birth_date: receivedUserInfo?.birth_date || receivedUserInfo?.birthdate || "",
-    profile_image: receivedUserInfo?.profile_image || "/profile.png"
+    birth_date: receivedUserInfo?.birth_date || receivedUserInfo?.birthdate || receivedUserInfo?.birthday || "",
+    profile_image: receivedUserInfo?.profile_image || receivedUserInfo?.profile || "/profile.png"
   };
+  console.log("[EditUserInfo.jsx] initialState:", initialState);
 
   const [state, dispatch] = useReducer(reducer, initialState);
   const [borderColor, setBorderColor] = useState('transparent');
@@ -37,8 +49,27 @@ export default function EditUserInfo() {
   const [modalMessage, setModalMessage] = useState('');
   const [modalType, setModalType] = useState('warning');
   const [profileImageFile, setProfileImageFile] = useState(null);
+  const [profileImageUrl, setProfileImageUrl] = useState(receivedUserInfo?.profile_image || "/profile.png");
   const fileInputRef = useRef(null);
   const imageRef = useRef(null);
+
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const response = await getMyInfo();
+        const user = response.data || response;
+        if (user?.profile) {
+          setProfileImageUrl(user.profile.startsWith('http') ? user.profile : `${BACKEND_URL}${user.profile}`);
+          dispatch({ name: 'profile_image', value: user.profile });
+        } else {
+          setProfileImageUrl("/profile.png");
+        }
+      } catch (err) {
+        setProfileImageUrl("/profile.png");
+      }
+    };
+    fetchUserInfo();
+  }, []);
 
   const formatDateForInput = (dateString) => {
     if (!dateString) return '';
@@ -60,15 +91,11 @@ export default function EditUserInfo() {
   }, []);
 
   const getProfileImageUrl = () => {
-
-    if (state.profile_image && state.profile_image.startsWith('data:')) {
+    if (profileImageFile && state.profile_image && state.profile_image.startsWith('data:')) {
       return state.profile_image;
     }
-    if (state.profile_image) {
-      if (state.profile_image.startsWith('http')) {
-        return state.profile_image;
-      }
-      return `${BACKEND_URL}${state.profile_image}`;
+    if (profileImageUrl) {
+      return profileImageUrl;
     }
     return "/profile.png";
   };
@@ -84,6 +111,28 @@ export default function EditUserInfo() {
         return;
       }
     }
+
+    if (name === 'phone_number') {
+      let onlyNums = value.replace(/[^0-9]/g, '');
+      let formatted = onlyNums;
+      if (onlyNums.length < 4) {
+      } else if (onlyNums.length < 8) {
+        formatted = onlyNums.slice(0, 3) + '-' + onlyNums.slice(3);
+      } else if (onlyNums.length < 11) {
+        formatted = onlyNums.slice(0, 3) + '-' + onlyNums.slice(3, 7) + '-' + onlyNums.slice(7);
+      } else {
+        formatted = onlyNums.slice(0, 3) + '-' + onlyNums.slice(3, 7) + '-' + onlyNums.slice(7, 11);
+      }
+      dispatch({ name, value: formatted });
+      const phoneRegex = /^01([0|1|6|7|8|9])-?([0-9]{3,4})-?([0-9]{4})$/;
+      if (value && !phoneRegex.test(formatted)) {
+        setPhoneError('올바른 전화번호 형식이 아닙니다.');
+      } else {
+        setPhoneError('');
+      }
+      return;
+    }
+
     dispatch({ name, value });
 
     if (name === 'email') {
@@ -92,15 +141,6 @@ export default function EditUserInfo() {
         setEmailError('올바른 이메일 형식이 아닙니다.');
       } else {
         setEmailError('');
-      }
-    }
-
-    if (name === 'phone_number') {
-      const phoneRegex = /^01([0|1|6|7|8|9])-?([0-9]{3,4})-?([0-9]{4})$/;
-      if (value && !phoneRegex.test(value)) {
-        setPhoneError('올바른 전화번호 형식이 아닙니다.');
-      } else {
-        setPhoneError('');
       }
     }
 
@@ -199,11 +239,10 @@ export default function EditUserInfo() {
     const file = e.target.files?.[0];
     if (file) {
       setProfileImageFile(file); 
-      
       const reader = new FileReader();
       reader.onloadend = () => {
         dispatch({ name: 'profile_image', value: reader.result });
-        
+        setProfileImageUrl(reader.result);
         const img = new Image();
         img.src = reader.result;
         img.onload = () => {
@@ -231,35 +270,30 @@ export default function EditUserInfo() {
           <BackButton to="/mypage/info" />
 
           <div className="absolute -top-[92px]">
-            <div className="relative group">
-              <div 
-                className="w-[184px] h-[184px] rounded-full overflow-hidden border-4 transition-colors duration-300"
-                style={{ borderColor: borderColor }}
-              >
-                <img
-                  ref={imageRef}
-                  src={getProfileImageUrl()}
-                  alt="프로필 이미지"
-                  className="object-cover w-full h-full"
-                  onError={(e) => {
-                    e.target.src = "/profile.png";
-                  }}
-                />
-              </div>
-              <div 
-                className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                onClick={handleImageClick}
-              >
-                <Camera className="w-8 h-8 text-white" />
-              </div>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleImageChange}
-                accept="image/*"
-                className="hidden"
+            <div
+              className="w-[184px] h-[184px] rounded-full overflow-hidden shadow-xl border-4"
+              style={{ borderColor: "transparent" }}
+            >
+              <img
+                src={getProfileImageUrl()}
+                alt="프로필 이미지"
+                className="w-full h-full object-cover"
+                onError={e => { e.target.src = "/profile.png"; }}
               />
             </div>
+            <div 
+              className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+              onClick={handleImageClick}
+            >
+              <Camera className="w-8 h-8 text-white" />
+            </div>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleImageChange}
+              accept="image/*"
+              className="hidden"
+            />
           </div>
 
           <form onSubmit={handleSubmit} className="w-full mt-2 px-6">
