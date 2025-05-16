@@ -3,7 +3,7 @@ function RowCard({ emojiSrc, headerText, bodyText, rightIcon, onClick }) {
     <div
       onClick={onClick}
       className="flex items-center justify-between w-full py-2 px-4 sm:py-3 sm:px-5 rounded-xl shadow-md cursor-pointer transition
-        bg-lightBg hover:bg-lightYellow dark:bg-darkdark dark:hover:bg-darkBrown flex-shrink-0"
+        bg-lightBg hover:bg-lightYellow/60 dark:bg-darkBg dark:hover:bg-darkBrown flex-shrink-0"
     >
       {/* 왼쪽: 이모지/아바타 + 텍스트 */}
       <div className="flex items-center gap-1.5 sm:gap-2">
@@ -19,7 +19,7 @@ function RowCard({ emojiSrc, headerText, bodyText, rightIcon, onClick }) {
             {headerText}
           </span>
           {bodyText && (
-            <span className="text-xs sm:text-sm text-gray-500 dark:text-darktext/70">
+            <span className="text-xs sm:text-sm text-lighttext/70 dark:text-darktext/70">
               {bodyText}
             </span>
           )}

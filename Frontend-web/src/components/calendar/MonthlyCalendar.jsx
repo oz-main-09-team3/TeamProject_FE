@@ -107,19 +107,19 @@ function MonthlyCalendar({ diaries = [], emotionMap = {}, onDateClick }) {
     <div className="w-full h-full flex flex-col">
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-2 px-2">
-        <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
+        <h2 className="text-xl font-bold text-lighttext dark:text-darktext">
           {currentDate.getFullYear()}년 {currentDate.getMonth() + 1}월
         </h2>
         <div className="flex gap-2">
           <button
             onClick={goToPrevMonth}
-            className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            className="p-1.5 rounded-lg bg-lightYellow dark:bg-darkCopper hover:bg-lightGold dark:hover:bg-darkOrange transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
           <button
             onClick={goToNextMonth}
-            className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            className="p-1.5 rounded-lg bg-lightYellow dark:bg-darkCopper hover:bg-lightGold dark:hover:bg-darkOrange transition-colors"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
@@ -141,7 +141,7 @@ function MonthlyCalendar({ diaries = [], emotionMap = {}, onDateClick }) {
       </div>
 
       {/* 날짜 그리드 */}
-      <div className="grid grid-cols-7 gap-0 flex-1">
+      <div className="grid grid-cols-7 gap-0 flex-1 h-[calc(100%-4rem)]">
         {calendarDays.map((day, index) => {
           const dateKey = formatDateKey(day.date);
           const diary = diaryMap[dateKey];
@@ -153,18 +153,18 @@ function MonthlyCalendar({ diaries = [], emotionMap = {}, onDateClick }) {
               key={index}
               onClick={() => handleDateClick(day.date)}
               className={`
-                relative border border-gray-200 dark:border-gray-700 cursor-pointer
+                relative border border-lightBg dark:border-darkdark/30 cursor-pointer
                 flex items-center justify-center aspect-square
                 transition-colors duration-200
-                ${day.isCurrentMonth ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800'}
+                ${day.isCurrentMonth ? 'bg-lightBg dark:bg-darkBg' : 'bg-yl100 dark:bg-brown900'}
                 ${isToday ? 'bg-blue-50 dark:bg-blue-900/20' : ''}
-                hover:bg-yellow-50 dark:hover:bg-yellow-900/20
+                hover:bg-lightYellow/50 dark:hover:bg-darkCopper/50
               `}
             >
               {/* 날짜 번호 - 좌측 상단 */}
               <span
                 className={`
-                  absolute top-1 left-2 text-xs font-medium
+                  absolute top-1 left-2 z-10 text-xs font-medium
                   ${!day.isCurrentMonth ? 'text-gray-400 dark:text-gray-600' : ''}
                   ${dayOfWeek === 0 ? 'text-red-500' : ''}
                   ${isToday ? 'font-bold' : ''}
@@ -173,12 +173,20 @@ function MonthlyCalendar({ diaries = [], emotionMap = {}, onDateClick }) {
                 {day.date.getDate()}
               </span>
               
-              {/* 이모지 - 중앙 */}
+              {/* 이모지 - 날짜 아래부터 하단까지 가득 */}
               {diary && (
                 <img
                   src={getEmojiSrc(diary)}
                   alt="emotion"
-                  className="w-7 h-7 object-contain"
+                  style={{
+                    position: 'absolute',
+                    left: '50%',
+                    top: '1rem', // 날짜 숫자 영역만큼 내림 (조금 더 위로)
+                    transform: 'translateX(-50%)',
+                    width: '90%',
+                    height: '80%', // 하단에서 조금 더 올라오게
+                    objectFit: 'contain',
+                  }}
                 />
               )}
             </div>

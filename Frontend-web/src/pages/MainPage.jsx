@@ -217,10 +217,10 @@ function MainPage() {
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center transition-colors duration-300">
-      <section className="mx-auto max-w-5xl w-full m-8 section-container border bg-yl100 dark:bg-darktext border-lightGold dark:border-darkCopper rounded-xl">
-        <div className="flex flex-col lg:flex-row gap-8 items-stretch justify-center">
-          <div className="w-full lg:w-1/2 bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow-md">
-            <div className="aspect-[7/6]">
+      <section className="mx-auto max-w-5xl w-full m-8 section-container border bg-yl100/90 dark:bg-darkBg/50 border-lightGold dark:border-darkCopper rounded-xl">
+        <div className="flex flex-col lg:flex-row gap-3 items-stretch justify-center">
+          <div className="w-full lg:w-2/3 bg-yl100 dark:bg-darkBg rounded-lg shadow-md">
+            <div className="aspect-[5/6] p-2 sm:p-4 flex items-center justify-center overflow-visible w-full h-full">
               <MonthlyCalendar 
                 diaries={diaryList}
                 emotionMap={emotionMap}
@@ -229,12 +229,12 @@ function MainPage() {
             </div>
           </div>
 
-          <div className="w-full lg:w-1/2 flex flex-col gap-4">
+          <div className="w-full lg:w-1/2 flex flex-col gap-2 rounded-lg">
             {selectedDate && (
-              <div className="mb-4 p-3 bg-yellow-100 dark:bg-gray-700 rounded-lg">
-                <p className="text-sm text-gray-700 dark:text-gray-300">
+              <div className="p-3 bg-lightBg dark:bg-darkBg rounded-lg shadow mb-2">
+                <p className="text-sm text-lighttext dark:text-darktext">
                   {selectedDate}의 일기를 보고 있습니다.
-                  <button 
+                  <button
                     onClick={() => handleDateClick(selectedDate)}
                     className="ml-2 text-blue-600 dark:text-blue-400 underline"
                   >
