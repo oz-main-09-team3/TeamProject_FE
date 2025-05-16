@@ -1,5 +1,9 @@
 import api from "./axios";
 
+// 친구 목록 조회
+export const getFriendsList = () =>
+  api.get("/api/friends/");
+
 // QR 코드 이미지 생성
 export const generateQRCode = (username) =>
   api.get(`/api/qrcode/`, {
