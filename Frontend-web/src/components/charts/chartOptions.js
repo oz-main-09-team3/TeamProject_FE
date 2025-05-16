@@ -89,12 +89,13 @@ export const getNestedPieOptions = (width, title = "브라우저 사용량", hei
     height,
     title,
     fontFamily: FONT,
+    animation: false // 애니메이션 비활성화
   },
   series: { 
     dataLabels: { visible: true, fontFamily: FONT },
-    colors: ['#4B9CD3', '#7B68EE', '#20B2AA', '#FF7F50', '#9370DB'],
     fontFamily: FONT,
   },
+  colors: ['#4B9CD3', '#7B68EE', '#20B2AA', '#FF7F50', '#9370DB'],
   tooltip: { grouped: true, fontFamily: FONT },
   legend: { 
     visible: true,
@@ -104,4 +105,4 @@ export const getNestedPieOptions = (width, title = "브라우저 사용량", hei
     color: '#333333',
     fontFamily: FONT
   },
-}); 
+});
