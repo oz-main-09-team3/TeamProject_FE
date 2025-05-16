@@ -1,113 +1,47 @@
 import React, { useState } from "react";
 import testimage from "../assets/profile.png";
 import useComments from "../hooks/useComments";
-import useReplies from "../hooks/useReplies";
 import { formatDate } from "../utils/dateUtils";
 import Comment from "../components/diary/Comment";
 import Reply from "../components/diary/Reply";
 import Modal from "../components/Modal";
-import { ChevronLeft, Heart, Reply as ReplyIcon, Send } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { ChevronLeft, Reply as ReplyIcon, Send } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 /**
  * 친구 일기 보기 페이지 컴포넌트
  * @returns {JSX.Element} 친구 일기 보기 페이지
  */
 const FriendDiaryView = () => {
+  //hook을 쓰면 함수를 굳이 2번 반복해서 쓸 필요가 없습니다.
   const {
+    fetchCommentData,
     comments,
     newComment,
-    showReplies,
     setNewComment,
     handleSubmitComment,
-    toggleReplies,
-    setComments
   } = useComments();
-
-  const {
-    newReply,
-    replyingTo,
-    replyingToReply,
-    setNewReply,
-    handleReplyClick,
-    handleReplyToReplyClick,
-    handleSubmitReply
-  } = useReplies();
-
   const [likedComments, setLikedComments] = useState({});
-  const [isReplying, setIsReplying] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
   const navigate = useNavigate();
-  const location = useLocation();
-  const friendId = location.state?.friendId;
-
   const handleGoBack = () => {
     navigate(-1);
   };
-
-  const handleLikeComment = (commentId) => {
-    setLikedComments(prev => ({
+  //좋아요 등록은 api 통신을 하는거지만, ui도 바로 업데이트해줘야하기때문에 state로 따로 관리하는것
+  const changeLikeButtonColor = (commentId) => {
+    setLikedComments((prev) => ({
       ...prev,
-      [commentId]: !prev[commentId]
+      [commentId]: !prev[commentId],
     }));
   };
+  //다이어리 id를 받아오는 로직을 추가해야합니다. (목록->상세보기로 넘어갈 때 id를 넘겨주고, params로 받아옴)
+  const diaryId = "1234"; //임시
 
-  const handleCommentSubmit = (e) => {
-    e.preventDefault();
-    if (newComment.trim()) {
-      handleSubmitComment(e);
-      setNewComment("");
-    }
-  };
-
-  const handleReplySubmit = (e, commentId) => {
-    e.preventDefault();
-    if (newReply.trim()) {
-      handleSubmitReply(e, commentId, comments, setComments, showReplies, setShowReplies);
-      setNewReply("");
-      setIsReplying(false);
-      handleReplyClick(null);
-    }
-  };
-
-  const handleReplyButtonClick = (commentId) => {
-    setIsReplying(true);
-    handleReplyClick(commentId);
-  };
-
-  const handleCancelReply = () => {
-    setIsReplying(false);
-    setNewReply("");
-    handleReplyClick(null);
-  };
-
-  const handleCancelModalClose = () => {
-    setIsModalOpen(false);
-    navigate(-1);
-  };
-
-  const handleOnlyCloseModal = () => {
-    setIsModalOpen(false);
-  };
-
-  const renderReply = (reply, commentId, level = 0) => (
-    <Reply
-      key={reply.id}
-      reply={reply}
-      commentId={commentId}
-      level={level}
-      replyingTo={replyingTo}
-      replyingToReply={replyingToReply}
-      newReply={newReply}
-      setNewReply={setNewReply}
-      handleReplyToReplyClick={handleReplyToReplyClick}
-      handleSubmitReply={(e) => handleSubmitReply(e, commentId, comments, setComments, showReplies, setShowReplies)}
-      comments={comments}
-    >
-      <img src={reply.profileImg || testimage} alt="프로필" className="w-full h-full object-cover" />
-    </Reply>
-  );
+  useEffect(() => {
+    //마운트되었을 때 fetchCommentData 실행
+    //hook을 사용하고있기 때문에 원래는 어떤페이지인지 구분할 수 있는 값을 인자로 넣어줘서 hook안에서 조건문 처리로 각각 페이지에 맞는 api 를 호출하도록 로직을 짜는것이 좋음
+    fetchCommentData();
+  }, [fetchCommentData]);
 
   return (
     <div className="flex items-center justify-center min-h-screen px-4">
@@ -148,95 +82,40 @@ const FriendDiaryView = () => {
 
             <div className="md:w-1/3 w-full flex flex-col gap-4 border-t md:border-t-0 md:border-l dark:text- border-lightGold dark:border-darkCopper pt-6 md:pt-0 md:pl-5 bg-yl100 dark:bg-darktext">
               <h3 className="text-lg font-medium dark:text-darkBg">댓글</h3>
-              
-              {/* 댓글 입력 폼 - 답글 작성 중이 아닐 때만 표시 */}
-              {!isReplying && (
-                <form onSubmit={handleCommentSubmit} className="mb-4">
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={newComment}
-                      onChange={(e) => setNewComment(e.target.value)}
-                      placeholder="댓글을 입력하세요..."
-                      className="flex-1 px-4 py-2 rounded-full bg-white text-lighttext dark:text-darkbg focus:outline-none focus:ring-2 focus:ring-lightGold dark:focus:ring-darkOrange border border-white"
-                    />
-                    <button
-                      type="submit"
-                      className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-darkOrange/80 transition-colors"
-                      title="댓글 작성"
-                    >
-                      <Send className="w-4 h-4 text-gray-500 dark:text-gray-800" />
-                    </button>
-                  </div>
-                </form>
-              )}
+
+              {/* 댓글 입력 폼*/}
+
+              <form
+                onSubmit={(e) => handleSubmitComment(e, diaryId)}
+                className="mb-4"
+              >
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    placeholder="댓글을 입력하세요..."
+                    className="flex-1 px-4 py-2 rounded-full bg-white text-lighttext dark:text-darkbg focus:outline-none focus:ring-2 focus:ring-lightGold dark:focus:ring-darkOrange border border-white"
+                  />
+                  <button
+                    type="submit"
+                    className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-darkOrange/80 transition-colors"
+                    title="댓글 작성"
+                  >
+                    <Send className="w-4 h-4 text-gray-500 dark:text-gray-800" />
+                  </button>
+                </div>
+              </form>
 
               <div className="overflow-y-auto flex-grow">
                 {comments.map((comment) => (
-                  <div key={comment.id} className="mb-4">
-                    <div className="flex items-start gap-2">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-semibold text-sm text-gray-700">{comment.userNickname}</span>
-                          <span className="text-xs text-gray-500 dark:text-gray-800">{comment.timestamp}</span>
-                        </div>
-                        <p className="text-sm mb-2 text-gray-700 dark:text-gray-700">{comment.text}</p>
-                        <div className="flex items-center gap-4">
-                          <button
-                            onClick={() => handleLikeComment(comment.id)}
-                            className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-darkOrange/80 transition-colors"
-                            title={likedComments[comment.id] ? "좋아요 취소" : "좋아요"}
-                          >
-                            <Heart
-                              className={`w-4 h-4 ${
-                                likedComments[comment.id] ? "fill-red-500 text-red-500" : "text-gray-500 dark:text-gray-800"
-                              }`}
-                            />
-                          </button>
-                          <button
-                            onClick={() => handleReplyButtonClick(comment.id)}
-                            className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-darkOrange/80 transition-colors"
-                            title="답글쓰기"
-                          >
-                            <ReplyIcon className="w-4 h-4 text-gray-500 dark:text-gray-800" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* 답글 입력 폼 - 해당 댓글에 대한 답글 작성 중일 때만 표시 */}
-                    {replyingTo === comment.id && (
-                      <div className="ml-6 mt-2">
-                        <form
-                          onSubmit={(e) => handleReplySubmit(e, comment.id)}
-                          className="flex gap-2"
-                        >
-                          <input
-                            type="text"
-                            value={newReply}
-                            onChange={(e) => setNewReply(e.target.value)}
-                            placeholder="답글을 입력하세요..."
-                            className="flex-1 px-3 py-1 text-sm rounded-full bg-white text-lighttext dark:text-darkbg focus:outline-none focus:ring-2 focus:ring-lightGold dark:focus:ring-darkOrange border border-white"
-                          />
-                          <div className="flex gap-2">
-                            <button
-                              type="submit"
-                              className="p-1.5 rounded-full hover:bg-lightGold dark:hover:bg-darkOrange/80 transition-colors"
-                              title="답글 작성"
-                            >
-                              <Send className="w-4 h-4 text-gray-500 dark:text-gray-800" />
-                            </button>
-                          </div>
-                        </form>
-                      </div>
-                    )}
-
-                    {showReplies[comment.id] && comment.replies && (
-                      <div className="ml-6 mt-2 space-y-2">
-                        {comment.replies.map((reply) => renderReply(reply, comment.id))}
-                      </div>
-                    )}
-                  </div>
+                  <Comment
+                    key={comment.comment_id}
+                    diaryId={diaryId}
+                    comment={comment}
+                    likedComments={likedComments}
+                    changeLikeButtonColor={changeLikeButtonColor}
+                  />
                 ))}
               </div>
             </div>
@@ -248,3 +127,4 @@ const FriendDiaryView = () => {
 };
 
 export default FriendDiaryView;
+
