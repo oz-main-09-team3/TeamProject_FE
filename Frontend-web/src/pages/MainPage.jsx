@@ -4,6 +4,7 @@ import MonthlyCalendar from "../components/calendar/MonthlyCalendar";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Heart } from "lucide-react";
 import { fetchDiaries, fetchEmotions } from "../service/diaryApi";
+import { addLike, removeLike } from "../service/likeApi"; // 좋아요 API 가져오기
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -71,11 +72,14 @@ function MainPage() {
           emotionValue = diary.id;
         }
 
+        // 서버에서 liked 상태를 받는 경우 그대로 사용, 아니면 기본값 false
+        const isLiked = diary.is_liked || false;
+
         return {
           id: diary.diary_id || diary.id,
           header: diary.content ? diary.content.substring(0, 30) + "..." : "제목 없음",
           body: diary.content || "내용 없음",
-          liked: false,
+          liked: isLiked,
           emotionId: emotionValue,
           emotion: diary.emotion,
           createdAt: diary.created_at,
@@ -131,8 +135,16 @@ function MainPage() {
       const currentDiary = diaryList.find((diary) => diary.id === id);
       const newLikedStatus = !currentDiary.liked;
 
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      // 좋아요 상태에 따라 API 호출
+      if (newLikedStatus) {
+        // 좋아요 추가
+        await addLike(id);
+      } else {
+        // 좋아요 취소
+        await removeLike(id);
+      }
 
+      // 상태 업데이트
       setDiaryList((prevList) =>
         prevList.map((diary) =>
           diary.id === id ? { ...diary, liked: newLikedStatus } : diary

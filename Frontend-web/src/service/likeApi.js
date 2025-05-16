@@ -1,4 +1,4 @@
-import api from "./axiosInstance";
+import api from "./axios";
 
 // 좋아요 추가
 export const addLike = (diaryId) => api.post(`/api/diary/${diaryId}/like/`);
