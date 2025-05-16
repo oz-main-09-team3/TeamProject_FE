@@ -49,10 +49,10 @@ const RechartsBarChart = ({
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="p-2 bg-white dark:bg-gray-800 shadow-lg rounded-md border border-gray-200 dark:border-gray-700">
-          <p className="font-bold">{label}</p>
+        <div className="p-2 bg-yl100 dark:bg-darkBg shadow-lg rounded-md border border-lightGold dark:border-darkCopper">
+          <p className="font-bold text-lighttext dark:text-darktext">{label}</p>
           {payload.map((entry, index) => (
-            <p key={index} style={{ color: entry.color }} className="text-gray-600 dark:text-gray-300">
+            <p key={index} style={{ color: entry.color }} className="text-lighttext dark:text-darktext">
               {`${entry.name}: ${entry.value}개`}
             </p>
           ))}
@@ -80,7 +80,7 @@ const RechartsBarChart = ({
 
   if (!chartData || chartData.length === 0) {
     return (
-      <div className="w-full flex items-center justify-center text-gray-500" style={{ height: `${height}px` }}>
+      <div className="w-full flex items-center justify-center text-lighttext/70" style={{ height: `${height}px` }}>
         <p>표시할 데이터가 없습니다.</p>
       </div>
     );
@@ -91,9 +91,9 @@ const RechartsBarChart = ({
 
   return (
     <div className="w-full">
-      {title && (
+      {/* {title && (
         <h3 className="text-center font-medium mb-4">{title}</h3>
-      )}
+      )} */}
       <ResponsiveContainer width="100%" height={height}>
         <BarChart
           data={chartData}

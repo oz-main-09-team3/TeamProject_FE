@@ -5,6 +5,7 @@ import { ChevronLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { fetchDiaries, fetchEmotions } from "../service/diaryApi";
 import { getEmojiText } from "../constants/Emoji"; // Emoji 상수 가져오기
+import BackButton from "../components/BackButton";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -227,24 +228,18 @@ function ChartPage() {
     <main className="flex items-center justify-center min-h-screen p-6 pt-[100px]">
       <div className="w-full max-w-6xl bg-yl100 dark:bg-darktext rounded-3xl shadow-lg px-6 py-10 relative font-[GangwonEduSaeeum_OTFMediumA]">
         {/* 뒤로 가기 버튼 */}
-        <button
-          onClick={() => navigate(-1)}
-          className="p-3 bg-lightYellow dark:bg-darkCopper dark:text-darktext rounded-full w-10 h-10 flex items-center justify-center hover:bg-lightYellow/80 dark:hover:bg-darkCopper/80 transition-colors absolute left-4 top-4 z-10"
-          title="뒤로 가기"
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </button>
+        <BackButton to={-1} />
 
         {/* 페이지 제목 */}
-        <h1 className="text-3xl font-bold text-center mb-8 text-lighttext dark:text-white">
+        <h1 className="text-3xl font-bold text-center mb-8 text-lighttext dark:text-darkBg">
           감정 일기 통계
         </h1>
 
         {/* 차트 그리드 레이아웃 */}
         <div className="mt-8 flex flex-wrap justify-center gap-8">
           {/* 컬럼 차트 컨테이너 - RechartsBarChart 사용 */}
-          <div className="w-full md:w-[48%] bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold text-center mb-4 text-lighttext dark:text-white">
+          <div className="w-full md:w-[48%] bg-yl100 dark:bg-darkBg p-4 rounded-lg shadow-md">
+            <h2 className="text-xl font-semibold text-center mb-4 text-lighttext dark:text-darktext">
               월별 일기 작성 횟수
             </h2>
             <RechartsBarChart 
@@ -257,8 +252,8 @@ function ChartPage() {
           </div>
 
           {/* 파이 차트 컨테이너 - RechartsPieChart 사용 */}
-          <div className="w-full md:w-[48%] bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold text-center mb-4 text-lighttext dark:text-white">
+          <div className="w-full md:w-[48%] bg-yl100 dark:bg-darkBg p-4 rounded-lg shadow-md">
+            <h2 className="text-xl font-semibold text-center mb-4 text-lighttext dark:text-darktext">
               {getCurrentMonthName()} 감정 분포
             </h2>
             <RechartsPieChart 
@@ -273,19 +268,19 @@ function ChartPage() {
 
         {/* 데이터 요약 정보 */}
         {!isLoading && !error && (
-          <div className="mt-8 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold mb-4 text-lighttext dark:text-white">
+          <div className="mt-8 bg-yl100 dark:bg-darkBg p-6 rounded-lg shadow-md">
+            <h2 className="text-xl font-semibold mb-4 text-lighttext dark:text-darktext">
               통계 요약
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 bg-yellow-50 dark:bg-gray-700 rounded-lg">
-                <h3 className="text-lg font-medium mb-2 text-lighttext dark:text-white">
+              <div className="p-4 bg-lightYellow dark:bg-darkBrown rounded-lg">
+                <h3 className="text-lg font-semibold mb-2 text-lighttext dark:text-darktext">
                   연간 통계
                 </h3>
-                <p className="text-gray-700 dark:text-gray-300">
+                <p className="text-lighttext dark:text-darktext">
                   올해 총 일기 작성 수: {chartData.monthlyCount?.series[0].data.reduce((acc, curr) => acc + curr, 0) || 0}개
                 </p>
-                <p className="text-gray-700 dark:text-gray-300 mt-2">
+                <p className="text-lighttext dark:text-darktext mt-2">
                   가장 많이 작성한 달: {
                     chartData.monthlyCount 
                     ? chartData.monthlyCount.categories[
@@ -297,18 +292,18 @@ function ChartPage() {
                   }
                 </p>
               </div>
-              <div className="p-4 bg-yellow-50 dark:bg-gray-700 rounded-lg">
-                <h3 className="text-lg font-medium mb-2 text-lighttext dark:text-white">
+              <div className="p-4 bg-lightYellow dark:bg-darkBrown rounded-lg">
+                <h3 className="text-lg font-semibold mb-2 text-lighttext dark:text-darktext">
                   이번 달 통계
                 </h3>
-                <p className="text-gray-700 dark:text-gray-300">
+                <p className="text-lighttext dark:text-darktext">
                   이번 달 일기 작성 수: {
                     chartData.monthlyCount
                     ? chartData.monthlyCount.series[0].data[new Date().getMonth()]
                     : 0
                   }개
                 </p>
-                <p className="text-gray-700 dark:text-gray-300 mt-2">
+                <p className="text-lighttext dark:text-darktext mt-2">
                   가장 많이 사용한 감정: {
                     chartData.emotionDistribution?.series[0]?.name === '데이터 없음'
                     ? '없음'
