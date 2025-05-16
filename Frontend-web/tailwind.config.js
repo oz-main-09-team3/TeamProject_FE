@@ -11,7 +11,7 @@ export default {
         // 기존 배경
         lightBg: "#FFF6D8",
         darkBg: "#1D1006",
-        brown900: "#361D1C",
+        brown900: "#1B1410",
         yl100: "#FFFBEF",
 
         // 🎨 라이트 모드 색상
