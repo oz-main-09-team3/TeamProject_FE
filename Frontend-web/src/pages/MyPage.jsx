@@ -94,11 +94,14 @@ export default function MyPage() {
   };
 
   return (
-    <main className="flex items-center justify-center min-h-screen px-4 bg-lightBg dark:bg-darkdark">
-      <div className="w-full max-w-md relative pt-[100px] pb-8 flex flex-col gap-2 items-center bg-yl100 dark:bg-darktext rounded-3xl shadow-lg">
+    <main className="flex items-center justify-center min-h-screen bg-lightBg dark:bg-darkdark">
+      <div className="w-full max-w-md relative pt-[100px] pb-6 flex flex-col gap-1 items-center bg-yl100 dark:bg-darktext rounded-3xl shadow-lg">
         {/* 프로필 이미지: 카드 내부 상단 중앙 */}
         <div className="absolute -top-[92px]">
-          <div className="w-[184px] h-[184px] rounded-full overflow-hidden shadow-md">
+          <div
+            className="w-[184px] h-[184px] rounded-full overflow-hidden shadow-xl border-4"
+            style={{ borderColor: "transparent" }}
+          >
             <img
               src={userInfo?.profile || "/profile.png"}
               alt="프로필 이미지"
@@ -109,12 +112,12 @@ export default function MyPage() {
         
         {/* 사용자 이름 표시 */}
         {userInfo && (
-          <div className="text-center mb-4">
+          <div className="text-center m-2">
             <h2 className="text-xl font-bold text-lighttext dark:text-white">
               {userInfo.nickname || userInfo.username || "사용자"}
             </h2>
             {userInfo.email && (
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-lighttext/60 dark:text-darkBg/60">
                 {userInfo.email}
               </p>
             )}

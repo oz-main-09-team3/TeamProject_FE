@@ -10,6 +10,8 @@ export default function FormInput({
   min,
   max
 }) {
+  console.log("state.phone_number:", value);
+
   return (
     <div className="flex-1 text-left w-full">
       {label && (
