@@ -92,13 +92,17 @@ const FriendInviteSystem = () => {
         URL.revokeObjectURL(qrCodeUrl);
       }
     };
-  }, []); // 컴포넌트 마운트 시 한 번만 실행
+  }, []); 
 
   const addFriendByCode = async (code) => {
     try {
-      const response = await inviteFriend({ username: code });
+      const payload = {
+        invite_type: "qr",
+        invite_code: code
+      };
+      
+      const response = await inviteFriend(payload);
       alert(`${code}님을 친구로 추가했습니다.`);
-      // 필요시 친구 목록 새로고침 등의 추가 작업
     } catch (error) {
       console.error("친구 추가 실패:", error);
       if (error.response?.data?.message) {
