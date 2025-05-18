@@ -1,199 +1,106 @@
-
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
-import Modal from "../components/Modal";
 import { ChevronLeft, Pencil, Trash2, Heart } from "lucide-react";
-import { fetchDiary, deleteDiary } from "../service/diaryApi";
-import { addLike, removeLike } from "../service/likeApi"; // 좋아요 API 가져오기
 import MarkdownRenderer from "../components/MarkdownRenderer";
-
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+import useDiaryStore from "../store/diaryStore";
+import useUiStore from "../store/uiStore";
+import { getEmojiSrc } from "../utils/emojiUtils";
 
 const DiaryDetailPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { id } = useParams();
-  const [diary, setDiary] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isLikeLoading, setIsLikeLoading] = useState(false); // 좋아요 로딩 상태
-  const [error, setError] = useState(null);
+  
+  // Zustand 스토어 사용
+  const { 
+    currentDiary, 
+    isLoading, 
+    error, 
+    fetchDiary, 
+    deleteDiary, 
+    toggleLike 
+  } = useDiaryStore();
+  
+  const { openModal } = useUiStore();
 
-  const getDiaryDetail = async (diaryId) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const response = await fetchDiary(diaryId);
-      
-      console.log("Diary detail response:", response);
-      
-      const diaryData = response.data || response;
-      
-      // 좋아요 상태 확인 (is_liked 필드가 있으면 사용)
-      const isLiked = diaryData.is_liked !== undefined ? diaryData.is_liked : false;
-      
-      const formattedDiary = {
-        diary_id: diaryData.diary_id,
-        id: diaryData.diary_id,
-        content: diaryData.content || "",
-        date: new Date(diaryData.created_at).toLocaleDateString('ko-KR'),
-        emotionId: diaryData.emotion?.emotion_id || 1,
-        emotionText: diaryData.emotion?.emotion || "",
-        emotionEmoji: diaryData.emotion?.emoji || "",
-        emotionUrl: diaryData.emotion?.image_url || "",
-        userId: diaryData.user?.user_id,
-        userName: diaryData.user?.username,
-        userNickname: diaryData.user?.nickname,
-        userProfile: diaryData.user?.profile,
-        liked: isLiked, // 좋아요 상태 설정
-        likeCount: diaryData.like_count || 0,
-        visibility: diaryData.visibility,
-        images: diaryData.images || [],
-        comments: diaryData.comments || [],
-        createdAt: diaryData.created_at,
-        updatedAt: diaryData.updated_at
-      };
-      
-      console.log("Formatted diary:", formattedDiary);
-      setDiary(formattedDiary);
-    } catch (err) {
-      console.error('일기 상세 조회 실패:', err);
-      setError('일기를 불러오는데 실패했습니다.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+  // 일기 데이터 불러오기
   useEffect(() => {
-    if (id) {
-      getDiaryDetail(id);
-    } else if (location.state?.diary) {
-      const passedDiary = location.state.diary;
-      setDiary({
-        ...passedDiary,
-        diary_id: passedDiary.id || passedDiary.diary_id,
-        content: passedDiary.body || passedDiary.content,
-        date: passedDiary.createdAt ? new Date(passedDiary.createdAt).toLocaleDateString('ko-KR') : new Date().toLocaleDateString('ko-KR'),
-        emotionId: passedDiary.emotionId,
-        emotionUrl: passedDiary.emotionUrl,
-        // 좋아요 상태가 전달되었으면 사용, 아니면 기본값 false
-        liked: passedDiary.liked !== undefined ? passedDiary.liked : false,
-        likeCount: passedDiary.likeCount || 0
-      });
-      setIsLoading(false);
-    } else {
-      navigate('/main');
-    }
-  }, [id, location.state, navigate]);
+    const loadDiaryData = async () => {
+      if (id) {
+        await fetchDiary(id);
+      } else if (location.state?.diary) {
+        // 경로 파라미터에 ID가 없지만 location state에 diary 객체가 있는 경우
+        const diaryId = location.state.diary.id || location.state.diary.diary_id;
+        if (diaryId) {
+          await fetchDiary(diaryId);
+        } else {
+          // diary 객체는 있지만 ID가 없는 경우
+          navigate('/main');
+        }
+      } else {
+        // 어떤 일기 정보도 없는 경우
+        navigate('/main');
+      }
+    };
+    
+    loadDiaryData();
+  }, [id, location.state, fetchDiary, navigate]);
 
   const handleGoBack = () => {
     navigate(-1);
   };
 
   const handleEdit = () => {
-    setIsEditModalOpen(true);
-  };
-
-  const handleConfirmEdit = () => {
-    setIsEditModalOpen(false);
-    const diaryId = diary.diary_id || diary.id;
-    navigate(`/diary/edit/${diaryId}`, { 
-      state: { diary: diary } 
+    if (!currentDiary) return;
+    
+    openModal('confirm', {
+      title: '수정하시겠습니까?',
+      content: '일기를 수정하시겠습니까?',
+      onConfirm: () => {
+        const diaryId = currentDiary.diary_id || currentDiary.id;
+        navigate(`/diary/edit/${diaryId}`, { 
+          state: { diary: currentDiary } 
+        });
+      }
     });
   };
 
-  const handleCancelEdit = () => {
-    setIsEditModalOpen(false);
+  const handleDelete = () => {
+    if (!currentDiary) return;
+    
+    openModal('error', {
+      title: '일기를 삭제하시겠습니까?',
+      content: '삭제된 일기는 복구할 수 없습니다.',
+      onConfirm: async () => {
+        try {
+          const diaryId = currentDiary.diary_id || currentDiary.id;
+          await deleteDiary(diaryId);
+          
+          openModal('success', {
+            title: '삭제 완료',
+            content: '일기가 삭제되었습니다.',
+            onConfirm: () => navigate('/main')
+          });
+        } catch (err) {
+          openModal('error', {
+            title: '삭제 실패',
+            content: '일기 삭제에 실패했습니다: ' + err.message,
+            onConfirm: () => null
+          });
+        }
+      }
+    });
   };
 
-  const handleDelete = async () => {
-    setIsDeleting(true);
-    try {
-      const diaryId = diary.diary_id || diary.id;
-      await deleteDiary(diaryId);
-      setIsModalOpen(false);
-      setIsSuccessModalOpen(true);
-    } catch (err) {
-      console.error('일기 삭제 실패:', err);
-      alert("삭제에 실패했습니다.");
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const handleCloseSuccessModal = () => {
-    setIsSuccessModalOpen(false);
-    navigate('/main');
-  };
-
-  // 좋아요 기능 처리
-  const handleDiaryLike = async (e) => {
+  // 좋아요 핸들러
+  const handleDiaryLike = (e) => {
     e.preventDefault();
     e.stopPropagation();
     
-    if (isLikeLoading || !diary) return;
+    if (!currentDiary) return;
     
-    try {
-      setIsLikeLoading(true);
-      const diaryId = diary.diary_id || diary.id;
-      
-      // 좋아요 상태에 따라 API 호출
-      if (!diary.liked) {
-        // 좋아요 추가
-        await addLike(diaryId);
-        // 좋아요 상태 업데이트
-        setDiary((prev) => ({
-          ...prev,
-          liked: true,
-          likeCount: (prev.likeCount || 0) + 1
-        }));
-      } else {
-        // 좋아요 취소
-        await removeLike(diaryId);
-        // 좋아요 상태 업데이트
-        setDiary((prev) => ({
-          ...prev,
-          liked: false,
-          likeCount: Math.max((prev.likeCount || 0) - 1, 0) // 음수가 되지 않도록
-        }));
-      }
-    } catch (err) {
-      console.error('좋아요 처리 실패:', err);
-      alert("좋아요 처리 중 오류가 발생했습니다.");
-    } finally {
-      setIsLikeLoading(false);
-    }
-  };
-
-  const getEmojiSrc = (diary) => {
-    console.log('getEmojiSrc called with:', {
-      emotionId: diary.emotionId,
-      emotionUrl: diary.emotionId.image_url
-    });
-    
-    // emotionImageUrl이 있으면 우선 사용
-    if (diary.emotionId.image_url) {
-      // 상대 경로인 경우 BACKEND_URL과 결합
-      const imageUrl = `${BACKEND_URL}${diary.emotionId.image_url}`;
-      console.log('Using emotionImageUrl:', imageUrl);
-      return imageUrl;
-    }
-    
-    // emotionId로 경로 생성
-    const numericId = Number(diary.emotionId);
-    if (!isNaN(numericId) && numericId > 0) {
-      const emojiPath = `${BACKEND_URL}/static/emotions/${numericId}.png`;
-      console.log('Generated path from emotionId:', emojiPath);
-      return emojiPath;
-    }
-    
-    // 기본 이미지
-    const defaultPath = `${BACKEND_URL}/static/emotions/1.png`;
-    console.log('Using default path:', defaultPath);
-    return defaultPath;
+    const diaryId = currentDiary.diary_id || currentDiary.id;
+    toggleLike(diaryId);
   };
 
   if (isLoading) {
@@ -216,7 +123,7 @@ const DiaryDetailPage = () => {
     );
   }
 
-  if (!diary) {
+  if (!currentDiary) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-2xl text-gray-500">
@@ -242,15 +149,12 @@ const DiaryDetailPage = () => {
             <div className="flex gap-2">
               <button
                 onClick={handleDiaryLike}
-                className={`p-3 ${
-                  isLikeLoading ? 'opacity-70' : ''
-                } bg-lightYellow dark:bg-darkCopper dark:text-darktext rounded-full w-10 h-10 flex items-center justify-center hover:bg-lightYellow/80 dark:hover:bg-darkCopper/80 transition-colors`}
-                title={diary.liked ? "좋아요 취소" : "좋아요"}
-                disabled={isLikeLoading}
+                className="p-3 bg-lightYellow dark:bg-darkCopper dark:text-darktext rounded-full w-10 h-10 flex items-center justify-center hover:bg-lightYellow/80 dark:hover:bg-darkCopper/80 transition-colors"
+                title={currentDiary.liked ? "좋아요 취소" : "좋아요"}
               >
                 <Heart
                   className={`w-5 h-5 ${
-                    diary.liked
+                    currentDiary.liked
                       ? "fill-red-500 text-red-500"
                       : "text-lighttext dark:text-darktext"
                   }`}
@@ -264,7 +168,7 @@ const DiaryDetailPage = () => {
                 <Pencil className="w-5 h-5" />
               </button>
               <button
-                onClick={() => setIsModalOpen(true)}
+                onClick={handleDelete}
                 className="p-3 bg-red-500 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-red-600 transition-colors"
                 title="삭제"
               >
@@ -279,35 +183,32 @@ const DiaryDetailPage = () => {
                 <div className="w-28 h-28 rounded-full flex justify-center items-center overflow-hidden relative">
                   <div className="absolute inset-0 rounded-full"></div>
                   <img
-                    src={getEmojiSrc(diary)}
+                    src={getEmojiSrc(currentDiary)}
                     alt="현재 기분"
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       console.error('Emoji image failed to load:', e.target.src);
-                      e.target.src = `${BACKEND_URL}/static/emotions/1.png`;
-                    }}
-                    onLoad={(e) => {
-                      console.log('Emoji image loaded successfully:', e.target.src);
+                      e.target.src = `${import.meta.env.VITE_BACKEND_URL}/static/emotions/1.png`;
                     }}
                   />
                 </div>
               </div>
 
               <div className="text-2xl font-bold mb-4 dark:text-darkBg">
-                {diary.date}
+                {currentDiary.date}
               </div>
 
               <div className="w-full rounded-lg border border-lightGold dark:border-darkCopper shadow-sm p-5 dark:text-darkBg bg-white min-h-[320px]">
                 <div className="mt-4">
                   <MarkdownRenderer 
-                    content={diary.content} 
+                    content={currentDiary.content} 
                     className="text-gray-700 dark:text-gray-300"
                   />
                   
                   {/* 이미지 표시 */}
-                  {diary.images && diary.images.length > 0 && (
+                  {currentDiary.images && currentDiary.images.length > 0 && (
                     <div className="mt-6 space-y-4">
-                      {diary.images.map((image) => (
+                      {currentDiary.images.map((image) => (
                         <img 
                           key={image.diary_image_id}
                           src={image.image_url} 
@@ -321,10 +222,10 @@ const DiaryDetailPage = () => {
                   {/* 작성자 정보 */}
                   <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
                     <div className="flex items-center gap-3">
-                      {diary.userProfile && (
+                      {currentDiary.userProfile && (
                         <img 
-                          src={diary.userProfile} 
-                          alt={diary.userNickname} 
+                          src={currentDiary.userProfile} 
+                          alt={currentDiary.userNickname} 
                           className="w-10 h-10 rounded-full"
                           onError={(e) => {
                             e.target.style.display = 'none';
@@ -332,25 +233,25 @@ const DiaryDetailPage = () => {
                         />
                       )}
                       <div>
-                        <div className="font-medium">{diary.userNickname}</div>
-                        <div className="text-sm text-gray-500">@{diary.userName}</div>
+                        <div className="font-medium">{currentDiary.userNickname}</div>
+                        <div className="text-sm text-gray-500">@{currentDiary.userName}</div>
                       </div>
                     </div>
                   </div>
                   
                   {/* 좋아요 수 표시 */}
-                  {diary.likeCount > 0 && (
+                  {currentDiary.likeCount > 0 && (
                     <div className="mt-4 flex items-center gap-2 text-sm text-gray-600">
-                      <Heart className={`w-4 h-4 ${diary.liked ? "fill-red-500 text-red-500" : ""}`} />
-                      <span>{diary.likeCount}명이 좋아합니다</span>
+                      <Heart className={`w-4 h-4 ${currentDiary.liked ? "fill-red-500 text-red-500" : ""}`} />
+                      <span>{currentDiary.likeCount}명이 좋아합니다</span>
                     </div>
                   )}
                   
-                  {/* 댓글 표시 (선택사항) */}
-                  {diary.comments && diary.comments.length > 0 && (
+                  {/* 댓글 표시 */}
+                  {currentDiary.comments && currentDiary.comments.length > 0 && (
                     <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-                      <h3 className="font-medium mb-3">댓글 {diary.comments.length}개</h3>
-                      {diary.comments.map((comment) => (
+                      <h3 className="font-medium mb-3">댓글 {currentDiary.comments.length}개</h3>
+                      {currentDiary.comments.map((comment) => (
                         <div key={comment.comment_id} className="mb-3">
                           <div className="text-sm font-medium">사용자 {comment.user_id}</div>
                           <div className="text-gray-700">{comment.content}</div>
@@ -367,38 +268,6 @@ const DiaryDetailPage = () => {
           </div>
         </div>
       </div>
-
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title="일기를 삭제하시겠습니까?"
-        content="삭제된 일기는 복구할 수 없습니다."
-        confirmText="삭제"
-        cancelText="취소"
-        onConfirm={handleDelete}
-        onCancel={() => setIsModalOpen(false)}
-        isDanger={true}
-        loading={isDeleting}
-      />
-      <Modal
-        isOpen={isSuccessModalOpen}
-        onClose={handleCloseSuccessModal}
-        title="삭제 완료"
-        content="일기가 삭제되었습니다."
-        confirmText="확인"
-        onConfirm={handleCloseSuccessModal}
-        type="success"
-      />
-      <Modal
-        isOpen={isEditModalOpen}
-        onClose={handleCancelEdit}
-        title="수정하시겠습니까?"
-        content="일기를 수정하시겠습니까?"
-        confirmText="수정"
-        cancelText="취소"
-        onConfirm={handleConfirmEdit}
-        onCancel={handleCancelEdit}
-      />
     </div>
   );
 };

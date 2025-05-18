@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useState } from "react";
+import { useEffect } from "react";
 import MainPage from "./pages/MainPage";
 import MyPage from "./pages/MyPage";
 import NotificationsPage from "./pages/NotificationsPage";
@@ -18,24 +18,21 @@ import DiaryEditPage from "./pages/DiaryEditPage";
 import DiaryDetailPage from "./pages/DiaryDetailPage";
 import FriendCalendarPage from "./pages/FriendCalendarPage";
 import Layout from './components/Layout';
-import { HelmetProvider, Helmet } from 'react-helmet-async';
+import Modal from './components/Modal';
+import { HelmetProvider } from 'react-helmet-async';
+import useUiStore from './store/uiStore';
+import useAuthStore from './store/authStore';
 
 function AppLayoutWithNavbar() {
-  const [showFriends, setShowFriends] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
+  // Zustand 스토어 사용
+  const { 
+    isFriendsOpen, 
+    isNotificationsOpen,
+  } = useUiStore();
   
   return (
     <div className="relative min-h-screen">
-      <NavigationBar
-        onFriendsClick={() => {
-          setShowFriends((prev) => !prev);
-          setShowNotifications(false);
-        }}
-        onNotificationsClick={() => {
-          setShowNotifications((prev) => !prev);
-          setShowFriends(false);
-        }}
-      />
+      <NavigationBar />
 
       <Routes>
         <Route path="/main" element={<MainPage />} />
@@ -55,29 +52,58 @@ function AppLayoutWithNavbar() {
       </Routes>
 
       {/* 사이드바 */}
-      {showFriends && (
+      {isFriendsOpen && (
         <ListWrapper>
           <h2 className="text-2xl font-bold mb-6">친구 목록</h2>
-          <FriendList onFriendClick={() => setShowFriends(false)} />
+          <FriendList/>
         </ListWrapper>
       )}
 
-      {showNotifications && (
+      {isNotificationsOpen && (
         <ListWrapper>
           <h2 className="text-2xl font-bold mb-6">알림</h2>
           <NotificationsPage />
         </ListWrapper>
       )}
+      
+      {/* 모달 컴포넌트들 */}
+      <Modal type="confirm" />
+      <Modal type="success" />
+      <Modal type="error" />
+      <Modal type="warning" />
+      <Modal type="info" />
     </div>
   );
 }
 
 function App() {
+  // Zustand 스토어 사용
+  const { isDarkMode } = useUiStore();
+  const { isAuthenticated, fetchUserInfo } = useAuthStore();
+  
+  // 앱 시작 시 사용자 인증 상태 체크
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      fetchUserInfo();
+    }
+  }, [fetchUserInfo]);
+  
+  // 다크 모드 적용
+  useEffect(() => {
+    const root = document.documentElement;
+    if (isDarkMode) {
+      root.classList.add("dark");
+    } else {
+      root.classList.remove("dark");
+    }
+  }, [isDarkMode]);
+  
   return (
     <HelmetProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<LoginPage />} />
+          <Route path="/" element={ <LoginPage />} />
           <Route path="/*" element={
             <Layout>
               <AppLayoutWithNavbar />
