@@ -113,7 +113,7 @@ export default function MyPage() {
         {/* 사용자 이름 표시 */}
         {userInfo && (
           <div className="text-center m-2">
-            <h2 className="text-xl font-bold text-lighttext dark:text-white">
+            <h2 className="text-xl font-bold text-lighttext dark:text-darkBg">
               {userInfo.nickname || userInfo.username || "사용자"}
             </h2>
             {userInfo.email && (

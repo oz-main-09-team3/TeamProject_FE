@@ -271,7 +271,7 @@ export default function EditUserInfo() {
 
           <div className="absolute -top-[92px]">
             <div
-              className="w-[184px] h-[184px] rounded-full overflow-hidden shadow-xl border-4"
+              className="w-[184px] h-[184px] rounded-full overflow-hidden shadow-xl border-4 group relative"
               style={{ borderColor: "transparent" }}
             >
               <img
@@ -280,12 +280,12 @@ export default function EditUserInfo() {
                 className="w-full h-full object-cover"
                 onError={e => { e.target.src = "/profile.png"; }}
               />
-            </div>
-            <div 
-              className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-              onClick={handleImageClick}
-            >
-              <Camera className="w-8 h-8 text-white" />
+              <div 
+                className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                onClick={handleImageClick}
+              >
+                <Camera className="w-8 h-8 text-white" />
+              </div>
             </div>
             <input
               type="file"

@@ -17,6 +17,7 @@ const FriendInviteSystem = () => {
   const [inputCode, setInputCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [userLoading, setUserLoading] = useState(true);
+  const [modalContent, setModalContent] = useState({ title: "", content: "", type: "info" });
   
   const navigate = useNavigate();
 
@@ -101,28 +102,48 @@ const FriendInviteSystem = () => {
         invite_code: code
       };
       
+      console.log("친구 추가 요청:", payload);
       const response = await inviteFriend(payload);
-      alert(`${code}님을 친구로 추가했습니다.`);
+      console.log("친구 추가 응답:", response);
+      
+      setModalContent({
+        title: "친구 추가 성공",
+        content: `${code}님을 친구로 추가했습니다.`,
+        type: "success"
+      });
+      setIsModalOpen(true);
     } catch (error) {
-      console.error("친구 추가 실패:", error);
-      if (error.response?.data?.message) {
-        alert(error.response.data.message);
-      } else {
-        alert("친구 추가에 실패했습니다.");
-      }
+      console.error("친구 추가 실패 상세 정보:", {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message,
+        error: error
+      });
+      
+      setModalContent({
+        title: "친구 추가 실패",
+        content: error.response?.data?.message || "친구 추가에 실패했습니다.",
+        type: "error"
+      });
+      setIsModalOpen(true);
     }
   };
 
   const handleConfirm = async () => {
-    await addFriendByCode(pendingCode);
-    setIsModalOpen(false);
-    setPendingCode("");
-    setInputCode("");
+    if (modalContent.type === "info") {
+      await addFriendByCode(pendingCode);
+    } else {
+      setIsModalOpen(false);
+      setPendingCode("");
+      setInputCode("");
+    }
   };
 
   const handleCancel = () => {
     setIsModalOpen(false);
     setPendingCode("");
+    setInputCode("");
   };
 
   const simulateScan = () => {
@@ -131,6 +152,34 @@ const FriendInviteSystem = () => {
       setPendingCode("scanned_code_123");
       setIsModalOpen(true);
     }, 500);
+  };
+
+  const handleAddFriend = () => {
+    if (!inputCode.trim()) {
+      setModalContent({
+        title: "입력 오류",
+        content: "친구 코드를 다시 입력해주세요.",
+        type: "warning"
+      });
+      setIsModalOpen(true);
+      return;
+    }
+    if (inputCode.trim().length < 3) {
+      setModalContent({
+        title: "입력 오류",
+        content: "잘못된 코드입니다.",
+        type: "error"
+      });
+      setIsModalOpen(true);
+      return;
+    }
+    setPendingCode(inputCode);
+    setModalContent({
+      title: "친구 추가",
+      content: `${inputCode}님을 친구로 추가하시겠습니까?`,
+      type: "info"
+    });
+    setIsModalOpen(true);
   };
 
   return (
@@ -212,12 +261,7 @@ const FriendInviteSystem = () => {
             <Button
               type="button"
               variant="secondary"
-              onClick={() => {
-                if (inputCode.trim()) {
-                  setPendingCode(inputCode);
-                  setIsModalOpen(true);
-                }
-              }}
+              onClick={handleAddFriend}
               disabled={!inputCode.trim()}
               className="w-full"
             >
@@ -260,19 +304,17 @@ const FriendInviteSystem = () => {
       )}
 
       {/* 확인 모달 */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center">
-          <Modal
-            type="info"
-            title="친구 추가"
-            message={`${pendingCode}님을 친구로 추가하시겠습니까?`}
-            confirmText="추가하기"
-            cancelText="취소"
-            onConfirm={handleConfirm}
-            onCancel={handleCancel}
-          />
-        </div>
-      )}
+      <Modal
+        isOpen={isModalOpen}
+        type={modalContent.type}
+        title={modalContent.title}
+        content={modalContent.content}
+        confirmText={modalContent.type === "info" ? "추가하기" : "확인"}
+        cancelText={modalContent.type === "info" ? "취소" : undefined}
+        onConfirm={handleConfirm}
+        onCancel={handleCancel}
+        onClose={handleCancel}
+      />
     </main>
   );
 };
