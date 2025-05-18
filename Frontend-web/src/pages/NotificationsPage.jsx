@@ -1,81 +1,109 @@
-import { useEffect, useState } from "react";
-import {
-  fetchNotifications,
-  updateNotification,
-  deleteNotification,
-} from "../service/notificationApi";
+import { useEffect } from "react";
 import RowCard from "../components/RowCard";
 import testimage from "../assets/profile.png";
 import emptyImage from "../assets/empty.png";
+import useNotificationStore from "../store/notificationStore";
+import useUiStore from "../store/uiStore";
 
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState([]);
+  // Zustand 스토어 사용
+  const { 
+    notifications, 
+    isLoading, 
+    error, 
+    fetchNotifications, 
+    updateNotification, 
+    deleteNotification, 
+    markAsRead 
+  } = useNotificationStore();
+  
+  const { openModal } = useUiStore();
 
+  // 컴포넌트 마운트 시 알림 목록 가져오기
   useEffect(() => {
-    async function load() {
-      console.log(" 알림 불러오는 중...");
-      try {
-        const res = await fetchNotifications(); // API 호출
-        console.log("알림 응답:", res.data);
-
-        const parsed = res.data.map((item) => ({
-          id: item.notification.notification_id,
-          title: item.notification.notificationtype,
-          detail: item.notification.notificationmessage,
-          isRead: false,
-        }));
-
-        setNotifications(parsed);
-      } catch (err) {
-        console.error("❌ 알림 불러오기 실패:", err);
-        console.error("에러 응답:", err.response?.data || err.message);
-      }
-    }
-
-    load(); //함수 실행
-  }, []);
+    fetchNotifications();
+  }, [fetchNotifications]);
 
   const handleNotificationClick = (id) => {
-    setNotifications((prev) =>
-      prev.map((noti) =>
-        noti.id === id ? { ...noti, isRead: true } : noti
-      )
-    );
+    markAsRead(id);
   };
 
   //알림 수정
   const handleEdit = async (id) => {
-    try {
-      await updateNotification(id, {
-        notificationtype: "수정됨",
-        notificationmessage: "수정된 알림 메시지입니다.",
-      });
-      alert("수정 완료");
-
-      //목록 다시 불러오기
-      const res = await fetchNotifications();
-      const updated = res.data.map((item) => ({
-        id: item.notification.notification_id,
-        title: item.notification.notificationtype,
-        detail: item.notification.notificationmessage,
-        isRead: false,
-      }));
-      setNotifications(updated);
-    } catch (err) {
-      console.error("❌ 수정 실패:", err);
-    }
+    openModal('confirm', {
+      title: '알림 수정',
+      content: '알림을 수정하시겠습니까?',
+      onConfirm: async () => {
+        try {
+          await updateNotification(id, {
+            notificationtype: "수정됨",
+            notificationmessage: "수정된 알림 메시지입니다.",
+          });
+          
+          openModal('success', {
+            title: '알림 수정 완료',
+            content: '알림이 수정되었습니다.',
+            onConfirm: () => null
+          });
+        } catch (err) {
+          openModal('error', {
+            title: '알림 수정 실패',
+            content: err.message || '알림 수정 중 오류가 발생했습니다.',
+            onConfirm: () => null
+          });
+        }
+      }
+    });
   };
 
   //알림 삭제
   const handleDelete = async (id) => {
-    try {
-      await deleteNotification(id);
-      alert("삭제 완료");
-      setNotifications((prev) => prev.filter((noti) => noti.id !== id));
-    } catch (err) {
-      console.error("❌ 삭제 실패:", err);
-    }
+    openModal('confirm', {
+      title: '알림 삭제',
+      content: '알림을 삭제하시겠습니까?',
+      onConfirm: async () => {
+        try {
+          await deleteNotification(id);
+          
+          openModal('success', {
+            title: '알림 삭제 완료',
+            content: '알림이 삭제되었습니다.',
+            onConfirm: () => null
+          });
+        } catch (err) {
+          openModal('error', {
+            title: '알림 삭제 실패',
+            content: err.message || '알림 삭제 중 오류가 발생했습니다.',
+            onConfirm: () => null
+          });
+        }
+      }
+    });
   };
+
+  // 로딩 중 표시
+  if (isLoading) {
+    return (
+      <div className="notifications-panel flex justify-center items-center min-h-[200px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-lightGold"></div>
+      </div>
+    );
+  }
+
+  // 에러 표시
+  if (error) {
+    return (
+      <div className="notifications-panel flex flex-col w-full items-center justify-center min-h-[200px]">
+        <p className="text-red-500">{error}</p>
+        <button 
+          className="mt-2 px-4 py-2 bg-lightOrange dark:bg-darkOrange rounded-md text-white"
+          onClick={() => fetchNotifications()}
+        >
+          다시 시도
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="notifications-panel flex flex-col gap-4 w-full">
