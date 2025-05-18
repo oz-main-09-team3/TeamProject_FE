@@ -4,7 +4,8 @@ import MonthlyCalendar from "../components/calendar/MonthlyCalendar";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Heart } from "lucide-react";
 import { fetchDiaries, fetchEmotions } from "../service/diaryApi";
-import { addLike, removeLike } from "../service/likeApi"; // 좋아요 API 가져오기
+import { addLike, removeLike } from "../service/likeApi";
+import axios from "axios"; 
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -72,7 +73,6 @@ function MainPage() {
           emotionValue = diary.id;
         }
 
-        // 서버에서 liked 상태를 받는 경우 그대로 사용, 아니면 기본값 false
         const isLiked = diary.is_liked || false;
 
         return {
@@ -99,10 +99,16 @@ function MainPage() {
   };
 
   useEffect(() => {
+  console.log(diaryList)
+  },[diaryList])
+
+  useEffect(() => {
     Promise.all([
       getEmotions(),
       getDiaries(),
     ]);
+    const response = fetchDiaries();
+    console.log(response)
   }, []);
 
   useEffect(() => {
@@ -135,22 +141,18 @@ function MainPage() {
       const currentDiary = diaryList.find((diary) => diary.id === id);
       const newLikedStatus = !currentDiary.liked;
 
-      // 좋아요 상태에 따라 API 호출
       if (newLikedStatus) {
-        // 좋아요 추가
         await addLike(id);
       } else {
-        // 좋아요 취소
         await removeLike(id);
       }
 
-      // 상태 업데이트
       setDiaryList((prevList) =>
         prevList.map((diary) =>
           diary.id === id ? { ...diary, liked: newLikedStatus } : diary
         )
       );
-      
+
       setFilteredDiaryList((prevList) =>
         prevList.map((diary) =>
           diary.id === id ? { ...diary, liked: newLikedStatus } : diary
@@ -177,16 +179,16 @@ function MainPage() {
 
   const formatDate = (dateString) => {
     if (!dateString) return "날짜 없음";
-    
+
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) return dateString; 
-    
+    if (isNaN(date.getTime())) return dateString;
+
     const year = date.getFullYear();
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const day = date.getDate().toString().padStart(2, '0');
     const hours = date.getHours().toString().padStart(2, '0');
     const minutes = date.getMinutes().toString().padStart(2, '0');
-    
+
     return `${year}년 ${month}월 ${day}일 ${hours}:${minutes}`;
   };
 
@@ -208,9 +210,9 @@ function MainPage() {
 
   const truncateContent = (content, maxLength = 40) => {
     if (!content) return "내용 없음";
-    
+
     const firstLine = content.split('\n')[0].trim();
-    
+
     if (firstLine.length <= maxLength) return firstLine;
     return firstLine.substring(0, maxLength) + "...";
   };
@@ -243,7 +245,7 @@ function MainPage() {
                 </p>
               </div>
             )}
-            
+
             {filteredDiaryList.length === 0 ? (
               <div className="text-center text-gray-500 py-8">
                 {selectedDate ? "선택한 날짜에 작성된 일기가 없습니다." : "아직 작성된 일기가 없습니다."}
