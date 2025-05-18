@@ -17,9 +17,9 @@ const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 // 리다이렉트 URI 설정
 const REDIRECT_URI = {
-  kakao: `${BASE_URL}/auth/callback/kakao`,
-  naver: `${BASE_URL}/auth/callback/naver`,
-  google: `${BASE_URL}/auth/callback/google`
+  kakao: `${window.location.origin}/auth/callback/kakao`,
+  naver: `${window.location.origin}/auth/callback/naver`,
+  google: `${window.location.origin}/auth/callback/google`
 };
 // 미디어 쿼리 훅
 const useMediaQuery = (query) => {
