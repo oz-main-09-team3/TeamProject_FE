@@ -140,7 +140,12 @@ const {
                           />
                         </button>
                       }
-                      onClick={() => navigate("/diary", { state: { diary } })}
+                      onClick={() => navigate("/friend-diary", { 
+                        state: { 
+                          friendId: friendId,
+                          diaryId: diary.id 
+                        } 
+                      })}
                     />
                   </div>
                 );

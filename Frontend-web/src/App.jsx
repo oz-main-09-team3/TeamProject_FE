@@ -50,6 +50,7 @@ function AppLayoutWithNavbar() {
         <Route path="/diary/new" element={<DiaryEditor />} />
         <Route path="/friend-diary" element={<FriendDiaryView />} />
         <Route path="/friend-calendar/:friendId" element={<FriendCalendarPage />} />
+        <Route path="/friend-diary/:diaryId" element={<FriendDiaryView />} />
         <Route path="*" element={<Navigate to="/main" />} />
       </Routes>
 

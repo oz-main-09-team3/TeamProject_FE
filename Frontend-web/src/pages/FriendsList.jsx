@@ -12,26 +12,25 @@ import { getFriendsList } from "../service/friendApi";
  * API 연동된 친구 목록 표시 및 검색 기능 제공
  */
 export default function FriendsList({ onFriendClick }) {
-  const [friends, setFriends] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  
+  const [friends, setFriends] = useState([]); // 친구 전체 목록 상태
+  const [isLoading, setIsLoading] = useState(true); // 로딩 상태
+  const [error, setError] = useState(null); // 에러 상태
+
   // 검색 기능을 위한 커스텀 훅 사용
   const { searchTerm, setSearchTerm, filteredItems: filteredFriends } = useSearch(friends);
   const navigate = useNavigate();
 
-  // 컴포넌트 마운트 시 친구 목록 데이터 가져오기
+  //컴포넌트 마운트 시 친구 목록 API 호출
   useEffect(() => {
     const fetchFriends = async () => {
       try {
         setIsLoading(true);
         const response = await getFriendsList();
-        // API 응답에서 친구 목록 데이터 추출
-        // 응답 형식에 따라 적절히 수정 필요
+        console.log("친구 API 응답:", response);
         const friendsData = response.data;
         setFriends(friendsData);
       } catch (err) {
-        console.error("친구 목록을 불러오는데 실패했습니다:", err);
+        console.error("❌ 친구 목록을 불러오는데 실패했습니다:", err);
         setError("친구 목록을 불러오는데 실패했습니다.");
       } finally {
         setIsLoading(false);
@@ -41,14 +40,13 @@ export default function FriendsList({ onFriendClick }) {
     fetchFriends();
   }, []);
 
-  // 친구 클릭 핸들러
+  // 친구 클릭 시 캘린더 페이지로 이동
   const handleFriendClick = (friend) => {
     if (onFriendClick) onFriendClick();
-    // 친구의 캘린더 페이지로 이동
     navigate(`/friend-calendar/${friend.id}`);
   };
 
-  // 로딩 중 상태 표시
+  //로딩 중 표시
   if (isLoading) {
     return (
       <div className="friends-panel flex flex-col w-full items-center justify-center min-h-[200px]">
@@ -57,7 +55,7 @@ export default function FriendsList({ onFriendClick }) {
     );
   }
 
-  // 에러 상태 표시
+  // 에러 표시
   if (error) {
     return (
       <div className="friends-panel flex flex-col w-full items-center justify-center min-h-[200px]">
@@ -74,7 +72,7 @@ export default function FriendsList({ onFriendClick }) {
 
   return (
     <div className="friends-panel flex flex-col w-full text-lighttext dark:text-darktext text-xl">
-      {/* 검색창 컴포넌트 */}
+      {/* 🔍 검색창 */}
       <div className="flex items-center gap-2 mb-4 px-4 py-1 bg-white dark:bg-darkBrown rounded-full shadow focus-within:ring-2 focus-within:ring-lightOrange dark:focus-within:ring-darkOrange transition-all text-2xl">
         <Search size={16} className="text-lighttext dark:text-darktext" />
         <input
@@ -87,7 +85,7 @@ export default function FriendsList({ onFriendClick }) {
         />
       </div>
 
-      {/* 친구 리스트 컴포넌트 */}
+      {/* 친구 리스트 */}
       <div className="flex flex-col gap-2 P-1 flex-1 justify-center items-center min-h-[200px]">
         {filteredFriends.length > 0 ? (
           // 검색 결과가 있을 경우 친구 목록 표시
@@ -106,7 +104,7 @@ export default function FriendsList({ onFriendClick }) {
             />
           ))
         ) : (
-          // 검색 결과가 없을 경우 빈 상태 표시
+          // ❌ 검색 결과 없을 때
           <div className="flex flex-col items-center justify-center text-center">
             <img
               src={emptyImage}

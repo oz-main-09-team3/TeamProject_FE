@@ -1,52 +1,67 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import testimage from "../assets/profile.png";
 import useComments from "../hooks/useComments";
 import { formatDate } from "../utils/dateUtils";
 import Comment from "../components/diary/Comment";
-import Reply from "../components/diary/Reply";
-import Modal from "../components/Modal";
-import { ChevronLeft, Reply as ReplyIcon, Send } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { ChevronLeft, Send } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
 
-/**
- * 친구 일기 보기 페이지 컴포넌트
- * @returns {JSX.Element} 친구 일기 보기 페이지
- */
 const FriendDiaryView = () => {
-  //hook을 쓰면 함수를 굳이 2번 반복해서 쓸 필요가 없습니다.
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  //친구 아이디와 다이어리 아이디를 location.state로부터 받는 코드임
+  const friendId = location.state?.friendId;
+  const diaryId = location.state?.diaryId;
+
   const {
     fetchCommentData,
     comments,
     newComment,
     setNewComment,
     handleSubmitComment,
-  } = useComments();
+  } = useComments(friendId, diaryId); //친구 다이어리용 API 연동
+
   const [likedComments, setLikedComments] = useState({});
-  const navigate = useNavigate();
+
   const handleGoBack = () => {
     navigate(-1);
   };
-  //좋아요 등록은 api 통신을 하는거지만, ui도 바로 업데이트해줘야하기때문에 state로 따로 관리하는것
+
   const changeLikeButtonColor = (commentId) => {
     setLikedComments((prev) => ({
       ...prev,
       [commentId]: !prev[commentId],
     }));
   };
-  //다이어리 id를 받아오는 로직을 추가해야합니다. (목록->상세보기로 넘어갈 때 id를 넘겨주고, params로 받아옴)
-  const diaryId = "1234"; //임시
 
   useEffect(() => {
-    //마운트되었을 때 fetchCommentData 실행
-    //hook을 사용하고있기 때문에 원래는 어떤페이지인지 구분할 수 있는 값을 인자로 넣어줘서 hook안에서 조건문 처리로 각각 페이지에 맞는 api 를 호출하도록 로직을 짜는것이 좋음
-    fetchCommentData();
+    if (!friendId || !diaryId) {
+      console.error("❌ 친구 ID 또는 다이어리 ID 없음");
+      return;
+    }
+    console.log("댓글 불러오기 요청 시도");
+    fetchCommentData()
+      .then(() => console.log("댓글 불러오기 완료"))
+      .catch((err) => console.error("❌ 댓글 불러오기 실패:", err));
   }, [fetchCommentData]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    console.log("댓글 등록 시도:", newComment);
+    try {
+      await handleSubmitComment(e);
+      console.log("댓글 등록 완료");
+    } catch (err) {
+      console.error("❌ 댓글 등록 실패:", err);
+    }
+  };
 
   return (
     <div className="flex items-center justify-center min-h-screen px-4">
       <div className="w-full max-w-6xl mx-auto shadow-xl p-10 font-sans rounded-2xl border-4 border-lightGold dark:border-darkOrange bg-yl100 dark:bg-darktext text-lighttext dark:text-darkbg transition-colors duration-300">
         <div className="flex flex-col gap-6">
+          {/* ← 뒤로가기 버튼 */}
           <div className="flex justify-between items-center">
             <div className="flex gap-2">
               <button
@@ -59,10 +74,10 @@ const FriendDiaryView = () => {
           </div>
 
           <div className="flex flex-col gap-6 md:flex-row md:gap-8">
+            {/* 일기 내용 (테스트용) */}
             <div className="md:w-2/3 w-full flex flex-col">
               <div className="flex justify-center mb-8">
                 <div className="w-28 h-28 rounded-full flex justify-center items-center overflow-hidden relative">
-                  <div className="absolute inset-0 rounded-full"></div>
                   <img
                     src={testimage}
                     alt="현재 기분"
@@ -80,15 +95,12 @@ const FriendDiaryView = () => {
               </div>
             </div>
 
+            {/* 댓글 영역 */}
             <div className="md:w-1/3 w-full flex flex-col gap-4 border-t md:border-t-0 md:border-l dark:text- border-lightGold dark:border-darkCopper pt-6 md:pt-0 md:pl-5 bg-yl100 dark:bg-darktext">
               <h3 className="text-lg font-medium dark:text-darkBg">댓글</h3>
 
-              {/* 댓글 입력 폼*/}
-
-              <form
-                onSubmit={(e) => handleSubmitComment(e, diaryId)}
-                className="mb-4"
-              >
+              {/* 댓글 입력 */}
+              <form onSubmit={handleSubmit} className="mb-4">
                 <div className="flex gap-2">
                   <input
                     type="text"
@@ -107,6 +119,7 @@ const FriendDiaryView = () => {
                 </div>
               </form>
 
+              {/* 댓글 목록 */}
               <div className="overflow-y-auto flex-grow">
                 {comments.map((comment) => (
                   <Comment
@@ -127,4 +140,3 @@ const FriendDiaryView = () => {
 };
 
 export default FriendDiaryView;
-
