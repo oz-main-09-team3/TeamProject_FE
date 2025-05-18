@@ -44,8 +44,8 @@ export default function FriendsList({ onFriendClick }) {
   // 친구 클릭 핸들러
   const handleFriendClick = (friend) => {
     if (onFriendClick) onFriendClick();
-    // 친구 ID를 사용하여 상세 페이지로 이동
-    navigate(`/friend-diary/${friend.id}`);
+    // 친구의 캘린더 페이지로 이동
+    navigate(`/friend-calendar/${friend.id}`);
   };
 
   // 로딩 중 상태 표시
