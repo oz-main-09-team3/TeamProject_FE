@@ -106,23 +106,6 @@ const Loginpage = () => {
 
   return (
     <div className="relative flex justify-center items-center w-screen h-screen overflow-hidden">
-      <div className="absolute top-6 right-6 z-50 flex items-center space-x-4">
-        <button
-          onClick={toggleTheme}
-          className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-          aria-label={isDarkMode ? "라이트 모드로 전환" : "다크 모드로 전환"}
-        >
-          {isDarkMode ? <SunIcon className="w-5 h-5" /> : <MoonIcon className="w-5 h-5" />}
-        </button>
-        
-        <Link 
-          to="/main" 
-          className="px-3 py-1 text-sm border border-gray-300 rounded-md shadow-sm transition-all duration-200 hover:shadow-md dark:border-gray-600 dark:text-gray-200 text-gray-700"
-        >
-          메인페이지
-        </Link>
-      </div>
-
       <div
         className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat transition-all duration-300"
         style={{ backgroundImage: `url(${getBackgroundImage()})` }}
