@@ -1,40 +1,30 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { FaCalendarAlt, FaUserFriends, FaBell, FaUser, FaPen } from "react-icons/fa";
-import { TestTube2Icon, SunIcon, MoonIcon, Menu, X } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { SunIcon, MoonIcon, Menu, X } from "lucide-react";
+import { useRef, useEffect } from "react";
 import LogoD from "../assets/LogoD.png";
 import LogoL from "../assets/LogoL.png";
+import useUiStore from "../store/uiStore"; // Zustand 스토어 임포트
 
-export default function NavigationBar({
-  onFriendsClick,
-  onNotificationsClick,
-}) {
+export default function NavigationBar() {
   const navigate = useNavigate();
   const location = useLocation();
-
-  const [isDark, setIsDark] = useState(
-    () =>
-      localStorage.getItem("theme") === "dark" ||
-      window.matchMedia("(prefers-color-scheme: dark)").matches,
-  );
-
-  const [isFriendsOpen, setIsFriendsOpen] = useState(false);
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const friendsButtonRef = useRef(null);
   const notificationsButtonRef = useRef(null);
 
-  useEffect(() => {
-    const root = document.documentElement;
-    if (isDark) {
-      root.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    } else {
-      root.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-    }
-  }, [isDark]);
+  // Zustand 스토어에서 상태와 액션 가져오기
+  const { 
+    isDarkMode, 
+    toggleDarkMode, 
+    isFriendsOpen, 
+    isNotificationsOpen, 
+    isMobileMenuOpen,
+    toggleFriends,
+    toggleNotifications,
+    toggleMobileMenu
+  } = useUiStore();
 
+  // 클릭 이벤트 핸들러
   useEffect(() => {
     const handleClickOutside = (event) => {
       // 사이드바와 알림/친구 목록 영역을 클릭한 경우
@@ -58,7 +48,7 @@ export default function NavigationBar({
 
       // 모바일 메뉴 외부 클릭 시 닫기
       if (isMobileMenuOpen && sidebar && !sidebar.contains(event.target)) {
-        setIsMobileMenuOpen(false);
+        toggleMobileMenu();
       }
 
       if (
@@ -66,8 +56,7 @@ export default function NavigationBar({
         friendsButtonRef.current && 
         !friendsButtonRef.current.contains(event.target)
       ) {
-        setIsFriendsOpen(false);
-        onFriendsClick(); 
+        toggleFriends();
       }
       
       if (
@@ -75,8 +64,7 @@ export default function NavigationBar({
         notificationsButtonRef.current && 
         !notificationsButtonRef.current.contains(event.target)
       ) {
-        setIsNotificationsOpen(false);
-        onNotificationsClick(); 
+        toggleNotifications();
       }
     };
 
@@ -85,12 +73,9 @@ export default function NavigationBar({
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isFriendsOpen, isNotificationsOpen, isMobileMenuOpen, onFriendsClick, onNotificationsClick]);
-
-  const toggleTheme = () => setIsDark((prev) => !prev);
+  }, [isFriendsOpen, isNotificationsOpen, isMobileMenuOpen, toggleFriends, toggleNotifications, toggleMobileMenu]);
 
   const NavIcon = ({ to, label, children, onClick, ref, isActive }) => {
-    const location = useLocation();
     const active = typeof isActive === 'boolean' ? isActive : (to && location.pathname === to);
     return (
       <button
@@ -102,10 +87,9 @@ export default function NavigationBar({
             if (location.pathname !== to) {
               navigate(to);
             }
-            setIsMobileMenuOpen(false);
-          }
-          if (isMobileMenuOpen && !onClick) {
-            setIsMobileMenuOpen(false);
+            if (isMobileMenuOpen) {
+              toggleMobileMenu();
+            }
           }
         }}
         className={`relative flex items-center gap-3 w-full md:w-auto p-2 md:p-0 group
@@ -125,22 +109,6 @@ export default function NavigationBar({
     );
   };
 
-  const handleFriendsClick = () => {
-    const nextState = !isFriendsOpen;
-    setIsFriendsOpen(nextState);
-    setIsNotificationsOpen(false);
-    onFriendsClick();
-    setIsMobileMenuOpen(false);
-  };
-
-  const handleNotificationsClick = () => {
-    const nextState = !isNotificationsOpen;
-    setIsNotificationsOpen(nextState);
-    setIsFriendsOpen(false);
-    onNotificationsClick();
-    setIsMobileMenuOpen(false);
-  };
-
   return (
     <div
       className="fixed top-0 left-0 w-full md:h-[72px] h-auto px-4 sm:px-6 md:px-10 
@@ -153,18 +121,18 @@ export default function NavigationBar({
         className="cursor-pointer flex items-center" 
         onClick={() => {
           navigate('/main');
-          setIsMobileMenuOpen(false);
+          if (isMobileMenuOpen) toggleMobileMenu();
         }}
       >
         <img 
-          src={isDark ? LogoD : LogoL} 
+          src={isDarkMode ? LogoD : LogoL} 
           alt="Logo" 
           className="h-10 w-auto"
         />
       </div>
 
       <button
-        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        onClick={toggleMobileMenu}
         className="md:hidden text-lighttext dark:text-darktext py-4 hamburger-button"
         aria-label="메뉴 열기/닫기"
       >
@@ -188,12 +156,12 @@ export default function NavigationBar({
           <FaCalendarAlt size={22} />
         </NavIcon>
         <div ref={friendsButtonRef}>
-          <NavIcon label="친구 목록" onClick={handleFriendsClick} isActive={isFriendsOpen}>
+          <NavIcon label="친구 목록" onClick={toggleFriends} isActive={isFriendsOpen}>
             <FaUserFriends size={22} />
           </NavIcon>
         </div>
         <div ref={notificationsButtonRef}>
-          <NavIcon label="알림" onClick={handleNotificationsClick} isActive={isNotificationsOpen}>
+          <NavIcon label="알림" onClick={toggleNotifications} isActive={isNotificationsOpen}>
             <FaBell size={22} />
           </NavIcon>
         </div>
@@ -202,13 +170,13 @@ export default function NavigationBar({
         </NavIcon>
         <button
           onClick={() => {
-            toggleTheme();
-            setIsMobileMenuOpen(false);
+            toggleDarkMode();
+            if (isMobileMenuOpen) toggleMobileMenu();
           }}
           className="flex items-center gap-3 p-2 md:p-0 text-lighttext dark:text-darktext hover:scale-105 md:hover:scale-105 transition w-full md:w-auto"
           aria-label="모드 전환"
         >
-          {isDark ? <SunIcon size={22} /> : <MoonIcon size={22} />}
+          {isDarkMode ? <SunIcon size={22} /> : <MoonIcon size={22} />}
           <span className="md:hidden">모드 전환</span>
         </button>
       </div>
@@ -221,12 +189,12 @@ export default function NavigationBar({
           <FaCalendarAlt size={22} />
         </NavIcon>
         <div ref={friendsButtonRef}>
-          <NavIcon label="친구 목록" onClick={handleFriendsClick} isActive={isFriendsOpen}>
+          <NavIcon label="친구 목록" onClick={toggleFriends} isActive={isFriendsOpen}>
             <FaUserFriends size={22} />
           </NavIcon>
         </div>
         <div ref={notificationsButtonRef}>
-          <NavIcon label="알림" onClick={handleNotificationsClick} isActive={isNotificationsOpen}>
+          <NavIcon label="알림" onClick={toggleNotifications} isActive={isNotificationsOpen}>
             <FaBell size={22} />
           </NavIcon>
         </div>
@@ -234,11 +202,11 @@ export default function NavigationBar({
           <FaUser size={22} />
         </NavIcon>
         <button
-          onClick={toggleTheme}
+          onClick={toggleDarkMode}
           className="flex items-center gap-2 text-lighttext dark:text-darktext hover:text-lightOrange dark:hover:text-darkOrange transition-colors p-2 rounded"
           aria-label="모드 전환"
         >
-          {isDark ? <SunIcon size={22} /> : <MoonIcon size={22} />}
+          {isDarkMode ? <SunIcon size={22} /> : <MoonIcon size={22} />}
         </button>
       </div>
     </div>

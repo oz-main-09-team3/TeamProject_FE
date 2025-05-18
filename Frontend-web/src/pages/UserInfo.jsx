@@ -1,77 +1,45 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
-import { getMyInfo } from "../service/userApi";
+import useAuthStore from "../store/authStore";
 import BackButton from "../components/BackButton";
 import Button from "../components/Button";
+import { formatPhoneNumber, formatDateYYYYMMDD } from "../utils/dateUtils";
 
-// 파일 상단에 추가
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-
-export default function UserInfo() {
+const UserInfo = () => {
   const navigate = useNavigate();
-  const [userInfo, setUserInfo] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  
+  // Zustand 스토어 사용
+  const { 
+    user, 
+    isAuthenticated, 
+    isLoading, 
+    error, 
+    fetchUserInfo 
+  } = useAuthStore();
 
-  // 사용자 정보 가져오기
+  // 컴포넌트 마운트 시 사용자 정보 로드
   useEffect(() => {
-    const fetchUserInfo = async () => {
-      try {
-        setIsLoading(true);
-        const response = await getMyInfo();
-        console.log("User info response:", response);
-        
-        // API 응답 구조에 따라 데이터 추출
-        const userData = response.data || response;
-        setUserInfo(userData);
-        console.log("[UserInfo.jsx] getMyInfo() 응답 userInfo:", userData);
-      } catch (err) {
-        console.error("Failed to fetch user info:", err);
-        setError("사용자 정보를 불러오는데 실패했습니다.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchUserInfo();
-  }, []);
+    if (isAuthenticated) {
+      fetchUserInfo();
+    } else {
+      navigate('/login');
+    }
+  }, [isAuthenticated, fetchUserInfo, navigate]);
 
   // 프로필 이미지 URL 생성
   const getProfileImageUrl = () => {
-    if (userInfo?.profile) {
-      const imageUrl = userInfo.profile;
+    if (user?.profile) {
+      const imageUrl = user.profile;
       // 절대 경로인 경우 그대로 사용
       if (imageUrl.startsWith('https')) {
         return imageUrl;
       }
       // 상대 경로인 경우 백엔드 URL과 결합
-      return `${BACKEND_URL}${imageUrl}`;
+      return `${import.meta.env.VITE_BACKEND_URL}${imageUrl}`;
     }
     // 기본 이미지
     return "/profile.png";
-  };
-
-  // 날짜 포맷팅 (YYYY-MM-DD 형식으로)
-  const formatDate = (dateString) => {
-    if (!dateString) return "정보 없음";
-    
-    try {
-      const date = new Date(dateString);
-      return date.toISOString().split('T')[0];
-    } catch {
-      return dateString;
-    }
-  };
-
-  // 전화번호 포맷팅 (010-xxxx-xxxx)
-  const formatPhoneNumber = (phone) => {
-    if (!phone) return "정보 없음";
-    const onlyNums = phone.replace(/[^0-9]/g, '');
-    if (onlyNums.length < 4) return onlyNums;
-    if (onlyNums.length < 8) return onlyNums.slice(0, 3) + '-' + onlyNums.slice(3);
-    if (onlyNums.length < 11) return onlyNums.slice(0, 3) + '-' + onlyNums.slice(3, 7) + '-' + onlyNums.slice(7);
-    return onlyNums.slice(0, 3) + '-' + onlyNums.slice(3, 7) + '-' + onlyNums.slice(7, 11);
   };
 
   if (isLoading) {
@@ -109,8 +77,9 @@ export default function UserInfo() {
           >
             <img
               src={getProfileImageUrl()}
-              alt={userInfo?.nickname || "프로필 이미지"}
+              alt={user?.nickname || "프로필 이미지"}
               className="w-full h-full object-cover"
+              onError={(e) => { e.target.src = "/profile.png"; }}
             />
           </div>
         </div>
@@ -121,30 +90,29 @@ export default function UserInfo() {
             <div className="flex flex-col gap-3">
               <div className="flex justify-between text-sm">
                 <span className="font-semibold text-lighttext dark:text-darkBg">닉네임</span>
-                <span className="text-lighttext dark:text-darkBg">{userInfo?.nickname || "정보 없음"}</span>
+                <span className="text-lighttext dark:text-darkBg">{user?.nickname || "정보 없음"}</span>
               </div>
 
               <div className="flex justify-between text-sm">
                 <span className="font-semibold text-lighttext dark:text-darkBg">전화번호</span>
-                <span className="text-lighttext dark:text-darkBg">{formatPhoneNumber(userInfo?.phone_num)}</span>
+                <span className="text-lighttext dark:text-darkBg">{formatPhoneNumber(user?.phone_num)}</span>
               </div>
 
               <div className="flex justify-between text-sm">
                 <span className="font-semibold text-lighttext dark:text-darkBg">이메일</span>
-                <span className="text-lighttext dark:text-darkBg">{userInfo?.email || "정보 없음"}</span>
+                <span className="text-lighttext dark:text-darkBg">{user?.email || "정보 없음"}</span>
               </div>
 
               <div className="flex justify-between text-sm">
                 <span className="font-semibold text-lighttext dark:text-darkBg">생년월일</span>
-                <span className="text-lighttext dark:text-darkBg">{formatDate(userInfo?.birth_date || userInfo?.birthday)}</span>
+                <span className="text-lighttext dark:text-darkBg">{formatDateYYYYMMDD(user?.birth_date || user?.birthday)}</span>
               </div>
             </div>
 
             {/* 회원 정보 수정 버튼 */}
             <Button
               onClick={() => {
-                console.log("[UserInfo.jsx] 수정 버튼 클릭 시 userInfo:", userInfo);
-                navigate("/mypage/edit", { state: { userInfo } });
+                navigate("/mypage/edit", { state: { userInfo: user } });
               }}
             >
               회원 정보 수정
@@ -154,4 +122,6 @@ export default function UserInfo() {
       </div>
     </main>
   );
-}
+};
+
+export default UserInfo;

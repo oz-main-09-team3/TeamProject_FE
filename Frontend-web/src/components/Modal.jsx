@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { XCircle, CheckCircle, AlertTriangle, Info } from "lucide-react";
-import { useNavigate } from 'react-router-dom';
+import useUiStore from '../store/uiStore';
 
 const ICON_MAP = {
   error: {
@@ -23,76 +23,68 @@ const ICON_MAP = {
     confirmStyle: "bg-blue-500 hover:bg-blue-600 text-white",
     cancelStyle: "border border-transparent text-blue-500 hover:underline",
   },
+  confirm: {
+    icon: <Info className="text-blue-500 w-6 h-6" />,
+    confirmStyle: "bg-blue-500 hover:bg-blue-600 text-white",
+    cancelStyle: "border border-transparent text-blue-500 hover:underline",
+  },
 };
 
 /**
- * 모달 컴포넌트
- * @param {Object} props - 컴포넌트 props
- * @param {boolean} props.isOpen - 모달 표시 여부
- * @param {Function} props.onClose - 모달 닫기 함수
- * @param {string} props.title - 모달 제목
- * @param {string} props.content - 모달 내용
- * @param {string} props.confirmText - 확인 버튼 텍스트
- * @param {string} props.cancelText - 취소 버튼 텍스트
- * @param {Function} props.onConfirm - 확인 버튼 클릭 시 실행할 함수
- * @param {Function} props.onCancel - 취소 버튼 클릭 시 실행할 함수
- * @param {boolean} props.isDanger - 위험한 작업인지 여부
- * @param {string} props.type - 모달 타입 (error, success, warning, info)
- * @returns {JSX.Element} 모달 컴포넌트
+ * 모달 컴포넌트 - Zustand와 통합
  */
-const Modal = ({
-  isOpen,
-  onClose,
-  title,
-  content,
-  confirmText,
-  cancelText,
-  onConfirm,
-  onCancel,
-  isDanger = false,
-  type = 'info'
-}) => {
-  const navigate = useNavigate();
-  const [show, setShow] = useState(false);
+const Modal = ({ type = 'info' }) => {
   const modalRef = useRef();
-
-  useEffect(() => {
-    if (isOpen) {
-      setShow(true);
-    } else {
-      // fade out 후에 완전히 제거
-      const timeout = setTimeout(() => setShow(false), 200);
-      return () => clearTimeout(timeout);
-    }
-  }, [isOpen]);
-
+  
+  // Zustand 스토어 사용
+  const { 
+    modals, 
+    closeModal 
+  } = useUiStore();
+  
+  const modal = modals[type];
+  const isOpen = modal?.isOpen || false;
+  const title = modal?.title || '';
+  const content = modal?.content || '';
+  const confirmText = modal?.confirmText || '확인';
+  const cancelText = modal?.cancelText || '취소';
+  const onConfirm = modal?.onConfirm;
+  const onCancel = modal?.onCancel;
+  
+  // ESC 키 누르면 모달 닫기
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') closeModal(type);
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, closeModal, type]);
 
-  if (!isOpen && !show) return null;
+  // 모달이 열려있지 않으면 렌더링 안함
+  if (!isOpen) return null;
 
   const { icon, confirmStyle, cancelStyle } = ICON_MAP[type];
-
-  const handleCancelModalCloseAndGoBack = () => {
-    onCancel();
-    navigate(-1);
+  
+  const handleConfirm = () => {
+    if (onConfirm) onConfirm();
+    closeModal(type);
+  };
+  
+  const handleCancel = () => {
+    if (onCancel) onCancel();
+    closeModal(type);
   };
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+      className="fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-200 opacity-100"
       role="dialog"
       aria-modal="true"
       ref={modalRef}
     >
-      <div className={`fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`} onClick={onClose} />
-      <div className={`relative bg-white w-[420px] min-h-[200px] p-6 rounded-[8px] shadow-lg flex flex-col justify-between transform transition-all duration-200 ${isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}>
+      <div className="fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-200 opacity-100" onClick={() => closeModal(type)} />
+      <div className="relative bg-white w-[420px] min-h-[200px] p-6 rounded-[8px] shadow-lg flex flex-col justify-between transform transition-all duration-200 scale-100 opacity-100">
         {/* 내용 */}
         <div className="flex items-start gap-3">
           {icon}
@@ -104,16 +96,16 @@ const Modal = ({
 
         {/* 버튼 */}
         <div className="flex justify-end gap-3 mt-6">
-          {cancelText && (
+          {(type === 'confirm' || type === 'warning' || type === 'error') && cancelText && (
             <button
-              onClick={onCancel}
+              onClick={handleCancel}
               className={`px-4 py-2 rounded text-sm font-medium ${cancelStyle}`}
             >
               {cancelText}
             </button>
           )}
           <button
-            onClick={onConfirm}
+            onClick={handleConfirm}
             className={`px-4 py-2 rounded text-sm font-medium ${confirmStyle}`}
           >
             {confirmText}

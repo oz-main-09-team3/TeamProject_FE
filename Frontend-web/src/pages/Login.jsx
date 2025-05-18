@@ -13,14 +13,14 @@ import { SunIcon, MoonIcon } from "lucide-react";
 const KAKAO_CLIENT_ID = import.meta.env.VITE_KAKAO_CLIENT_ID;
 const NAVER_CLIENT_ID = import.meta.env.VITE_NAVER_CLIENT_ID;
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 // 리다이렉트 URI 설정
 const REDIRECT_URI = {
-  kakao: 'http://localhost:5173/auth/callback/kakao',
-  naver: 'http://localhost:5173/auth/callback/naver',
-  google: 'http://localhost:5173/auth/callback/google'
+  kakao: `${BASE_URL}/auth/callback/kakao`,
+  naver: `${BASE_URL}/auth/callback/naver`,
+  google: `${BASE_URL}/auth/callback/google`
 };
-
 // 미디어 쿼리 훅
 const useMediaQuery = (query) => {
   const [matches, setMatches] = useState(false);

@@ -1,107 +1,76 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import RechartsBarChart from "../components/charts/RechartsBarChart";
 import RechartsPieChart from "../components/charts/RechartsPieChart";
-import { ChevronLeft } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { fetchDiaries, fetchEmotions } from "../service/diaryApi";
-import { getEmojiText } from "../constants/Emoji"; // Emoji 상수 가져오기
 import BackButton from "../components/BackButton";
+import useAuthStore from "../store/authStore";
+import { useNavigate } from "react-router-dom";
+import { create } from "zustand";
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+const useChartStore = create((set) => ({
+  monthlyCount: null,
+  emotionDistribution: null,
+  isLoading: false,
+  error: null,
+  
+  // 차트 데이터 로딩 시작
+  setLoading: () => set({ isLoading: true, error: null }),
+  
+  // 차트 데이터 설정
+  setChartData: (monthlyCount, emotionDistribution) => 
+    set({ 
+      monthlyCount, 
+      emotionDistribution, 
+      isLoading: false, 
+      error: null 
+    }),
+  
+  // 에러 설정
+  setError: (error) => set({ error, isLoading: false })
+}));
 
 /**
  * 차트 페이지 컴포넌트
  * 월별 일기 작성 횟수와 이번 달 사용한 이모지 갯수를 보여주는 페이지
- * @returns {JSX.Element} 차트 페이지 컴포넌트
  */
 function ChartPage() {
-  // 상태 관리
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [diaryList, setDiaryList] = useState([]);
-  const [emotionMap, setEmotionMap] = useState({});
-  const [chartData, setChartData] = useState({
-    monthlyCount: null, // 월별 일기 작성 횟수 데이터
-    emotionDistribution: null // 이번 달 사용한 이모지 갯수 데이터
-  });
-  
   const navigate = useNavigate();
+  
+  // Auth 스토어 사용
+  const { isAuthenticated } = useAuthStore();
+  
+  // Chart 스토어 사용
+  const { 
+    monthlyCount, 
+    emotionDistribution, 
+    isLoading, 
+    error, 
+    setLoading, 
+    setChartData, 
+    setError 
+  } = useChartStore();
+  
+  // Diary 스토어에서 일기 데이터와 감정 데이터 가져오기
+  const { diaries, emotions, fetchDiaries, fetchEmotions } = useDiaryStore();
 
-  // 감정 데이터 가져오기
-  const getEmotions = async () => {
-    try {
-      const response = await fetchEmotions();
-      if (response?.data) {
-        const emotions = {};
-        response.data.forEach((emotion) => {
-          emotions[emotion.id] = {
-            name: emotion.emotion,
-            image_url: emotion.image_url,
-          };
-          emotions[emotion.emotion] = {
-            name: emotion.emotion,
-            image_url: emotion.image_url,
-            id: emotion.id,
-          };
-        });
-        setEmotionMap(emotions);
-        return emotions;
-      }
-      return {};
-    } catch (err) {
-      console.error("감정 목록 불러오기 실패:", err);
-      setError("감정 목록을 불러오는데 실패했습니다.");
-      return {};
-    }
-  };
-
-  // 일기 데이터 가져오기
-  const getDiaries = async () => {
-    try {
-      const response = await fetchDiaries();
-      let diariesData = [];
-
-      if (Array.isArray(response)) {
-        diariesData = response;
-      } else if (response?.data && Array.isArray(response.data)) {
-        diariesData = response.data;
-      } else if (response?.data?.results && Array.isArray(response.data.results)) {
-        diariesData = response.data.results;
-      } else {
-        console.error("Unexpected response structure:", response);
-        setError("예상치 못한 데이터 구조입니다.");
-        return [];
-      }
-
-      const formattedDiaries = diariesData.map((diary) => {
-        let emotionValue;
-        if (diary.emotion && typeof diary.emotion === "object") {
-          emotionValue = diary.emotion;
-        } else if (diary.emotion) {
-          emotionValue = diary.emotion;
-        } else if (diary.emotion_id) {
-          emotionValue = diary.emotion_id;
-        } else {
-          emotionValue = diary.id;
+  // 컴포넌트 마운트 시 데이터 로드
+  useEffect(() => {
+    const loadData = async () => {
+      if (isAuthenticated) {
+        setLoading();
+        try {
+          await Promise.all([fetchEmotions(), fetchDiaries()]);
+          prepareChartData(diaries, emotions);
+        } catch (err) {
+          console.error("데이터 로딩 중 오류:", err);
+          setError("데이터를 불러오는데 실패했습니다.");
         }
-
-        return {
-          id: diary.diary_id || diary.id,
-          content: diary.content || "내용 없음",
-          emotionId: emotionValue,
-          emotion: diary.emotion,
-          createdAt: diary.created_at,
-        };
-      });
-
-      setDiaryList(formattedDiaries);
-      return formattedDiaries;
-    } catch (err) {
-      console.error("일기 목록 불러오기 실패:", err);
-      setError("일기를 불러오는데 실패했습니다.");
-      return [];
-    }
-  };
+      } else {
+        navigate('/login');
+      }
+    };
+    
+    loadData();
+  }, [isAuthenticated, fetchEmotions, fetchDiaries, diaries, emotions, setLoading, setError, navigate]);
 
   // 차트 데이터 준비
   const prepareChartData = (diaries, emotions) => {
@@ -161,15 +130,13 @@ function ChartPage() {
       
       if (diary.emotionId && typeof diary.emotionId === 'object') {
         emotionId = diary.emotionId.id;
-        // getEmojiText 함수 사용하여 ID를 텍스트로 변환
-        emotionName = emotions[emotionId]?.name || getEmojiText(emotionId);
+        emotionName = emotions[emotionId]?.name || `감정${emotionId}`;
       } else if (typeof diary.emotionId === 'number') {
         emotionId = diary.emotionId;
-        // getEmojiText 함수 사용하여 ID를 텍스트로 변환
-        emotionName = emotions[emotionId]?.name || getEmojiText(emotionId);
+        emotionName = emotions[emotionId]?.name || `감정${emotionId}`;
       } else {
         emotionId = 1; // 기본값
-        emotionName = getEmojiText(1);
+        emotionName = `감정${emotionId}`;
       }
       
       if (!emotionCounts[emotionName]) {
@@ -189,30 +156,9 @@ function ChartPage() {
       series: emotionSeries.length > 0 ? emotionSeries : [{ name: '데이터 없음', data: 1 }]
     };
     
-    setChartData({
-      monthlyCount: monthlyCountData,
-      emotionDistribution: emotionDistributionData
-    });
+    // 차트 데이터 설정
+    setChartData(monthlyCountData, emotionDistributionData);
   };
-
-  // 데이터 로딩
-  useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      try {
-        const emotions = await getEmotions();
-        const diaries = await getDiaries();
-        prepareChartData(diaries, emotions);
-        setIsLoading(false);
-      } catch (err) {
-        console.error("데이터 로딩 중 오류:", err);
-        setError("데이터를 불러오는데 실패했습니다.");
-        setIsLoading(false);
-      }
-    };
-
-    loadData();
-  }, []);
 
   // 현재 월 이름 가져오기
   const getCurrentMonthName = () => {
@@ -243,7 +189,7 @@ function ChartPage() {
               월별 일기 작성 횟수
             </h2>
             <RechartsBarChart 
-              data={chartData.monthlyCount} 
+              data={monthlyCount} 
               isLoading={isLoading}
               error={error}
               title="월별 일기 작성 횟수"
@@ -257,7 +203,7 @@ function ChartPage() {
               {getCurrentMonthName()} 감정 분포
             </h2>
             <RechartsPieChart 
-              data={chartData.emotionDistribution} 
+              data={emotionDistribution} 
               isLoading={isLoading}
               error={error}
               title={`${getCurrentMonthName()} 감정 분포`}
@@ -278,14 +224,14 @@ function ChartPage() {
                   연간 통계
                 </h3>
                 <p className="text-lighttext dark:text-darktext">
-                  올해 총 일기 작성 수: {chartData.monthlyCount?.series[0].data.reduce((acc, curr) => acc + curr, 0) || 0}개
+                  올해 총 일기 작성 수: {monthlyCount?.series[0].data.reduce((acc, curr) => acc + curr, 0) || 0}개
                 </p>
                 <p className="text-lighttext dark:text-darktext mt-2">
                   가장 많이 작성한 달: {
-                    chartData.monthlyCount 
-                    ? chartData.monthlyCount.categories[
-                        chartData.monthlyCount.series[0].data.indexOf(
-                          Math.max(...chartData.monthlyCount.series[0].data)
+                    monthlyCount 
+                    ? monthlyCount.categories[
+                        monthlyCount.series[0].data.indexOf(
+                          Math.max(...monthlyCount.series[0].data)
                         )
                       ]
                     : '없음'
@@ -298,16 +244,16 @@ function ChartPage() {
                 </h3>
                 <p className="text-lighttext dark:text-darktext">
                   이번 달 일기 작성 수: {
-                    chartData.monthlyCount
-                    ? chartData.monthlyCount.series[0].data[new Date().getMonth()]
+                    monthlyCount
+                    ? monthlyCount.series[0].data[new Date().getMonth()]
                     : 0
                   }개
                 </p>
                 <p className="text-lighttext dark:text-darktext mt-2">
                   가장 많이 사용한 감정: {
-                    chartData.emotionDistribution?.series[0]?.name === '데이터 없음'
+                    emotionDistribution?.series[0]?.name === '데이터 없음'
                     ? '없음'
-                    : chartData.emotionDistribution?.series.sort((a, b) => b.data - a.data)[0]?.name || '없음'
+                    : emotionDistribution?.series.sort((a, b) => b.data - a.data)[0]?.name || '없음'
                   }
                 </p>
               </div>
