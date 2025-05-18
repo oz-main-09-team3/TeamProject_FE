@@ -16,6 +16,7 @@ import ListWrapper from "./components/ListWrapper";
 import FriendDiaryView from "./pages/FriendDiaryView";
 import DiaryEditPage from "./pages/DiaryEditPage";
 import DiaryDetailPage from "./pages/DiaryDetailPage";
+import FriendCalendarPage from "./pages/FriendCalendarPage";
 import Layout from './components/Layout';
 import { HelmetProvider, Helmet } from 'react-helmet-async';
 
@@ -48,6 +49,8 @@ function AppLayoutWithNavbar() {
         <Route path="/diary/edit/:id" element={<DiaryEditPage />} />
         <Route path="/diary/new" element={<DiaryEditor />} />
         <Route path="/friend-diary" element={<FriendDiaryView />} />
+        <Route path="/friend-calendar/:friendId" element={<FriendCalendarPage />} />
+        <Route path="/friend-diary/:diaryId" element={<FriendDiaryView />} />
         <Route path="*" element={<Navigate to="/main" />} />
       </Routes>
 

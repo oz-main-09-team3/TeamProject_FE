@@ -40,17 +40,10 @@ export default function FriendsList({ onFriendClick }) {
     fetchFriends();
   }, []);
 
-  // 친구 클릭 시 상세 페이지로 이동 (FriendDiaryView)
+  // 친구 클릭 시 캘린더 페이지로 이동
   const handleFriendClick = (friend) => {
     if (onFriendClick) onFriendClick();
-
-    //친구 ID와 최근 다이어리 ID 함께 넘겨줘야 댓글 페이지에서 API 호출 가능
-    navigate("/friend-diary", {
-      state: {
-        friendId: friend.id,
-        diaryId: friend.latest_diary_id, // ← 실제 API 응답 필드명에 맞춰야 함
-      },
-    });
+    navigate(`/friend-calendar/${friend.id}`);
   };
 
   //로딩 중 표시
