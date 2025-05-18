@@ -1,143 +1,185 @@
 import React, { useState, useEffect } from "react";
-import { Camera } from "lucide-react";
+import { Camera, ChevronLeft } from "lucide-react";
+import Modal from "../components/Modal";
+import { useNavigate } from "react-router-dom";
+import { generateQRCode, inviteFriend } from "../service/friendApi";
+import { getMyInfo } from "../service/userApi";
 import BackButton from "../components/BackButton";
 import Button from "../components/Button";
 import FormInput from "../components/FormInput";
-import useAuthStore from "../store/authStore";
-import useFriendStore from "../store/friendStore";
-import useUiStore from "../store/uiStore";
-import { useNavigate } from "react-router-dom";
 
 const FriendInviteSystem = () => {
-  const navigate = useNavigate();
-  
-  // Zustand 스토어 사용
-  const { user, isAuthenticated, fetchUserInfo } = useAuthStore();
-  const { qrCodeUrl, isLoading, error, generateQRCode, inviteFriend } = useFriendStore();
-  const { openModal } = useUiStore();
-  
-  // 로컬 상태
   const [username, setUsername] = useState("");
+  const [qrCodeUrl, setQrCodeUrl] = useState("");
   const [showScanner, setShowScanner] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [pendingCode, setPendingCode] = useState("");
   const [inputCode, setInputCode] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [userLoading, setUserLoading] = useState(true);
+  const [modalContent, setModalContent] = useState({ title: "", content: "", type: "info" });
   
-  // 컴포넌트 마운트 시 사용자 정보 로드 및 QR 코드 생성
-  useEffect(() => {
-    const loadData = async () => {
-      if (isAuthenticated) {
-        setUserLoading(true);
-        try {
-          const userData = await fetchUserInfo();
-          setUsername(userData?.username || userData?.email || userData?.name || "");
-          
-          if (userData?.username) {
-            await generateQRCode(userData.username);
-          }
-        } catch (error) {
-          console.error("사용자 정보/QR 코드 생성 실패:", error);
-        } finally {
-          setUserLoading(false);
-        }
-      } else {
+  const navigate = useNavigate();
+
+  // 토큰으로 사용자 정보 가져오기
+  const fetchUserInfo = async () => {
+    const token = localStorage.getItem('token');
+    
+    console.log("토큰 확인:", token ? "있음" : "없음");
+    
+    if (!token) {
+      alert("로그인이 필요합니다.");
+      navigate('/login');
+      return null;
+    }
+    
+    setUserLoading(true);
+    try {
+      const response = await getMyInfo();
+      console.log("사용자 정보 응답:", response);
+      const userData = response.data;
+      setUsername(userData.username || userData.email || userData.name);
+      return userData;
+    } catch (error) {
+      console.error("사용자 정보 조회 실패:", error);
+      console.error("에러 응답:", error.response);
+      if (error.response?.status === 401) {
+        // 토큰 만료 또는 유효하지 않음
+        localStorage.removeItem('token');
+        alert("세션이 만료되었습니다. 다시 로그인해주세요.");
         navigate('/login');
+      }
+      return null;
+    } finally {
+      setUserLoading(false);
+    }
+  };
+
+  // 백엔드에서 QR 코드 이미지 가져오기
+  const fetchQRCode = async (userInfo) => {
+    if (!userInfo) return;
+    
+    setIsLoading(true);
+    try {
+      const userIdentifier = userInfo.username || userInfo.email || userInfo.name;
+      const response = await generateQRCode(userIdentifier);
+      
+      // ArrayBuffer를 Blob으로 변환
+      const blob = new Blob([response.data], { type: 'image/png' });
+      const url = URL.createObjectURL(blob);
+      
+      setQrCodeUrl(url);
+    } catch (error) {
+      console.error("QR 코드 생성 실패:", error);
+      alert("QR 코드 생성에 실패했습니다.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const initializeComponent = async () => {
+      const userInfo = await fetchUserInfo();
+      if (userInfo) {
+        await fetchQRCode(userInfo);
       }
     };
     
-    loadData();
-  }, [isAuthenticated, fetchUserInfo, generateQRCode, navigate]);
-
-  // 에러 처리
-  useEffect(() => {
-    if (error) {
-      openModal('error', {
-        title: '오류',
-        content: error,
-        onConfirm: () => null
-      });
-    }
-  }, [error, openModal]);
-
-  // QR 코드 새로고침
-  const refreshQRCode = async () => {
-    if (username) {
-      try {
-        await generateQRCode(username);
-      } catch (err) {
-        openModal('error', {
-          title: 'QR 코드 생성 실패',
-          content: err.message || 'QR 코드를 생성하는데 실패했습니다.',
-          onConfirm: () => null
-        });
-      }
-    }
-  };
-
-  // 친구 추가 처리
-  const handleAddFriend = async () => {
-    if (!inputCode.trim()) {
-      openModal('warning', {
-        title: '입력 오류',
-        content: '친구 사용자명을 입력해주세요.',
-        onConfirm: () => null
-      });
-      return;
-    }
+    initializeComponent();
     
+    // cleanup
+    return () => {
+      if (qrCodeUrl) {
+        URL.revokeObjectURL(qrCodeUrl);
+      }
+    };
+  }, []); 
+
+  const addFriendByCode = async (code) => {
     try {
       const payload = {
         invite_type: "qr",
-        invite_code: inputCode.trim()
+        invite_code: code
       };
       
-      await inviteFriend(payload);
+      console.log("친구 추가 요청:", payload);
+      const response = await inviteFriend(payload);
+      console.log("친구 추가 응답:", response);
       
-      openModal('success', {
-        title: '친구 추가 완료',
-        content: `${inputCode}님을 친구로 추가했습니다.`,
-        onConfirm: () => {
-          setInputCode('');
-        }
+      setModalContent({
+        title: "친구 추가 성공",
+        content: `${code}님을 친구로 추가했습니다.`,
+        type: "success"
       });
-    } catch (err) {
-      openModal('error', {
-        title: '친구 추가 실패',
-        content: err.message || '친구 추가에 실패했습니다.',
-        onConfirm: () => null
+      setIsModalOpen(true);
+    } catch (error) {
+      console.error("친구 추가 실패 상세 정보:", {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message,
+        error: error
       });
+      
+      setModalContent({
+        title: "친구 추가 실패",
+        content: error.response?.data?.message || "친구 추가에 실패했습니다.",
+        type: "error"
+      });
+      setIsModalOpen(true);
     }
   };
 
-  // QR 스캔 시뮬레이션
+  const handleConfirm = async () => {
+    if (modalContent.type === "info") {
+      await addFriendByCode(pendingCode);
+    } else {
+      setIsModalOpen(false);
+      setPendingCode("");
+      setInputCode("");
+    }
+  };
+
+  const handleCancel = () => {
+    setIsModalOpen(false);
+    setPendingCode("");
+    setInputCode("");
+  };
+
   const simulateScan = () => {
     setShowScanner(false);
-    
-    openModal('confirm', {
-      title: '친구 추가',
-      content: '스캔된 코드로 친구를 추가하시겠습니까?',
-      onConfirm: async () => {
-        try {
-          const payload = {
-            invite_type: "qr",
-            invite_code: "scanned_code_123"
-          };
-          
-          await inviteFriend(payload);
-          
-          openModal('success', {
-            title: '친구 추가 완료',
-            content: '친구가 추가되었습니다.',
-            onConfirm: () => null
-          });
-        } catch (err) {
-          openModal('error', {
-            title: '친구 추가 실패',
-            content: err.message || '친구 추가에 실패했습니다.',
-            onConfirm: () => null
-          });
-        }
-      }
+    setTimeout(() => {
+      setPendingCode("scanned_code_123");
+      setIsModalOpen(true);
+    }, 500);
+  };
+
+  const handleAddFriend = () => {
+    if (!inputCode.trim()) {
+      setModalContent({
+        title: "입력 오류",
+        content: "친구 코드를 다시 입력해주세요.",
+        type: "warning"
+      });
+      setIsModalOpen(true);
+      return;
+    }
+    if (inputCode.trim().length < 3) {
+      setModalContent({
+        title: "입력 오류",
+        content: "잘못된 코드입니다.",
+        type: "error"
+      });
+      setIsModalOpen(true);
+      return;
+    }
+    setPendingCode(inputCode);
+    setModalContent({
+      title: "친구 추가",
+      content: `${inputCode}님을 친구로 추가하시겠습니까?`,
+      type: "info"
     });
+    setIsModalOpen(true);
   };
 
   return (
@@ -190,7 +232,12 @@ const FriendInviteSystem = () => {
 
           <div className="flex flex-col items-center gap-2 mb-4 w-full">
             <Button
-              onClick={refreshQRCode}
+              onClick={async () => {
+                const userInfo = await fetchUserInfo();
+                if (userInfo) {
+                  await fetchQRCode(userInfo);
+                }
+              }}
               disabled={isLoading || userLoading}
               variant="primary"
               className="w-full"
@@ -215,7 +262,7 @@ const FriendInviteSystem = () => {
               type="button"
               variant="secondary"
               onClick={handleAddFriend}
-              disabled={!inputCode.trim() || isLoading}
+              disabled={!inputCode.trim()}
               className="w-full"
             >
               추가
@@ -255,6 +302,19 @@ const FriendInviteSystem = () => {
           </div>
         </div>
       )}
+
+      {/* 확인 모달 */}
+      <Modal
+        isOpen={isModalOpen}
+        type={modalContent.type}
+        title={modalContent.title}
+        content={modalContent.content}
+        confirmText={modalContent.type === "info" ? "추가하기" : "확인"}
+        cancelText={modalContent.type === "info" ? "취소" : undefined}
+        onConfirm={handleConfirm}
+        onCancel={handleCancel}
+        onClose={handleCancel}
+      />
     </main>
   );
 };

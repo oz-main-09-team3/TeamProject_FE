@@ -1,11 +1,14 @@
 import { useReducer, useRef, useState, useEffect } from "react";
+import { Camera, ChevronLeft } from "lucide-react";
+import ColorThief from 'colorthief';
+import Modal from '../components/Modal';
 import { useNavigate, useLocation } from "react-router-dom";
+import { updateMyInfo, getMyInfo } from "../service/userApi";
 import BackButton from "../components/BackButton";
 import Button from "../components/Button";
 import FormInput from "../components/FormInput";
-import useAuthStore from "../store/authStore";
-import useUiStore from "../store/uiStore";
-import { formatPhoneNumber, formatDateYYYYMMDD } from "../utils/dateUtils";
+
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 function reducer(state, action) {
   return { ...state, [action.name]: action.value };
@@ -15,47 +18,77 @@ export default function EditUserInfo() {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Zustand 스토어 사용
-  const { user, updateUserInfo, isLoading, error } = useAuthStore();
-  const { openModal } = useUiStore();
+  const receivedUserInfo = location.state?.userInfo;
+  console.log("[EditUserInfo.jsx] location.state?.userInfo:", receivedUserInfo);
   
-  const receivedUserInfo = location.state?.userInfo || user;
-  
+  // 전화번호를 010-xxxx-xxxx 형식으로 포맷팅하는 함수
+  const formatPhoneNumber = (phone) => {
+    if (!phone) return "";
+    const onlyNums = phone.replace(/[^0-9]/g, '');
+    if (onlyNums.length < 4) return onlyNums;
+    if (onlyNums.length < 8) return onlyNums.slice(0, 3) + '-' + onlyNums.slice(3);
+    if (onlyNums.length < 11) return onlyNums.slice(0, 3) + '-' + onlyNums.slice(3, 7) + '-' + onlyNums.slice(7);
+    return onlyNums.slice(0, 3) + '-' + onlyNums.slice(3, 7) + '-' + onlyNums.slice(7, 11);
+  };
+
   const initialState = {
     nickname: receivedUserInfo?.nickname || receivedUserInfo?.username || "",
     phone_number: formatPhoneNumber(receivedUserInfo?.phone_number || receivedUserInfo?.phone || receivedUserInfo?.phone_num || ""),
     email: receivedUserInfo?.email || "",
-    birth_date: formatDateYYYYMMDD(receivedUserInfo?.birth_date || receivedUserInfo?.birthdate || receivedUserInfo?.birthday || ""),
+    birth_date: receivedUserInfo?.birth_date || receivedUserInfo?.birthdate || receivedUserInfo?.birthday || "",
     profile_image: receivedUserInfo?.profile_image || receivedUserInfo?.profile || "/profile.png"
   };
+  console.log("[EditUserInfo.jsx] initialState:", initialState);
 
   const [state, dispatch] = useReducer(reducer, initialState);
   const [borderColor, setBorderColor] = useState('transparent');
   const [emailError, setEmailError] = useState('');
   const [phoneError, setPhoneError] = useState('');
   const [birthdateError, setBirthdateError] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
+  const [modalType, setModalType] = useState('warning');
   const [profileImageFile, setProfileImageFile] = useState(null);
   const [profileImageUrl, setProfileImageUrl] = useState(receivedUserInfo?.profile_image || "/profile.png");
   const fileInputRef = useRef(null);
   const imageRef = useRef(null);
 
   useEffect(() => {
-    // 사용자 정보가 있으면 폼 필드 초기화
-    if (receivedUserInfo) {
-      dispatch({ name: 'nickname', value: receivedUserInfo?.nickname || receivedUserInfo?.username || "" });
-      dispatch({ name: 'phone_number', value: formatPhoneNumber(receivedUserInfo?.phone_number || receivedUserInfo?.phone || receivedUserInfo?.phone_num || "") });
-      dispatch({ name: 'email', value: receivedUserInfo?.email || "" });
-      dispatch({ name: 'birth_date', value: formatDateYYYYMMDD(receivedUserInfo?.birth_date || receivedUserInfo?.birthdate || receivedUserInfo?.birthday || "") });
-      
-      // 프로필 이미지 설정
-      if (receivedUserInfo?.profile) {
-        const profileUrl = receivedUserInfo.profile.startsWith('http') 
-          ? receivedUserInfo.profile 
-          : `${import.meta.env.VITE_BACKEND_URL}${receivedUserInfo.profile}`;
-        setProfileImageUrl(profileUrl);
+    const fetchUserInfo = async () => {
+      try {
+        const response = await getMyInfo();
+        const user = response.data || response;
+        if (user?.profile) {
+          setProfileImageUrl(user.profile.startsWith('http') ? user.profile : `${BACKEND_URL}${user.profile}`);
+          dispatch({ name: 'profile_image', value: user.profile });
+        } else {
+          setProfileImageUrl("/profile.png");
+        }
+      } catch (err) {
+        setProfileImageUrl("/profile.png");
       }
+    };
+    fetchUserInfo();
+  }, []);
+
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      return date.toISOString().split('T')[0];
+    } catch {
+      return dateString;
     }
-  }, [receivedUserInfo]);
+  };
+
+  useEffect(() => {
+    if (initialState.birth_date) {
+      dispatch({ 
+        name: 'birth_date', 
+        value: formatDateForInput(initialState.birth_date) 
+      });
+    }
+  }, []);
 
   const getProfileImageUrl = () => {
     if (profileImageFile && state.profile_image && state.profile_image.startsWith('data:')) {
@@ -137,27 +170,21 @@ export default function EditUserInfo() {
     e.preventDefault();
     
     if (phoneError) {
-      openModal('warning', {
-        title: '입력 오류',
-        content: '전화번호 형식이 올바르지 않습니다.',
-        onConfirm: () => null
-      });
+      setModalMessage('전화번호 형식이 올바르지 않습니다.');
+      setModalType('warning');
+      setShowModal(true);
       return;
     }
     if (emailError) {
-      openModal('warning', {
-        title: '입력 오류',
-        content: '이메일 형식이 올바르지 않습니다.',
-        onConfirm: () => null
-      });
+      setModalMessage('이메일 형식이 올바르지 않습니다.');
+      setModalType('warning');
+      setShowModal(true);
       return;
     }
     if (birthdateError) {
-      openModal('warning', {
-        title: '입력 오류',
-        content: '생년월일이 올바르지 않습니다.',
-        onConfirm: () => null
-      });
+      setModalMessage('생년월일이 올바르지 않습니다.');
+      setModalType('warning');
+      setShowModal(true);
       return;
     }
 
@@ -174,35 +201,38 @@ export default function EditUserInfo() {
         reader.onloadend = async () => {
           updateData.profile = reader.result.split(',')[1]; 
           
-          await updateUserInfo(updateData);
+          const response = await updateMyInfo(updateData);
+          console.log("Update response:", response);
           
-          openModal('success', {
-            title: '저장 완료',
-            content: '저장되었습니다.',
-            onConfirm: () => navigate('/mypage/info')
-          });
+          setModalMessage('저장되었습니다.');
+          setModalType('success');
+          setShowModal(true);
         };
         reader.readAsDataURL(profileImageFile);
       } else {
-        await updateUserInfo(updateData);
+        const response = await updateMyInfo(updateData);
+        console.log("Update response:", response);
         
-        openModal('success', {
-          title: '저장 완료',
-          content: '저장되었습니다.',
-          onConfirm: () => navigate('/mypage/info')
-        });
+        setModalMessage('저장되었습니다.');
+        setModalType('success');
+        setShowModal(true);
       }
     } catch (error) {
-      openModal('error', {
-        title: '저장 실패',
-        content: error.message || '정보 수정에 실패했습니다. 다시 시도해주세요.',
-        onConfirm: () => null
-      });
+      console.error("Failed to update user info:", error);
+      setModalMessage('정보 수정에 실패했습니다. 다시 시도해주세요.');
+      setModalType('warning');
+      setShowModal(true);
     }
   };
 
   const handleImageClick = () => {
     fileInputRef.current?.click();
+  };
+
+  const getDominantColor = (img) => {
+    const colorThief = new ColorThief();
+    const color = colorThief.getColor(img);
+    return `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
   };
 
   const handleImageChange = (e) => {
@@ -213,8 +243,21 @@ export default function EditUserInfo() {
       reader.onloadend = () => {
         dispatch({ name: 'profile_image', value: reader.result });
         setProfileImageUrl(reader.result);
+        const img = new Image();
+        img.src = reader.result;
+        img.onload = () => {
+          const color = getDominantColor(img);
+          setBorderColor(color);
+        };
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    if (modalType === 'success') {
+      navigate('/mypage/info');
     }
   };
 
@@ -228,9 +271,8 @@ export default function EditUserInfo() {
 
           <div className="absolute -top-[92px]">
             <div
-              className="w-[184px] h-[184px] rounded-full overflow-hidden shadow-xl border-4 cursor-pointer"
+              className="w-[184px] h-[184px] rounded-full overflow-hidden shadow-xl border-4 group relative"
               style={{ borderColor: "transparent" }}
-              onClick={handleImageClick}
             >
               <img
                 src={getProfileImageUrl()}
@@ -238,8 +280,11 @@ export default function EditUserInfo() {
                 className="w-full h-full object-cover"
                 onError={e => { e.target.src = "/profile.png"; }}
               />
-              <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 hover:opacity-100 transition-opacity">
-                <span className="text-white">이미지 변경</span>
+              <div 
+                className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                onClick={handleImageClick}
+              >
+                <Camera className="w-8 h-8 text-white" />
               </div>
             </div>
             <input
@@ -294,14 +339,24 @@ export default function EditUserInfo() {
               </div>
 
               <div className="w-full max-w-[500px]">
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? '저장 중...' : '저장하기'}
+                <Button type="submit" className="w-full">
+                  저장하기
                 </Button>
               </div>
             </div>
           </form>
         </div>
       </main>
+
+      <Modal
+        isOpen={showModal}
+        onClose={closeModal}
+        title={modalType === 'success' ? '완료' : '입력 오류'}
+        content={modalMessage}
+        confirmText="확인"
+        onConfirm={closeModal}
+        type={modalType}
+      />
     </>
   );
 }

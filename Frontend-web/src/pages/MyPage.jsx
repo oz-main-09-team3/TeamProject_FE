@@ -1,10 +1,11 @@
-import React, { useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import RowCard from "../components/RowCard";
+import Modal from "../components/Modal";
 import MENU_ITEMS_ORIGIN from "../constants/menuItems.jsx";
 import { FiUserX, FiLogOut } from "react-icons/fi";
-import useAuthStore from "../store/authStore";
-import useUiStore from "../store/uiStore";
+import { deleteAccount, getMyInfo } from "../service/userApi";
+import { logout } from "../service/authApi"; // 소셜 로그아웃 API 가져오기
 
 // 회원 탈퇴 아이템을 찾아서 아이콘 교체
 const MENU_ITEMS = MENU_ITEMS_ORIGIN.map(item =>
@@ -15,124 +16,109 @@ const MENU_ITEMS = MENU_ITEMS_ORIGIN.map(item =>
 
 export default function MyPage() {
   const navigate = useNavigate();
-  
-  // Zustand 스토어 사용
-  const { 
-    user, 
-    isAuthenticated, 
-    isLoading, 
-    error, 
-    fetchUserInfo, 
-    logout, 
-    deleteUserAccount 
-  } = useAuthStore();
-  
-  const { openModal } = useUiStore();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [userInfo, setUserInfo] = useState(null);
 
-  // 컴포넌트 마운트 시 사용자 정보 로드
+  // 사용자 정보 불러오기
   useEffect(() => {
-    if (isAuthenticated) {
-      fetchUserInfo();
-    } else {
-      navigate('/login');
-    }
-  }, [isAuthenticated, fetchUserInfo, navigate]);
+    const fetchUserInfo = async () => {
+      try {
+        const response = await getMyInfo();
+        if (response?.data) {
+          setUserInfo(response.data);
+        }
+      } catch (err) {
+        console.error("사용자 정보 불러오기 실패:", err);
+      }
+    };
+
+    fetchUserInfo();
+  }, []);
 
   // 회원 탈퇴 처리
-  const handleWithdraw = () => {
-    openModal('error', {
-      title: '회원 탈퇴',
-      content: '정말 탈퇴하시겠습니까? 탈퇴하면 모든 데이터가 삭제됩니다!',
-      onConfirm: async () => {
-        try {
-          await deleteUserAccount();
-          openModal('success', {
-            title: '탈퇴 완료',
-            content: '회원 탈퇴가 완료되었습니다.',
-            onConfirm: () => navigate('/login')
-          });
-        } catch (err) {
-          openModal('error', {
-            title: '탈퇴 실패',
-            content: err.message || '회원 탈퇴 중 오류가 발생했습니다.',
-            onConfirm: () => null
-          });
-        }
-      }
-    });
+  const handleConfirm = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      // 회원 탈퇴 API 호출
+      await deleteAccount();
+      
+      // 로컬 스토리지에서 토큰 삭제
+      localStorage.removeItem('token');
+      
+      // 모달 닫기
+      setIsModalOpen(false);
+      
+      // 탈퇴 성공 메시지 표시 (선택적)
+      alert("회원 탈퇴가 완료되었습니다.");
+      
+      // 로그인 페이지로 이동
+      navigate('/login');
+    } catch (err) {
+      console.error("회원 탈퇴 실패:", err);
+      setError(err.response?.data?.message || "회원 탈퇴 중 오류가 발생했습니다.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // 로그아웃 처리
-  const handleLogout = async () => {
-    openModal('confirm', {
-      title: '로그아웃',
-      content: '로그아웃 하시겠습니까?',
-      onConfirm: async () => {
-      try {
-        await logout();
-        // '/login' 대신 '/'로 이동 (루트 경로가 로그인 페이지)
-        navigate('/', { replace: true });
-      } catch (err) {
-        navigate('/', { replace: true });
-      }
-    }
-  });
-};
+  const handleCancel = () => {
+    setIsModalOpen(false);
+  };
+
   const handleMenuClick = (item) => {
     if (item.id === 'withdraw') {
-      handleWithdraw();
+      setIsModalOpen(true);
     } else if (item.path) {
-      navigate(item.path, { state: { userInfo: user } });
+      navigate(item.path);
     }
   };
 
-  if (isLoading) {
-    return (
-      <main className="flex items-center justify-center min-h-screen bg-lightBg dark:bg-darkdark">
-        <div className="text-2xl text-lighttext dark:text-darktext">
-          사용자 정보를 불러오는 중...
-        </div>
-      </main>
-    );
-  }
-
-  if (error) {
-    return (
-      <main className="flex items-center justify-center min-h-screen bg-lightBg dark:bg-darkdark">
-        <div className="text-red-500">
-          {error}
-        </div>
-      </main>
-    );
-  }
+  const handleLogout = async () => {
+    try {
+      // 로그아웃 API 호출
+      await logout();
+      // 로컬 스토리지에서 토큰 삭제
+      localStorage.removeItem('token');
+      // 로그인 페이지로 이동
+      navigate('/');
+    } catch (err) {
+      console.error("로그아웃 실패:", err);
+      // API 호출이 실패하더라도 토큰은 삭제하고 로그인 페이지로 이동
+      localStorage.removeItem('token');
+      navigate('/');
+    }
+  };
 
   return (
     <main className="flex items-center justify-center min-h-screen bg-lightBg dark:bg-darkdark">
       <div className="w-full max-w-md relative pt-[100px] pb-6 flex flex-col gap-1 items-center bg-yl100 dark:bg-darktext rounded-3xl shadow-lg">
-       {/* 프로필 이미지: 카드 내부 상단 중앙 */}
+        {/* 프로필 이미지: 카드 내부 상단 중앙 */}
         <div className="absolute -top-[92px]">
           <div
             className="w-[184px] h-[184px] rounded-full overflow-hidden shadow-xl border-4"
             style={{ borderColor: "transparent" }}
           >
             <img
-              src={user?.profile || "/profile.png"}
+              src={userInfo?.profile || "/profile.png"}
               alt="프로필 이미지"
               className="w-full h-full object-cover"
-              onError={(e) => { e.target.src = "/profile.png"; }}
             />
           </div>
         </div>
         
         {/* 사용자 이름 표시 */}
-        {user && (
+        {userInfo && (
           <div className="text-center m-2">
-            <h2 className="text-xl font-bold text-lighttext dark:text-white">
-              {user.nickname || user.username || "사용자"}
+            <h2 className="text-xl font-bold text-lighttext dark:text-darkBg">
+              {userInfo.nickname || userInfo.username || "사용자"}
             </h2>
-            {user.email && (
+            {userInfo.email && (
               <p className="text-sm text-lighttext/60 dark:text-darkBg/60">
-                {user.email}
+                {userInfo.email}
               </p>
             )}
           </div>
@@ -171,6 +157,23 @@ export default function MyPage() {
           ))}
         </div>
       </div>
+      
+      {/* 회원 탈퇴 모달 */}
+      <Modal
+        isOpen={isModalOpen}
+        type="error"
+        title="회원 탈퇴"
+        content={
+          error 
+            ? `오류: ${error}` 
+            : "정말 탈퇴하시겠습니까? 탈퇴하면 모든 데이터가 삭제됩니다!"
+        }
+        confirmText={isLoading ? "처리 중..." : "탈퇴하기"}
+        cancelText="취소"
+        onConfirm={handleConfirm}
+        onCancel={handleCancel}
+        disabled={isLoading}
+      />
     </main>
   );
 }
