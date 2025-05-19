@@ -16,7 +16,12 @@ export default function OAuthCallback() {
     
     if (!code) {
       console.error("code가 없습니다");
-      navigate("/");
+      openModal('error', {
+        title: '로그인 오류',
+        content: '인증 코드가 없습니다.',
+        confirmText: '확인',
+        onConfirm: () => navigate("/")
+      });
       return;
     }
     
@@ -31,7 +36,12 @@ export default function OAuthCallback() {
     
     if (!provider) {
       console.error("provider를 알 수 없습니다");
-      navigate("/");
+      openModal('error', {
+        title: '로그인 오류',
+        content: '지원하지 않는 로그인 방식입니다.',
+        confirmText: '확인',
+        onConfirm: () => navigate("/")
+      });
       return;
     }
     
@@ -46,11 +56,17 @@ export default function OAuthCallback() {
         });
         
         if (success) {
-          navigate("/main");
+          openModal('success', {
+            title: '로그인 성공',
+            content: `${provider} 로그인에 성공했습니다.`,
+            confirmText: '확인',
+            onConfirm: () => navigate("/main")
+          });
         } else {
           openModal('error', {
             title: '로그인 실패',
             content: `${provider} 로그인에 실패했습니다. 다시 시도해주세요.`,
+            confirmText: '확인',
             onConfirm: () => navigate("/")
           });
         }
@@ -58,6 +74,7 @@ export default function OAuthCallback() {
         openModal('error', {
           title: '로그인 실패',
           content: `로그인 처리 중 오류가 발생했습니다: ${err.message}`,
+          confirmText: '확인',
           onConfirm: () => navigate("/")
         });
       }

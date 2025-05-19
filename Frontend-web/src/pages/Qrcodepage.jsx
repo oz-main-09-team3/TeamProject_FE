@@ -7,6 +7,7 @@ import BackButton from "../components/BackButton";
 import Button from "../components/Button";
 import FormInput from "../components/FormInput";
 import useUiStore from "../store/uiStore";
+import Modal from "../components/Modal";
 
 const FriendInviteSystem = () => {
   const [username, setUsername] = useState("");
@@ -16,6 +17,12 @@ const FriendInviteSystem = () => {
   const [inputCode, setInputCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [userLoading, setUserLoading] = useState(true);
+  
+  // 모달 상태 추가
+  const [isAddFriendModalOpen, setIsAddFriendModalOpen] = useState(false);
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
   
   const navigate = useNavigate();
   const { openModal } = useUiStore();
@@ -96,47 +103,37 @@ const FriendInviteSystem = () => {
 
   const handleAddFriend = () => {
     if (!inputCode.trim()) {
-      openModal('warning', {
-        title: "입력 오류",
-        content: "친구 코드를 입력해주세요.",
-        confirmText: "확인"
-      });
+      setModalMessage("친구 코드를 입력해주세요.");
+      setIsErrorModalOpen(true);
       return;
     }
     if (inputCode.trim().length < 3) {
-      openModal('error', {
-        title: "입력 오류",
-        content: "잘못된 코드입니다.",
-        confirmText: "확인"
-      });
+      setModalMessage("잘못된 코드입니다.");
+      setIsErrorModalOpen(true);
       return;
     }
     setPendingCode(inputCode);
-    openModal('info', {
-      title: "친구 추가",
-      content: `${inputCode}님을 친구로 추가하시겠습니까?`,
-      confirmText: "추가하기",
-      cancelText: "취소",
-      onConfirm: () => addFriendByCode(inputCode)
-    });
+    setIsAddFriendModalOpen(true);
   };
 
   const addFriendByCode = async (code) => {
     try {
+      // 코드 유효성 검사 추가
+      if (!code || typeof code !== 'string' || code.trim().length < 3) {
+        throw new Error('유효하지 않은 초대 코드입니다.');
+      }
+
       const payload = {
         invite_type: "qr",
-        invite_code: code
+        invite_code: code.trim()
       };
       
       console.log("친구 추가 요청:", payload);
       const response = await inviteFriend(payload);
       console.log("친구 추가 응답:", response);
       
-      openModal('success', {
-        title: "친구 추가 성공",
-        content: `${code}님을 친구로 추가했습니다.`,
-        confirmText: "확인"
-      });
+      setModalMessage(`${code}님을 친구로 추가했습니다.`);
+      setIsSuccessModalOpen(true);
     } catch (error) {
       console.error("친구 추가 실패 상세 정보:", {
         status: error.response?.status,
@@ -146,11 +143,18 @@ const FriendInviteSystem = () => {
         error: error
       });
       
-      openModal('error', {
-        title: "친구 추가 실패",
-        content: error.response?.data?.message || "친구 추가에 실패했습니다.",
-        confirmText: "확인"
-      });
+      let errorMessage = "친구 추가에 실패했습니다.";
+      
+      if (error.response?.status === 500) {
+        errorMessage = "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      setModalMessage(errorMessage);
+      setIsErrorModalOpen(true);
     }
   };
 
@@ -158,13 +162,7 @@ const FriendInviteSystem = () => {
     setShowScanner(false);
     setTimeout(() => {
       setPendingCode("scanned_code_123");
-      openModal('info', {
-        title: "친구 추가",
-        content: "스캔된 코드를 사용하시겠습니까?",
-        confirmText: "추가하기",
-        cancelText: "취소",
-        onConfirm: () => addFriendByCode(pendingCode)
-      });
+      setIsAddFriendModalOpen(true);
     }, 500);
   };
 
@@ -288,6 +286,41 @@ const FriendInviteSystem = () => {
           </div>
         </div>
       )}
+
+      {/* 모달들 */}
+      <Modal
+        isOpen={isAddFriendModalOpen}
+        onClose={() => setIsAddFriendModalOpen(false)}
+        title="친구 추가"
+        content={`${pendingCode}님을 친구로 추가하시겠습니까?`}
+        confirmText="추가하기"
+        cancelText="취소"
+        onConfirm={() => {
+          setIsAddFriendModalOpen(false);
+          addFriendByCode(pendingCode);
+        }}
+        onCancel={() => setIsAddFriendModalOpen(false)}
+      />
+
+      <Modal
+        isOpen={isErrorModalOpen}
+        onClose={() => setIsErrorModalOpen(false)}
+        title="오류"
+        content={modalMessage}
+        confirmText="확인"
+        onConfirm={() => setIsErrorModalOpen(false)}
+        type="error"
+      />
+
+      <Modal
+        isOpen={isSuccessModalOpen}
+        onClose={() => setIsSuccessModalOpen(false)}
+        title="성공"
+        content={modalMessage}
+        confirmText="확인"
+        onConfirm={() => setIsSuccessModalOpen(false)}
+        type="success"
+      />
     </main>
   );
 };
