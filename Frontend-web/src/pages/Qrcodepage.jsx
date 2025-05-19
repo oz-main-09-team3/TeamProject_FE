@@ -129,8 +129,7 @@ const FriendInviteSystem = () => {
       }
 
       const payload = {
-        invite_type: "qr",
-        invite_code: code.trim()
+        invite_code: `${code}_초대코드`
       };
       
       console.log("친구 추가 요청:", payload);
