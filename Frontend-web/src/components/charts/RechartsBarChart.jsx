@@ -1,5 +1,6 @@
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
+import { EMOJI_COLORS } from '../../constants/EmojiColors';
 
 /**
  * Recharts 라이브러리를 사용한 컬럼 차트 컴포넌트
@@ -18,6 +19,9 @@ const RechartsBarChart = ({
   isLoading = false,
   error = null
 }) => {
+  // 현재 월 가져오기 (0-11)
+  const currentMonth = new Date().getMonth();
+  
   // 데이터 변환 (Toast UI 차트 형식 → Recharts 형식)
   const transformData = (inputData) => {
     if (!inputData || !inputData.categories || !inputData.series || 
@@ -27,23 +31,14 @@ const RechartsBarChart = ({
     
     const { categories, series } = inputData;
     
-    // categories와 series 데이터를 결합하여 Recharts 형식으로 변환
-    return categories.map((category, index) => {
-      const dataItem = { name: category };
-      
-      // 각 시리즈의 데이터 추가
-      series.forEach(seriesItem => {
-        dataItem[seriesItem.name] = seriesItem.data[index];
-      });
-      
-      return dataItem;
-    });
+    return categories.map((category, index) => ({
+      name: category,
+      value: series[0].data[index],
+      color: series[0].colors?.[index] || '#568BFF'
+    }));
   };
   
   const chartData = transformData(data);
-  
-  // 차트 색상
-  const BAR_COLORS = ['#4B9CD3', '#7B68EE', '#20B2AA', '#FF7F50', '#9370DB'];
   
   // 커스텀 툴팁 컴포넌트
   const CustomTooltip = ({ active, payload, label }) => {
@@ -52,7 +47,7 @@ const RechartsBarChart = ({
         <div className="p-2 bg-yl100 dark:bg-darkBg shadow-lg rounded-md border border-lightGold dark:border-darkCopper">
           <p className="font-bold text-lighttext dark:text-darktext">{label}</p>
           {payload.map((entry, index) => (
-            <p key={index} style={{ color: entry.color }} className="text-lighttext dark:text-darktext">
+            <p key={index} style={{ color: entry.payload.color }} className="text-lighttext dark:text-darktext">
               {`${entry.name}: ${entry.value}개`}
             </p>
           ))}
@@ -60,6 +55,21 @@ const RechartsBarChart = ({
       );
     }
     return null;
+  };
+
+  // 커스텀 범례 컴포넌트
+  const CustomLegend = () => {
+    const currentMonthColor = EMOJI_COLORS[currentMonth + 1] || '#A9E8FF';
+    
+    return (
+      <div className="flex items-center justify-center gap-2 mt-4">
+        <div 
+          className="w-4 h-4 rounded-sm" 
+          style={{ backgroundColor: currentMonthColor }}
+        />
+        <span className="text-lighttext dark:text-darktext">일기 작성 횟수</span>
+      </div>
+    );
   };
 
   if (isLoading) {
@@ -85,9 +95,6 @@ const RechartsBarChart = ({
       </div>
     );
   }
-
-  // 데이터에서 시리즈 키 추출 (name 제외)
-  const seriesKeys = Object.keys(chartData[0] || {}).filter(key => key !== 'name');
 
   return (
     <div className="w-full">
@@ -116,16 +123,16 @@ const RechartsBarChart = ({
             label={{ value: '일기 수', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle' } }}
           />
           <Tooltip content={<CustomTooltip />} />
-          <Legend wrapperStyle={{ paddingTop: 10 }} />
-          
-          {seriesKeys.map((key, index) => (
-            <Bar 
-              key={key} 
-              dataKey={key} 
-              fill={BAR_COLORS[index % BAR_COLORS.length]} 
-              name={key}
-            />
-          ))}
+          <Legend content={<CustomLegend />} />
+          <Bar 
+            dataKey="value" 
+            name="일기 작성 횟수"
+            fill={EMOJI_COLORS[currentMonth + 1] || '#A9E8FF'}
+          >
+            {chartData.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={entry.color} />
+            ))}
+          </Bar>
         </BarChart>
       </ResponsiveContainer>
     </div>
