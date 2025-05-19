@@ -8,34 +8,29 @@ import { useNavigate } from "react-router-dom";
 import { fetchEmotions } from "../service/diaryApi";
 import { Helmet } from 'react-helmet-async';
 import { EMOJI_TEXT_MAP, getDefaultEmojis } from '../constants/Emoji';
-
+import useUiStore from '../store/uiStore'; 
 /**
  * 일기 작성 페이지 컴포넌트
  * @returns {JSX.Element} 일기 작성 페이지
  */
 const DiaryEditor = () => {
   const navigate = useNavigate();
-  const [isSavedModalOpen, setIsSavedModalOpen] = useState(false);
   const [moodOptions, setMoodOptions] = useState([]);
   const [isLoadingMoods, setIsLoadingMoods] = useState(true);
   const [moodError, setMoodError] = useState(null);
+  
+  // Zustand 스토어의 openModal 함수 가져오기
+  const { openModal } = useUiStore();
   
   // useDiaryEditor 훅을 사용하여 에디터 관련 로직 관리
   const {
     mood,
     isEditing,
-    isSaveModalOpen,
-    isCancelModalOpen,
     editorContainerRef,
     formatDate,
     handleMoodChange,
-    handleGoBack,
-    handleSave,
     handleConfirmSave,
-    handleCancelSave,
-    handleConfirmCancel,
-    handleCancelModalClose,
-    setIsSaveModalOpen,
+    editorRef
   } = useDiaryEditor();
 
   // 이모지 목록을 API에서 가져오기
@@ -80,29 +75,43 @@ const DiaryEditor = () => {
     fetchMoodOptions();
   }, []);
 
-  // 모달 닫기 핸들러 (뒤로가기)
-  const handleCancelModalCloseAndGoBack = () => {
-    handleCancelModalClose();
-    navigate(-1);
+  // 뒤로가기 버튼 클릭 시 실행
+  const handleGoBack = () => {
+    if (isEditing) {
+      openModal('warning', {
+        title: '작성을 취소하시겠습니까?',
+        content: '작성 중인 내용이 저장되지 않습니다.',
+        confirmText: '취소',
+        cancelText: '계속 작성',
+        onConfirm: () => navigate(-1),
+      });
+    } else {
+      navigate(-1);
+    }
   };
 
-  // 모달만 닫기
-  const handleOnlyCloseModal = () => {
-    handleCancelModalClose();
+  // 저장 버튼 클릭 시 실행
+  const handleSave = () => {
+    openModal('confirm', {
+      title: '저장하시겠습니까?',
+      content: '작성한 내용이 저장됩니다.',
+      confirmText: '저장',
+      cancelText: '취소',
+      onConfirm: handleConfirmSaveAndShowSaved,
+    });
   };
 
   // 저장 확인 모달에서 '저장' 클릭 시 실행
   const handleConfirmSaveAndShowSaved = async () => {
     const saveSuccess = await handleConfirmSave();
     if (saveSuccess) {
-      setIsSavedModalOpen(true);
+      openModal('success', {
+        title: '저장 완료',
+        content: '저장되었습니다.',
+        confirmText: '확인',
+        onConfirm: () => navigate('/main'),
+      });
     }
-  };
-
-  // 저장 완료 모달 닫고 메인페이지로 이동
-  const handleCloseSavedModal = () => {
-    setIsSavedModalOpen(false);
-    navigate('/main'); // 메인페이지로 이동
   };
 
   // 선택된 mood의 텍스트 찾기
@@ -113,7 +122,7 @@ const DiaryEditor = () => {
   };
 
   return (
-   <>
+    <>
       <Helmet>
         <title>일기 작성 - 멋쟁이 감자</title>
         <meta name="description" content="감자의 새로운 일기를 작성해보세요!" />
@@ -136,7 +145,7 @@ const DiaryEditor = () => {
                 <div className="flex gap-2">
                   <button
                     className="w-10 h-10 bg-lightYellow dark:bg-darkCopper dark:text-darktext rounded-full flex items-center justify-center hover:bg-lightYellow/80 dark:hover:bg-darkCopper/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    onClick={() => setIsSaveModalOpen(true)}
+                    onClick={handleSave}
                     disabled={!isEditing || !mood}
                   >
                     <Save className="w-5 h-5" />
@@ -184,41 +193,10 @@ const DiaryEditor = () => {
           </div>
         </div>
 
-        {/* 모달들 */}
-        <Modal
-          isOpen={isSaveModalOpen}
-          onClose={() => setIsSaveModalOpen(false)}
-          title="저장하시겠습니까?"
-          content="작성한 내용이 저장됩니다."
-          confirmText="저장"
-          cancelText="취소"
-          onConfirm={handleConfirmSaveAndShowSaved}
-          onCancel={() => setIsSaveModalOpen(false)}
-        />
-
-        <Modal
-          isOpen={isCancelModalOpen}
-          onClose={handleOnlyCloseModal}
-          title="작성을 취소하시겠습니까?"
-          content="작성 중인 내용이 저장되지 않습니다."
-          confirmText="취소"
-          cancelText="계속 작성"
-          onConfirm={handleCancelModalCloseAndGoBack}
-          onCancel={handleOnlyCloseModal}
-          isDanger={true}
-        />
-
-        <Modal
-          isOpen={isSavedModalOpen}
-          onClose={handleCloseSavedModal}
-          title="저장 완료"
-          content="저장되었습니다."
-          confirmText="확인"
-          cancelText=""
-          onConfirm={handleCloseSavedModal}
-          onCancel={handleCloseSavedModal}
-          type="success"
-        />
+        {/* 모달 컴포넌트 */}
+        <Modal type="success" />
+        <Modal type="warning" />
+        <Modal type="confirm" />
       </div>
     </>
   );
