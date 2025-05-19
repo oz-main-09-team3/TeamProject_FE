@@ -1,12 +1,12 @@
 import { useReducer, useRef, useState, useEffect } from "react";
 import { Camera, ChevronLeft } from "lucide-react";
 import ColorThief from 'colorthief';
-import Modal from '../components/Modal';
 import { useNavigate, useLocation } from "react-router-dom";
 import { updateMyInfo, getMyInfo } from "../service/userApi";
 import BackButton from "../components/BackButton";
 import Button from "../components/Button";
 import FormInput from "../components/FormInput";
+import useUiStore from "../store/uiStore";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -17,6 +17,7 @@ function reducer(state, action) {
 export default function EditUserInfo() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { openModal } = useUiStore();
   
   const receivedUserInfo = location.state?.userInfo;
   console.log("[EditUserInfo.jsx] location.state?.userInfo:", receivedUserInfo);
@@ -45,9 +46,6 @@ export default function EditUserInfo() {
   const [emailError, setEmailError] = useState('');
   const [phoneError, setPhoneError] = useState('');
   const [birthdateError, setBirthdateError] = useState('');
-  const [showModal, setShowModal] = useState(false);
-  const [modalMessage, setModalMessage] = useState('');
-  const [modalType, setModalType] = useState('warning');
   const [profileImageFile, setProfileImageFile] = useState(null);
   const [profileImageUrl, setProfileImageUrl] = useState(receivedUserInfo?.profile_image || "/profile.png");
   const fileInputRef = useRef(null);
@@ -170,58 +168,96 @@ export default function EditUserInfo() {
     e.preventDefault();
     
     if (phoneError) {
-      setModalMessage('전화번호 형식이 올바르지 않습니다.');
-      setModalType('warning');
-      setShowModal(true);
+      openModal('warning', {
+        title: '입력 오류',
+        content: '전화번호 형식이 올바르지 않습니다.',
+        confirmText: '확인'
+      });
       return;
     }
     if (emailError) {
-      setModalMessage('이메일 형식이 올바르지 않습니다.');
-      setModalType('warning');
-      setShowModal(true);
+      openModal('warning', {
+        title: '입력 오류',
+        content: '이메일 형식이 올바르지 않습니다.',
+        confirmText: '확인'
+      });
       return;
     }
     if (birthdateError) {
-      setModalMessage('생년월일이 올바르지 않습니다.');
-      setModalType('warning');
-      setShowModal(true);
+      openModal('warning', {
+        title: '입력 오류',
+        content: '생년월일이 올바르지 않습니다.',
+        confirmText: '확인'
+      });
       return;
     }
 
     try {
       const updateData = {
-        nickname: state.nickname,
-        phone_num: state.phone_number,
+        username: state.nickname,
+        phone_number: state.phone_number.replace(/-/g, ''),
         email: state.email,
-        birthday: state.birth_date,
+        birth_date: state.birth_date,
       };
       
       if (profileImageFile) {
         const reader = new FileReader();
         reader.onloadend = async () => {
-          updateData.profile = reader.result.split(',')[1]; 
-          
-          const response = await updateMyInfo(updateData);
-          console.log("Update response:", response);
-          
-          setModalMessage('저장되었습니다.');
-          setModalType('success');
-          setShowModal(true);
+          try {
+            updateData.profile_image = reader.result.split(',')[1];
+            const response = await updateMyInfo(updateData);
+            console.log("Update response:", response);
+            
+            openModal('success', {
+              title: '완료',
+              content: '저장되었습니다.',
+              confirmText: '확인',
+              onConfirm: () => navigate('/mypage/info')
+            });
+          } catch (error) {
+            console.error("Failed to update user info with image:", error);
+            openModal('error', {
+              title: '오류',
+              content: error.response?.data?.message || '정보 수정에 실패했습니다. 다시 시도해주세요.',
+              confirmText: '확인'
+            });
+          }
+        };
+        reader.onerror = () => {
+          openModal('error', {
+            title: '오류',
+            content: '이미지 파일을 읽는데 실패했습니다.',
+            confirmText: '확인'
+          });
         };
         reader.readAsDataURL(profileImageFile);
       } else {
-        const response = await updateMyInfo(updateData);
-        console.log("Update response:", response);
-        
-        setModalMessage('저장되었습니다.');
-        setModalType('success');
-        setShowModal(true);
+        try {
+          const response = await updateMyInfo(updateData);
+          console.log("Update response:", response);
+          
+          openModal('success', {
+            title: '완료',
+            content: '저장되었습니다.',
+            confirmText: '확인',
+            onConfirm: () => navigate('/mypage/info')
+          });
+        } catch (error) {
+          console.error("Failed to update user info:", error);
+          openModal('error', {
+            title: '오류',
+            content: error.response?.data?.message || '정보 수정에 실패했습니다. 다시 시도해주세요.',
+            confirmText: '확인'
+          });
+        }
       }
     } catch (error) {
       console.error("Failed to update user info:", error);
-      setModalMessage('정보 수정에 실패했습니다. 다시 시도해주세요.');
-      setModalType('warning');
-      setShowModal(true);
+      openModal('error', {
+        title: '오류',
+        content: error.response?.data?.message || '정보 수정에 실패했습니다. 다시 시도해주세요.',
+        confirmText: '확인'
+      });
     }
   };
 
@@ -251,13 +287,6 @@ export default function EditUserInfo() {
         };
       };
       reader.readAsDataURL(file);
-    }
-  };
-
-  const closeModal = () => {
-    setShowModal(false);
-    if (modalType === 'success') {
-      navigate('/mypage/info');
     }
   };
 
@@ -347,16 +376,6 @@ export default function EditUserInfo() {
           </form>
         </div>
       </main>
-
-      <Modal
-        isOpen={showModal}
-        onClose={closeModal}
-        title={modalType === 'success' ? '완료' : '입력 오류'}
-        content={modalMessage}
-        confirmText="확인"
-        onConfirm={closeModal}
-        type={modalType}
-      />
     </>
   );
 }
