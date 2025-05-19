@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
-import useComments from "../hooks/useComments";
 import { formatDate } from "../utils/dateUtils";
 import Comment from "../components/diary/Comment";
 import { ChevronLeft, Send } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { fetchFriendDiaryDetail } from "../service/friendDiaryApi";
+import useComments from "../hooks/useComments"; // 커스텀 훅 import
 
 const FriendDiaryView = () => {
   const navigate = useNavigate();
@@ -19,16 +19,22 @@ const FriendDiaryView = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [imageUrl, setImageUrl] = useState(''); // 이미지 URL 상태 추가
+  
+  // 좋아요 상태 관리
+  const [likedComments, setLikedComments] = useState({});
 
+  // useComments 훅 사용
   const {
-    fetchCommentData,
     comments,
+    loading: commentsLoading,
     newComment,
     setNewComment,
-    handleSubmitComment,
-  } = useComments(friendId, diaryId); // 친구 다이어리용 API 연동
-
-  const [likedComments, setLikedComments] = useState({});
+    setInitialComments,
+    handleLikeComment,
+    handleUpdateComment,
+    handleDeleteComment,
+    handleSubmitComment
+  } = useComments(friendId, diaryId);
 
   const handleGoBack = () => {
     navigate(-1);
@@ -39,6 +45,9 @@ const FriendDiaryView = () => {
       ...prev,
       [commentId]: !prev[commentId],
     }));
+    
+    // 좋아요 토글 함수 호출
+    handleLikeComment(commentId);
   };
   
   // 이모지 이미지 URL을 완전한 URL로 변환
@@ -74,6 +83,12 @@ const FriendDiaryView = () => {
         setDiary(response.data);
         console.log("다이어리 상세 정보 로드 완료:", response.data);
         
+        // 댓글 데이터를 커스텀 훅으로 전달
+        if (response.data.comments && Array.isArray(response.data.comments)) {
+          console.log("다이어리에서 댓글 데이터 추출:", response.data.comments);
+          setInitialComments(response.data.comments);
+        }
+        
         // emotion 객체 확인 및 로깅
         if (response.data.emotion) {
           console.log("이모션 정보:", response.data.emotion);
@@ -106,26 +121,9 @@ const FriendDiaryView = () => {
       return;
     }
     
-    // 일기 상세 정보 로드
+    // 일기 상세 정보 로드 (댓글 포함)
     fetchDiaryDetail();
-    
-    // 댓글 정보 로드
-    console.log("댓글 불러오기 요청 시도");
-    fetchCommentData()
-      .then(() => console.log("댓글 불러오기 완료"))
-      .catch((err) => console.error("❌ 댓글 불러오기 실패:", err));
-  }, [fetchCommentData, friendId, diaryId]);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    console.log("댓글 등록 시도:", newComment);
-    try {
-      await handleSubmitComment(e);
-      console.log("댓글 등록 완료");
-    } catch (err) {
-      console.error("❌ 댓글 등록 실패:", err);
-    }
-  };
+  }, [friendId, diaryId]);
 
   // 로딩 상태 표시
   if (loading) {
@@ -201,8 +199,8 @@ const FriendDiaryView = () => {
             <div className="md:w-1/3 w-full flex flex-col gap-4 border-t md:border-t-0 md:border-l dark:text- border-lightGold dark:border-darkCopper pt-6 md:pt-0 md:pl-5 bg-yl100 dark:bg-darktext">
               <h3 className="text-lg font-medium dark:text-darkBg">댓글</h3>
 
-              {/* 댓글 입력 */}
-              <form onSubmit={handleSubmit} className="mb-4">
+              {/* 댓글 입력 - 커스텀 훅의 함수 사용 */}
+              <form onSubmit={handleSubmitComment} className="mb-4">
                 <div className="flex gap-2">
                   <input
                     type="text"
@@ -210,11 +208,15 @@ const FriendDiaryView = () => {
                     onChange={(e) => setNewComment(e.target.value)}
                     placeholder="댓글을 입력하세요..."
                     className="flex-1 px-4 py-2 rounded-full bg-white text-lighttext dark:text-darkbg focus:outline-none focus:ring-2 focus:ring-lightGold dark:focus:ring-darkOrange border border-white"
+                    disabled={commentsLoading}
                   />
                   <button
                     type="submit"
-                    className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-darkOrange/80 transition-colors"
+                    className={`p-2 rounded-full hover:bg-gray-100 dark:hover:bg-darkOrange/80 transition-colors ${
+                      commentsLoading ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
                     title="댓글 작성"
+                    disabled={commentsLoading}
                   >
                     <Send className="w-4 h-4 text-gray-500 dark:text-gray-800" />
                   </button>
@@ -226,15 +228,18 @@ const FriendDiaryView = () => {
                 {comments.length > 0 ? (
                   comments.map((comment) => (
                     <Comment
-                      key={comment.comment_id}
-                      diaryId={diaryId}
-                      comment={comment}
-                      likedComments={likedComments}
-                      changeLikeButtonColor={changeLikeButtonColor}
-                    />
+  key={comment.id || comment.comment_id}
+  diaryId={diaryId}
+  friendId={friendId}  // friendId 추가
+  comment={comment}
+  likedComments={likedComments}
+  changeLikeButtonColor={changeLikeButtonColor}
+  onUpdateComment={handleUpdateComment}
+  onDeleteComment={(commentId) => handleDeleteComment(commentId, diaryId, friendId)}
+/>
                   ))
                 ) : (
-                  <div className="text-center text-gray-500 py-4">
+                  <div className="text-center text-gray-500 py-8">
                     아직 댓글이 없습니다.
                   </div>
                 )}

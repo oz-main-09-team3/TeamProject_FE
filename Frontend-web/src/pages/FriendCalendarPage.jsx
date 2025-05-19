@@ -51,13 +51,12 @@ function FriendCalendarPage() {
   };
 
   // 이모지 경로 생성 함수 - RowCard에서 사용할 경로
-  const getEmojiImagePath = (emojiFileName) => {
-    if (!emojiFileName) return "/images/emotions/default.png";
-    // 이미 전체 경로인 경우 그대로 사용
-    if (emojiFileName.startsWith("/")) return emojiFileName;
-    // 파일명만 있는 경우 이모션 이미지 경로 추가
-    return `/images/emotions/${emojiFileName}`;
-  };
+const getEmojiImagePath = (emojiFileName) => {
+  if (!emojiFileName) return "https://handsomepotato.p-e.kr/static/emotions/default.png";
+    if (emojiFileName.startsWith("http")) return emojiFileName;
+    if (emojiFileName.startsWith("/")) return `https://handsomepotato.p-e.kr${emojiFileName}`;
+    return `https://handsomepotato.p-e.kr/static/emotions/${emojiFileName}`;
+};
 
   // 일기 내용을 적절한 길이로 잘라서 반환하는 함수
   const truncateContent = (content, maxLength = 30) => {
@@ -74,17 +73,14 @@ function FriendCalendarPage() {
         setFriendId(friendId);
         
         try {
-          console.log("친구 캘린더 페이지 데이터 로딩 시작");
-          
           // 이모션 데이터와 캘린더 데이터 병렬로 로드
-          const [emotionsResult, calendarResult] = await Promise.all([
-            fetchEmotions(),
-            fetchFriendCalendar(friendId)
-          ]);
+          const calendarResponse = await fetchFriendCalendar(friendId);
           
-          console.log("이모션 데이터 로드 완료:", emotionsResult);
-          console.log("캘린더 데이터 로드 완료:", calendarResult);
-          console.log("현재 필터링된 일기 목록:", filteredDiaries.length, "개");
+          // API 응답만 콘솔에 출력
+          console.log("fetchFriendCalendar API 응답:", calendarResponse);
+          
+          // 이모션 데이터 로드
+          await fetchEmotions();
           
         } catch (error) {
           console.error("데이터 로딩 중 오류 발생:", error);
@@ -131,15 +127,6 @@ function FriendCalendarPage() {
 
   // 캘린더 컴포넌트에 전달할 변환된 다이어리 데이터
   const transformedDiaries = transformDiariesForCalendar(diaries);
-
-  // 로깅 추가 - 현재 상태 확인
-  console.log('현재 페이지 상태:', {
-    'diaries 길이': diaries.length,
-    '변환된 diaries 길이': transformedDiaries.length,
-    'filteredDiaries 길이': filteredDiaries.length,
-    '선택된 날짜': selectedDate,
-    '이모션 맵 키 개수': Object.keys(emotions).length
-  });
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center transition-colors duration-300">
@@ -190,9 +177,6 @@ function FriendCalendarPage() {
                 // diary 객체가 유효한지 확인
                 if (!diary) return null;
                 
-                // 각 다이어리 데이터 로깅
-                console.log('다이어리 항목 렌더링:', diary);
-                
                 // API 응답에 따라 다른 속성 사용
                 const diaryId = diary.diary_id || diary.id;
                 // content가 있으면 content, 없으면 title 사용
@@ -207,14 +191,6 @@ function FriendCalendarPage() {
                 // emotion 객체가 있으면 emotion.emoji 사용, 없으면 diary.emoji 사용
                 const emojiFile = diary.emotion?.emoji || diary.emoji || "default.png";
                 const emojiPath = getEmojiImagePath(emojiFile);
-                
-                // 로깅 - 이모지 경로 확인
-                console.log('이모지 정보:', {
-                  'emotion 객체': diary.emotion,
-                  'emoji 필드': diary.emoji,
-                  '사용된 이모지 파일': emojiFile,
-                  '최종 이모지 경로': emojiPath
-                });
                 
                 return (
                   <div key={diaryId} className="mb-2">
