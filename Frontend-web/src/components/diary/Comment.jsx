@@ -1,20 +1,20 @@
 import React from "react";
 import { Heart } from "lucide-react";
-import useComments from "../../hooks/useComments";
+// useComments 훅 import 제거 - 더 이상 여기서는 필요하지 않음
 
-const Comment = ({
-  comment,
-  diaryId,
-  likedComments,
-  changeLikeButtonColor,
-}) => {
-  const { handleLikeComment, handleDeleteComment } = useComments();
+const Comment = ({ comment, diaryId, friendId, likedComments, changeLikeButtonColor, onDeleteComment }) => {
+  // useComments 훅 호출 제거
+
   function handleClickLikeButton(commentId) {
-    //ui 업데이트 -> 페이지에서만 관리
     changeLikeButtonColor(commentId);
-    //좋아요 등록 (api 호출) -> hook에서 관리
-    handleLikeComment(commentId);
   }
+
+  function handleClickDeleteButton(commentId) {
+    if (window.confirm("댓글을 삭제하시겠습니까?")) {
+      onDeleteComment(commentId); // 부모 컴포넌트에서 전달받은 함수 사용
+    }
+  }
+  
   return (
     <div key={comment.comment_id} className="mb-4">
       <div className="flex items-start gap-2">
@@ -32,7 +32,7 @@ const Comment = ({
           </p>
           <div className="flex items-center gap-4">
             <button
-              onClick={() => handleClickLikeButton(comment.comment_id, diaryId)}
+              onClick={() => handleClickLikeButton(comment.comment_id)}
               className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-darkOrange/80 transition-colors"
               title={
                 likedComments[comment.comment_id] ? "좋아요 취소" : "좋아요"
@@ -47,7 +47,7 @@ const Comment = ({
               />
             </button>
             <button
-              onClick={() => handleDeleteComment(comment.comment_id, diaryId)}
+              onClick={() => handleClickDeleteButton(comment.comment_id)}
               className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-darkOrange/80 transition-colors"
             >
               삭제
@@ -60,4 +60,3 @@ const Comment = ({
 };
 
 export default Comment;
-

@@ -1,9 +1,5 @@
 import api from "./axios";
 
-// 친구 다이어리 댓글 목록 조회
-export const fetchFriendComments = (friendId, diaryId) =>
-  api.get(`/api/frienddiary/${friendId}/diary/${diaryId}/comments/`);
-
 // 댓글 작성
 export const createFriendComment = (friendId, diaryId, payload) =>
   api.post(`/api/frienddiary/${friendId}/diary/${diaryId}/comments/`, payload);
