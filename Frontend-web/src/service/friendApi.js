@@ -17,7 +17,7 @@ export const generateQRCode = (username) =>
 
 // 친구 초대 (QR 코드 데이터 등 페이로드로 전달)
 export const inviteFriend = (payload) =>
-  api.post("/api/friends/invite/", payload);
+  api.post("/api/qrcode/qr-invite/", payload);
 
 // 친구 요청 수락
 export const acceptFriend = (friendId) =>
