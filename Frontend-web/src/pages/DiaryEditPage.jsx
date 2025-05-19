@@ -5,10 +5,12 @@ import MoodButton from "../components/diary/MoodButton";
 import Modal from "../components/Modal";
 import { ChevronLeft, Save } from "lucide-react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { fetchEmotions, updateDiary } from "../service/diaryApi";
+import { fetchEmotions } from "../service/diaryApi";
 import { Helmet } from 'react-helmet-async';
 import { EMOJI_TEXT_MAP, getDefaultEmojis } from '../constants/Emoji';
-import useUiStore from '../store/uiStore'; // Zustand 스토어 import
+import useUiStore from '../store/uiStore';
+import useDiaryStore from '../store/diaryStore';
+import { getEmojiSrc } from "../utils/emojiUtils";
 
 /**
  * 일기 수정 페이지 컴포넌트
@@ -16,102 +18,159 @@ import useUiStore from '../store/uiStore'; // Zustand 스토어 import
  */
 const DiaryEditPage = () => {
   const navigate = useNavigate();
-  const { id } = useParams();
   const location = useLocation();
+  const { id: urlId } = useParams();
   
-  // Zustand 스토어의 openModal 함수 가져오기
+  // Zustand 스토어
   const { openModal } = useUiStore();
+  const { fetchDiary, updateDiary, currentDiary, isLoading: diaryLoading } = useDiaryStore();
   
   // Refs
   const editorRef = useRef(null);
   const editorContainerRef = useRef(null);
   
-  // 상태 관리 - mood를 문자열로 관리 (DiaryEditor와 동일)
+  // 상태 관리
   const [mood, setMood] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [moodOptions, setMoodOptions] = useState([]);
   const [isLoadingMoods, setIsLoadingMoods] = useState(true);
   const [moodError, setMoodError] = useState(null);
-  
-  // location.state에서 초기 내용 가져오기
-  const diary = location.state?.diary;
-  const initialContent = diary?.content || '';
-  // emotion은 객체이므로 id를 추출하고 문자열로 변환
-  const initialMood = diary?.emotion?.id ? String(diary.emotion.id) : '';
+  const [diaryId, setDiaryId] = useState(null);
+  const [editorValue, setEditorValue] = useState('');
+  const [date, setDate] = useState('');
 
-  // 날짜 포맷
-  const formatDate = () => {
-    return new Date().toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      weekday: 'long'
-    });
-  };
-
-  // 에디터 초기화 - useDiaryEditor의 방식 사용
+  // ID 설정 및 유효성 검사
   useEffect(() => {
-    if (!editorContainerRef.current) return;
+    const stateId = location.state?.diary?.id || location.state?.diary?.diary_id;
+    const finalId = urlId || stateId;
 
-    // 기존 에디터가 있으면 제거
-    if (editorRef.current) {
+    console.log('=== ID Debug ===');
+    console.log('URL ID:', urlId);
+    console.log('State ID:', stateId);
+    console.log('Final ID:', finalId);
+    console.log('Location State:', location.state);
+
+    if (!finalId) {
+      console.error('No valid diary ID found');
+      openModal('error', {
+        title: '오류',
+        content: '일기 정보를 찾을 수 없습니다.',
+        confirmText: '확인',
+        onConfirm: () => navigate('/main')
+      });
+      return;
+    }
+
+    setDiaryId(finalId);
+
+    // URL이 undefined를 포함하고 있으면 올바른 URL로 리다이렉트
+    if (window.location.pathname.includes('undefined')) {
+      navigate(`/diary/edit/${finalId}`, { 
+        replace: true,
+        state: location.state // 기존 state 유지
+      });
+    }
+  }, [urlId, location.state, navigate, openModal]);
+
+  // 일기 데이터 가져오기
+  useEffect(() => {
+    const loadDiary = async () => {
+      if (!diaryId) return;
+
       try {
-        editorRef.current.destroy();
+        console.log('Fetching diary with ID:', diaryId);
+        const diaryData = await fetchDiary(diaryId);
+        console.log('Fetched diary data:', diaryData);
+        
+        if (!diaryData) {
+          throw new Error('일기를 찾을 수 없습니다.');
+        }
+
+        // 일기 데이터가 있으면 mood 설정
+        if (diaryData.emotionId) {
+          console.log('Setting mood to:', diaryData.emotionId);
+          setMood(String(diaryData.emotionId));
+        }
+
+        setEditorValue(diaryData.content || '');
+        setDate(formatDate(diaryData.date));
       } catch (error) {
-        console.error('Error destroying editor:', error);
+        console.error('Error loading diary:', error);
+        openModal('error', {
+          title: '오류',
+          content: error.message || '일기를 불러오는데 실패했습니다.',
+          confirmText: '확인',
+          onConfirm: () => navigate('/main')
+        });
       }
-    }
+    };
 
-    try {
-      editorRef.current = new Editor({
-        el: editorContainerRef.current,
-        height: '400px',
-        initialEditType: 'wysiwyg',
-        previewStyle: 'vertical',
-        initialValue: initialContent,
-        placeholder: '내용을 수정해주세요...',
-        viewer: false,
-        toolbarItems: [
-          ['heading', 'bold', 'italic', 'strike'],
-          ['hr', 'quote'],
-          ['ul', 'ol', 'task'],
-          ['code', 'codeblock']
-        ]
-      });
+    loadDiary();
+  }, [diaryId, fetchDiary, navigate, openModal]);
 
-      // 에디터 변경 시 편집 중 상태로 변경
-      editorRef.current.on('change', () => {
-        setIsEditing(true);
-      });
+  // 에디터 초기화
+  useEffect(() => {
+    let editor = null;
 
-    } catch (error) {
-      console.error('Error initializing editor:', error);
-    }
+    const initializeEditor = () => {
+      if (!editorContainerRef.current || !currentDiary) return;
+
+      console.log('Initializing editor with content:', currentDiary.content);
+
+      try {
+        // 기존 에디터가 있으면 제거
+        if (editorRef.current) {
+          try {
+            editorRef.current.destroy();
+            editorRef.current = null;
+          } catch (error) {
+            console.error('Error destroying editor:', error);
+          }
+        }
+
+        // 새 에디터 인스턴스 생성
+        editor = new Editor({
+          el: editorContainerRef.current,
+          height: '400px',
+          initialEditType: 'wysiwyg',
+          previewStyle: 'vertical',
+          initialValue: currentDiary.content || '',
+          placeholder: '내용을 수정해주세요...',
+          viewer: false,
+          toolbarItems: [
+            ['heading', 'bold', 'italic', 'strike'],
+            ['hr', 'quote'],
+            ['ul', 'ol', 'task'],
+            ['code', 'codeblock']
+          ]
+        });
+
+        // 에디터 변경 시 편집 중 상태로 변경
+        editor.on('change', () => {
+          setIsEditing(true);
+        });
+
+        editorRef.current = editor;
+      } catch (error) {
+        console.error('Error initializing editor:', error);
+      }
+    };
+
+    // 에디터 초기화 실행
+    initializeEditor();
 
     // cleanup 함수
     return () => {
       if (editorRef.current) {
         try {
           editorRef.current.destroy();
+          editorRef.current = null;
         } catch (error) {
           console.error('Error destroying editor:', error);
         }
       }
     };
-  }, [initialContent]); // initialContent가 변경될 때만 재초기화
-
-  // 초기 mood 설정
-  useEffect(() => {
-    console.log('=== Initial mood setup ===');
-    console.log('Full diary data:', diary);
-    console.log('Diary emotion:', diary?.emotion);
-    console.log('Initial mood value:', initialMood, '(type:', typeof initialMood, ')');
-    
-    if (initialMood) {
-      setMood(initialMood);
-      console.log('Initial mood set to:', initialMood);
-    }
-  }, [initialMood]);
+  }, [currentDiary]);
 
   // 이모지 목록을 API에서 가져오기
   useEffect(() => {
@@ -174,12 +233,24 @@ const DiaryEditPage = () => {
   // 수정 저장 함수
   const handleUpdateDiary = async () => {
     console.log('=== handleUpdateDiary called ===');
-    console.log('Current editorRef:', editorRef.current);
-    console.log('Current mood value:', mood, '(type:', typeof mood, ')');
     
     if (!editorRef.current) {
       console.error('Editor not ready');
-      alert('에디터가 준비되지 않았습니다.');
+      openModal('error', {
+        title: '오류',
+        content: '에디터가 준비되지 않았습니다.',
+        confirmText: '확인'
+      });
+      return false;
+    }
+
+    if (!diaryId) {
+      console.error('Diary ID not found');
+      openModal('error', {
+        title: '오류',
+        content: '일기 정보를 찾을 수 없습니다.',
+        confirmText: '확인'
+      });
       return false;
     }
     
@@ -188,24 +259,26 @@ const DiaryEditPage = () => {
       console.log('Editor content retrieved:', content.substring(0, 50) + '...');
       
       if (!mood) {
-        console.log('No mood selected, showing alert');
-        alert('기분을 선택해주세요.');
+        console.log('No mood selected');
+        openModal('error', {
+          title: '오류',
+          content: '기분을 선택해주세요.',
+          confirmText: '확인'
+        });
         return false;
       }
-      
-      console.log('Converting mood to number:', mood, '->', Number(mood));
       
       const diaryData = {
         emotion_id: Number(mood),
         content: content,
+        date: date
       };
       
       console.log('=== Data to be sent ===');
       console.log('diaryData:', JSON.stringify(diaryData, null, 2));
-      console.log('emotion_id type:', typeof diaryData.emotion_id);
-      console.log('Calling updateDiary with ID:', id);
+      console.log('Calling updateDiary with ID:', diaryId);
       
-      const response = await updateDiary(id, diaryData);
+      const response = await updateDiary(diaryId, diaryData);
       console.log('=== Update response ===');
       console.log('Response:', response);
       
@@ -217,7 +290,11 @@ const DiaryEditPage = () => {
       console.error('Error data:', error.response?.data);
       console.error('Error message:', error.response?.data?.message);
       
-      alert(error.response?.data?.message || '일기 수정에 실패했습니다.');
+      openModal('error', {
+        title: '오류',
+        content: error.response?.data?.message || '일기 수정에 실패했습니다.',
+        confirmText: '확인'
+      });
       return false; 
     }
   };
@@ -266,6 +343,24 @@ const DiaryEditPage = () => {
     return EMOJI_TEXT_MAP[Number(mood)] || '없음';
   };
 
+  // 날짜 포맷팅 함수 추가
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    
+    // 이미 포맷팅된 날짜인 경우 (YYYY. MM. DD. 형식)
+    if (dateString.includes('.')) {
+      return dateString;
+    }
+    
+    // ISO 문자열이나 Date 객체인 경우
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return '';
+    }
+    
+    return `${date.getFullYear()}. ${String(date.getMonth() + 1).padStart(2, '0')}. ${String(date.getDate()).padStart(2, '0')}.`;
+  };
+
   return (
    <>
       <Helmet>
@@ -299,7 +394,7 @@ const DiaryEditPage = () => {
 
               {/* 날짜와 상태 표시 */}
               <div className="flex justify-between items-center mb-4">
-                <div className="text-2xl font-bold dark:text-darkBg">{formatDate()}</div>
+                <div className="text-2xl font-bold dark:text-darkBg">{date}</div>
                 <div className="edit-diary-status">수정 중...</div>
               </div>
 

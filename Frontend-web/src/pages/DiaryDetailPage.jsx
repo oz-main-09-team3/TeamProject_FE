@@ -26,40 +26,106 @@ const DiaryDetailPage = () => {
   // 일기 데이터 불러오기
   useEffect(() => {
     const loadDiaryData = async () => {
-      if (id) {
-        await fetchDiary(id);
-      } else if (location.state?.diary) {
-        // 경로 파라미터에 ID가 없지만 location state에 diary 객체가 있는 경우
-        const diaryId = location.state.diary.id || location.state.diary.diary_id;
-        if (diaryId) {
-          await fetchDiary(diaryId);
-        } else {
-          // diary 객체는 있지만 ID가 없는 경우
-          navigate('/main');
+      try {
+        const diaryId = id || location.state?.diary?.id || location.state?.diary?.diary_id;
+        console.log('=== Loading Diary Data ===');
+        console.log('URL ID:', id);
+        console.log('State Diary:', location.state?.diary);
+        console.log('Diary ID to fetch:', diaryId);
+
+        if (!diaryId) {
+          console.error('No diary ID found');
+          openModal('error', {
+            title: '오류',
+            content: '일기 정보를 찾을 수 없습니다.',
+            confirmText: '확인',
+            onConfirm: () => navigate('/main')
+          });
+          return;
         }
-      } else {
-        // 어떤 일기 정보도 없는 경우
-        navigate('/main');
+
+        const diaryData = await fetchDiary(diaryId);
+        console.log('Fetched diary data:', diaryData);
+        
+        // ID가 없는 경우 location.state의 ID를 사용
+        if (!diaryData.id && !diaryData.diary_id) {
+          diaryData.id = diaryId;
+          diaryData.diary_id = diaryId;
+        }
+      } catch (error) {
+        console.error('Error loading diary:', error);
+        openModal('error', {
+          title: '오류',
+          content: '일기를 불러오는데 실패했습니다.',
+          confirmText: '확인',
+          onConfirm: () => navigate('/main')
+        });
       }
     };
     
     loadDiaryData();
-  }, [id, location.state, fetchDiary, navigate]);
+  }, [id, location.state, fetchDiary, navigate, openModal]);
 
   const handleGoBack = () => {
     navigate(-1);
   };
 
   const handleEdit = () => {
-    if (!currentDiary) return;
+    console.log('=== Edit Button Clicked ===');
+    console.log('Current Diary:', currentDiary);
+    console.log('Location State:', location.state);
     
+    // location.state에서 ID 가져오기
+    const stateId = location.state?.diary?.id;
+    console.log('State ID:', stateId);
+    
+    if (!currentDiary && !stateId) {
+      console.error('No diary data available');
+      openModal('error', {
+        title: '오류',
+        content: '일기 정보를 찾을 수 없습니다.',
+        confirmText: '확인'
+      });
+      return;
+    }
+
+    // ID 추출 로직 개선
+    const diaryId = stateId || id || currentDiary?.id || currentDiary?.diary_id;
+    console.log('=== Diary ID Debug ===');
+    console.log('URL ID:', id);
+    console.log('State ID:', stateId);
+    console.log('Current Diary ID:', currentDiary?.id);
+    console.log('Current Diary diary_id:', currentDiary?.diary_id);
+    console.log('Final ID:', diaryId);
+    
+    if (!diaryId) {
+      console.error('No diary ID found in object:', currentDiary);
+      openModal('error', {
+        title: '오류',
+        content: '일기 정보를 찾을 수 없습니다.',
+        confirmText: '확인'
+      });
+      return;
+    }
+
     openModal('confirm', {
       title: '수정하시겠습니까?',
       content: '일기를 수정하시겠습니까?',
       onConfirm: () => {
-        const diaryId = currentDiary.diary_id || currentDiary.id;
+        console.log('Navigating to edit page with ID:', diaryId);
+        // URL에 ID를 포함하고, state에도 diary 정보를 전달
         navigate(`/diary/edit/${diaryId}`, { 
-          state: { diary: currentDiary } 
+          state: { 
+            diary: {
+              id: diaryId,
+              diary_id: diaryId,
+              content: currentDiary?.content || '',
+              emotionId: currentDiary?.emotionId || currentDiary?.emotion_id || 1,
+              date: currentDiary?.date || '',
+              ...currentDiary
+            }
+          },
+          replace: true
         });
       }
     });
