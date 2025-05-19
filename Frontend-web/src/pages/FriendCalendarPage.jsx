@@ -1,58 +1,107 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import MonthlyCalendar from "../components/calendar/MonthlyCalendar";
 import RowCard from "../components/RowCard";
 import { Heart } from "lucide-react";
-import { useFriendDiaries } from "../hooks/useFriendDiaries";
-import { useFriendInfo } from "../hooks/useFriendInfo";
+import useFriendDiaryStore from "../store/friendDiaryStore";
+import useAuthStore from "../store/authStore";
+import { formatDate } from "../utils/dateUtils";
 
 /**
  * 친구의 일기 캘린더를 보여주는 페이지 컴포넌트
  * 친구의 공개된 일기 목록을 캘린더 형태로 표시하고,
- * 일기 목록을 보여주며 좋아요 기능을 제공합니다.
+ * 일기 목록을 보여줍니다.
  */
 function FriendCalendarPage() {
   const { friendId } = useParams(); // URL에서 친구 ID 가져오기
   const navigate = useNavigate(); // 페이지 이동을 위한 네비게이션 훅
   
-// 친구의 일기 관련 상태와 핸들러 가져오기
-const {
-    diaryList, // 전체 일기 목록
-    filteredDiaryList, // 필터링된 일기 목록
-    selectedDate, // 선택된 날짜
-    emotionMap, // 감정 정보 매핑
-    loadingId, // 좋아요 처리 중인 일기 ID
-    isLoading: isDiaryLoading, // 로딩 상태
-    error: diaryError, // 에러 상태
-    handleDateClick, // 날짜 클릭 핸들러
-    handleLike, // 좋아요 처리 핸들러
-    getEmojiSrc, // 이모지 URL 가져오기
-  } = useFriendDiaries(friendId);
+  // Zustand 스토어 사용
+  const { 
+    diaries, 
+    filteredDiaries, 
+    emotions, 
+    selectedDate,
+    isLoading, 
+    error,
+    setFriendId,
+    fetchEmotions,
+    fetchFriendCalendar,
+    setSelectedDate,
+    resetData
+  } = useFriendDiaryStore();
+  
+  const { isAuthenticated } = useAuthStore();
 
-  // 친구 정보 관련 상태 가져오기
-  const { friendInfo, error: friendError } = useFriendInfo(friendId);
-
-  /**
-   * 날짜 문자열을 포맷팅하는 함수
-   * @param {string} dateString - 날짜 문자열
-   * @returns {string} 포맷팅된 날짜 문자열
-   */
-  const formatDate = (dateString) => {
-    if (!dateString) return "날짜 없음";
+  // API 응답을 MonthlyCalendar 컴포넌트에 맞게 변환하는 함수
+  const transformDiariesForCalendar = (diaryList) => {
+    if (!Array.isArray(diaryList)) return [];
     
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return dateString; 
-    
-    const year = date.getFullYear();
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const day = date.getDate().toString().padStart(2, '0');
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    
-    return `${year}년 ${month}월 ${day}일 ${hours}:${minutes}`;
+    return diaryList.map(diary => ({
+      id: diary.diary_id,
+      emotionId: diary.emotion_id, // 캘린더 컴포넌트가 사용하는 이름으로 변환
+      createdAt: new Date(diary.date).toISOString(), // MonthlyCalendar가 사용하는 createdAt 속성 추가
+      // 아래는 원래 속성들 유지
+      diary_id: diary.diary_id,
+      emotion_id: diary.emotion_id,
+      emoji: diary.emoji,
+      date: diary.date,
+      title: diary.title || `${diary.date}의 일기`,
+    }));
   };
 
+  // 이모지 경로 생성 함수 - RowCard에서 사용할 경로
+  const getEmojiImagePath = (emojiFileName) => {
+    if (!emojiFileName) return "/images/emotions/default.png";
+    // 이미 전체 경로인 경우 그대로 사용
+    if (emojiFileName.startsWith("/")) return emojiFileName;
+    // 파일명만 있는 경우 이모션 이미지 경로 추가
+    return `/images/emotions/${emojiFileName}`;
+  };
+
+  // 일기 내용을 적절한 길이로 잘라서 반환하는 함수
+  const truncateContent = (content, maxLength = 30) => {
+    if (!content) return "";
+    if (content.length <= maxLength) return content;
+    return content.substring(0, maxLength) + "...";
+  };
+
+  // 컴포넌트 마운트 시 데이터 로드
+  useEffect(() => {
+    const loadData = async () => {
+      if (isAuthenticated && friendId) {
+        // 친구 ID 상태 먼저 설정
+        setFriendId(friendId);
+        
+        try {
+          console.log("친구 캘린더 페이지 데이터 로딩 시작");
+          
+          // 이모션 데이터와 캘린더 데이터 병렬로 로드
+          const [emotionsResult, calendarResult] = await Promise.all([
+            fetchEmotions(),
+            fetchFriendCalendar(friendId)
+          ]);
+          
+          console.log("이모션 데이터 로드 완료:", emotionsResult);
+          console.log("캘린더 데이터 로드 완료:", calendarResult);
+          console.log("현재 필터링된 일기 목록:", filteredDiaries.length, "개");
+          
+        } catch (error) {
+          console.error("데이터 로딩 중 오류 발생:", error);
+        }
+      } else if (!isAuthenticated) {
+        navigate('/login');
+      }
+    };
+    
+    loadData();
+    
+    // 컴포넌트 언마운트 시 데이터 리셋
+    return () => resetData();
+  }, [isAuthenticated, friendId, fetchEmotions, fetchFriendCalendar, setFriendId, navigate, resetData]);
+
   // 로딩 중일 때 표시할 UI
-  if (isDiaryLoading) {
+  if (isLoading) {
     return (
       <main className="min-h-screen pt-[100px] flex items-center justify-center">
         <div className="text-2xl text-lighttext dark:text-darktext">일기를 불러오는 중...</div>
@@ -61,34 +110,55 @@ const {
   }
 
   // 에러 발생 시 표시할 UI
-  if (diaryError || friendError) {
+  if (error) {
     return (
       <main className="min-h-screen pt-[100px] flex items-center justify-center">
-        <div className="text-2xl text-red-500">{diaryError || friendError}</div>
+        <div className="text-2xl text-red-500">{error}</div>
       </main>
     );
   }
 
+  // 일기 데이터가 없는 경우 (API 응답이 빈 배열인 경우)
+  if (diaries.length === 0) {
+    return (
+      <main className="min-h-screen pt-[100px] flex items-center justify-center">
+        <div className="text-xl text-lighttext dark:text-darktext">
+          아직 친구가 공유한 일기가 없습니다.
+        </div>
+      </main>
+    );
+  }
+
+  // 캘린더 컴포넌트에 전달할 변환된 다이어리 데이터
+  const transformedDiaries = transformDiariesForCalendar(diaries);
+
+  // 로깅 추가 - 현재 상태 확인
+  console.log('현재 페이지 상태:', {
+    'diaries 길이': diaries.length,
+    '변환된 diaries 길이': transformedDiaries.length,
+    'filteredDiaries 길이': filteredDiaries.length,
+    '선택된 날짜': selectedDate,
+    '이모션 맵 키 개수': Object.keys(emotions).length
+  });
+
   return (
     <main className="min-h-screen flex flex-col items-center justify-center transition-colors duration-300">
       <section className="mx-auto max-w-5xl w-full m-8 section-container border bg-yl100/90 dark:bg-darkBg/50 border-lightGold dark:border-darkCopper rounded-xl">
-        {/* 친구 정보 헤더 */}
-        {friendInfo && (
-          <div className="p-4 text-center border-b border-lightGold dark:border-darkCopper">
-            <h2 className="text-xl font-semibold text-lighttext dark:text-darktext">
-              {friendInfo.nickname || friendInfo.username}님의 일기
-            </h2>
-          </div>
-        )}
+        {/* 헤더 - 친구 정보 없이 페이지 제목만 표시 */}
+        <div className="p-4 text-center border-b border-lightGold dark:border-darkCopper">
+          <h2 className="text-xl font-semibold text-lighttext dark:text-darktext">
+            친구의 일기
+          </h2>
+        </div>
         
-        <div className="flex flex-col lg:flex-row gap-3 items-stretch justify-center">
-          {/* 캘린더 섹션 */}
+        <div className="flex flex-col lg:flex-row gap-3 items-stretch justify-center p-4">
+          {/* 캘린더 섹션 - MonthlyCalendar에 변환된 데이터 전달 */}
           <div className="w-full lg:w-2/3 bg-yl100 dark:bg-darkBg rounded-lg shadow-md">
             <div className="aspect-[5/6] p-2 sm:p-4 flex items-center justify-center overflow-visible w-full h-full">
               <MonthlyCalendar 
-                diaries={diaryList}
-                emotionMap={emotionMap}
-                onDateClick={handleDateClick}
+                diaries={transformedDiaries} // 변환된 데이터 사용
+                emotionMap={emotions}
+                onDateClick={setSelectedDate}
               />
             </div>
           </div>
@@ -101,7 +171,7 @@ const {
                 <p className="text-sm text-lighttext dark:text-darktext">
                   {selectedDate}의 일기를 보고 있습니다.
                   <button
-                    onClick={() => handleDateClick(selectedDate)}
+                    onClick={() => setSelectedDate(null)}
                     className="ml-2 text-blue-600 dark:text-blue-400 underline"
                   >
                     전체 보기
@@ -111,39 +181,56 @@ const {
             )}
             
             {/* 일기 목록 */}
-            {filteredDiaryList.length === 0 ? (
+            {filteredDiaries.length === 0 ? (
               <div className="text-center text-gray-500 py-8">
                 {selectedDate ? "선택한 날짜에 작성된 일기가 없습니다." : "아직 작성된 일기가 없습니다."}
               </div>
             ) : (
-              filteredDiaryList.map((diary) => {
-                const emojiPath = getEmojiSrc(diary);
+              filteredDiaries.map((diary) => {
+                // diary 객체가 유효한지 확인
+                if (!diary) return null;
+                
+                // 각 다이어리 데이터 로깅
+                console.log('다이어리 항목 렌더링:', diary);
+                
+                // API 응답에 따라 다른 속성 사용
+                const diaryId = diary.diary_id || diary.id;
+                // content가 있으면 content, 없으면 title 사용
+                const title = diary.content 
+                  ? truncateContent(diary.content)
+                  : (diary.title || `${formatDate(diary.date || diary.created_at)}의 일기`);
+                
+                // 날짜 정보 가져오기
+                const dateText = formatDate(diary.date || diary.created_at);
+                
+                // 이모지 경로 구성
+                // emotion 객체가 있으면 emotion.emoji 사용, 없으면 diary.emoji 사용
+                const emojiFile = diary.emotion?.emoji || diary.emoji || "default.png";
+                const emojiPath = getEmojiImagePath(emojiFile);
+                
+                // 로깅 - 이모지 경로 확인
+                console.log('이모지 정보:', {
+                  'emotion 객체': diary.emotion,
+                  'emoji 필드': diary.emoji,
+                  '사용된 이모지 파일': emojiFile,
+                  '최종 이모지 경로': emojiPath
+                });
+                
                 return (
-                  <div key={diary.id}>
+                  <div key={diaryId} className="mb-2">
                     <RowCard
                       emojiSrc={emojiPath}
-                      headerText={diary.body.substring(0, 40) + "..."}
-                      bodyText={formatDate(diary.createdAt)}
+                      headerText={title}
+                      bodyText={dateText}
                       rightIcon={
-                        <button
-                          className="text-2xl"
-                          onClick={(e) => handleLike(diary.id, e)}
-                          disabled={loadingId === diary.id}
-                          style={{ opacity: loadingId === diary.id ? 0.5 : 1 }}
-                        >
-                          <Heart
-                            className={`w-6 h-6 ${
-                              diary.liked
-                                ? "fill-red-500 text-red-500"
-                                : "text-lighttext dark:text-darktext"
-                            }`}
-                          />
-                        </button>
+                        <Heart
+                          className="w-6 h-6 text-lighttext dark:text-darktext"
+                        />
                       }
                       onClick={() => navigate("/friend-diary", { 
                         state: { 
                           friendId: friendId,
-                          diaryId: diary.id 
+                          diaryId: diaryId
                         } 
                       })}
                     />
@@ -158,4 +245,4 @@ const {
   );
 }
 
-export default FriendCalendarPage; 
+export default FriendCalendarPage;
