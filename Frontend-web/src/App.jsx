@@ -22,6 +22,7 @@ import Modal from './components/Modal';
 import { HelmetProvider } from 'react-helmet-async';
 import useUiStore from './store/uiStore';
 import useAuthStore from './store/authStore';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function AppLayoutWithNavbar() {
   // Zustand 스토어 사용
@@ -41,7 +42,6 @@ function AppLayoutWithNavbar() {
         <Route path="/mypage/edit/" element={<EditUserInfo />} />
         <Route path="/mypage/chart" element={<ChartPage />} />
         <Route path="/mypage/qrcode" element={<FriendInviteSystem />} />
-        <Route path="/auth/callback/:provider" element={<OAuthCallback />} />
         <Route path="/diary" element={<DiaryDetailPage />} />
         <Route path="/diary/edit/:id" element={<DiaryEditPage />} />
         <Route path="/diary/new" element={<DiaryEditor />} />
@@ -103,12 +103,18 @@ function App() {
     <HelmetProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={ <LoginPage />} />
-          <Route path="/*" element={
-            <Layout>
-              <AppLayoutWithNavbar />
-            </Layout>
-          } />
+          {/* 공개 경로 */}
+          <Route path="/" element={<LoginPage />} />
+          <Route path="/auth/callback/:provider" element={<OAuthCallback />} />
+          
+          {/* 보호된 경로 */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/*" element={
+              <Layout>
+                <AppLayoutWithNavbar />
+              </Layout>
+            } />
+          </Route>
         </Routes>
       </BrowserRouter>
     </HelmetProvider>
