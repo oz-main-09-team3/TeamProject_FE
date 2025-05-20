@@ -85,7 +85,7 @@ function MainPage() {
 
   if (isLoading) {
     return (
-      <main className="min-h-screen pt-[100px] flex items-center justify-center">
+      <main className="transition-colors duration-300">
         <div className="text-2xl text-lighttext dark:text-darktext">일기를 불러오는 중...</div>
       </main>
     );
@@ -93,7 +93,7 @@ function MainPage() {
 
   if (error) {
     return (
-      <main className="min-h-screen pt-[100px] flex items-center justify-center">
+      <main className="transition-colors duration-300">
         <div className="text-2xl text-red-500">{error}</div>
       </main>
     );
@@ -109,11 +109,11 @@ function MainPage() {
   const fixedDiaryHeight = (totalCardHeight * maxVisibleCards);
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center transition-colors duration-300">
-      <section className="mx-auto max-w-5xl w-full m-8 section-container border bg-yl100/90 dark:bg-darkBg/50 border-lightGold dark:border-darkCopper rounded-xl">
-        <div className="flex flex-col lg:flex-row gap-3 items-stretch justify-center p-4">
+    <main className="transition-colors duration-300">
+      <section className="mx-auto max-w-5xl w-full section-container border bg-yl100/90 dark:bg-darkBg/50 border-lightGold dark:border-darkCopper rounded-xl">
+        <div className="flex flex-col lg:flex-row gap-3 items-stretch justify-center p-2">
           <div ref={calendarContainerRef} className="w-full lg:w-2/3 bg-yl100 dark:bg-darkBg rounded-lg shadow-md">
-            <div className="aspect-[5/6] p-2 sm:p-4 flex items-center justify-center overflow-visible w-full h-full">
+            <div className="aspect-[5/6] p-2 sm:p-2 flex items-center justify-center overflow-visible w-full h-full">
               <MonthlyCalendar 
                 diaries={diaries}
                 emotionMap={emotions}
@@ -124,7 +124,7 @@ function MainPage() {
 
           <div ref={diaryContainerRef} className="w-full lg:w-1/2 flex flex-col gap-2 rounded-lg">
             {selectedDate && (
-              <div className="p-3 bg-lightBg dark:bg-darkBg rounded-lg shadow mb-2">
+              <div className="p-3 bg-lightBg dark:bg-darkBg rounded-lg shadow">
                 <p className="text-sm text-lighttext dark:text-darktext">
                   {selectedDate}의 일기를 보고 있습니다.
                   <button
@@ -143,11 +143,11 @@ function MainPage() {
               style={{ height: `${fixedDiaryHeight}px` }}
             >
               {sortedDiaries.length === 0 ? (
-                <div className="text-center text-gray-500 py-8">
+                <div className="text-center text-gray-500">
                   {selectedDate ? "선택한 날짜에 작성된 일기가 없습니다." : "아직 작성된 일기가 없습니다."}
                 </div>
               ) : (
-                <div className="pr-2 space-y-2">
+                <div className="space-y-2">
                   {sortedDiaries.map((diary) => {
                     const emojiPath = getEmojiSrc(diary);
                     return (

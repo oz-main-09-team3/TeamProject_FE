@@ -137,13 +137,13 @@ const DiaryEditor = () => {
         <meta property="og:title" content="일기 작성 - 멋쟁이 감자" />
         <meta property="og:description" content="감자의 새로운 일기를 작성해보세요!" />
       </Helmet>
-      <div className="min-h-screen pt-20 text-lighttext dark:text-darkBrown transition-colors duration-300 flex justify-center items-center px-4 py-8">
-        <div className="w-full max-w-6xl bg-white shadow-md rounded-xl flex flex-col md:flex-row overflow-hidden">
+      <main className="text-lighttext dark:text-darkBrown transition-colors duration-300">
+        <div className="w-full max-w-6xl mx-auto bg-white shadow-md rounded-xl flex flex-col md:flex-row overflow-hidden">
           <div className="w-full md:w-2/3 p-6 flex flex-col">
             {/* 에디터 카드 컨테이너 */}
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-4">
               {/* 툴바 */}
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center mb-2">
                 <button
                   className="p-3 bg-lightYellow dark:bg-darkCopper dark:text-darktext rounded-full w-10 h-10 flex items-center justify-center hover:bg-lightYellow/80 dark:hover:bg-darkCopper/80 transition-colors"
                   onClick={handleGoBack}
@@ -205,7 +205,7 @@ const DiaryEditor = () => {
         <Modal type="success" />
         <Modal type="warning" />
         <Modal type="confirm" />
-      </div>
+      </main>
     </>
   );
 };

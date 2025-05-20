@@ -183,19 +183,20 @@ const FriendInviteSystem = () => {
   };
 
   return (
-    <main className="flex items-center justify-center min-h-screen w-full px-4 pt-[100px]">
-      <div className="flex flex-col items-center p-8 w-full max-w-md bg-yl100 dark:text-darkBg rounded-3xl shadow-lg text-lighttext relative pt-8">
-        {/* 뒤로 가기 버튼 */}
-        <BackButton to="/mypage" />
+    <main className="w-full px-4">
+      <div className="flex flex-col items-center p-6 w-full max-w-md mx-auto bg-yl100 dark:text-darkBg rounded-3xl shadow-lg text-lighttext relative pt-2">
+        <div className="absolute top-5 left-5">
+          <BackButton to="/mypage" />
+        </div>
 
-        <h1 className="text-2xl font-bold mb-4 text-center">
+        <h1 className="text-2xl font-bold m-3 text-center">
           친구 초대 시스템
         </h1>
 
         {/* 내 초대 코드 */}
         <section className="flex flex-col items-center w-full">
-          <h2 className="text-lg font-semibold mb-2">내 초대 코드</h2>
-          <div className="border-2 border-lightGold dark:border-darkOrange rounded-lg p-4 mb-4 bg-white">
+          <h2 className="text-lg font-semibold">내 초대 코드</h2>
+          <div className="border-2 border-lightGold dark:border-darkOrange rounded-lg p-4 mb-2 bg-white">
             {isLoading || userLoading ? (
               <div className="w-[220px] h-[220px] flex items-center justify-center">
                 <span className="text-gray-500">QR 코드 생성 중...</span>
@@ -214,7 +215,7 @@ const FriendInviteSystem = () => {
           </div>
 
           {/* 사용자 이름 표시 */}
-          <div className="flex flex-col items-center gap-2 mb-4 w-full">
+          <div className="flex flex-col items-center gap-2 mb-2 w-full">
             <FormInput
               value={username}
               readOnly={true}
@@ -230,7 +231,7 @@ const FriendInviteSystem = () => {
             </Button>
           </div>
 
-          <div className="flex flex-col items-center gap-2 mb-4 w-full">
+          <div className="flex flex-col items-center gap-2 mb-2 w-full">
             <Button
               onClick={async () => {
                 const userInfo = await fetchUserInfo();
@@ -248,11 +249,11 @@ const FriendInviteSystem = () => {
         </section>
 
         {/* 친구 추가 */}
-        <section className="w-full border-t border-lightGold pt-6">
-          <h2 className="text-lg font-semibold mb-4 text-center">친구 추가</h2>
+        <section className="w-full border-t border-lightGold pt-2">
+          <h2 className="text-lg font-semibold text-center">친구 추가</h2>
 
           {/* 추가 버튼 */}
-          <div className="flex flex-col items-center gap-2 mb-4">
+          <div className="flex flex-col items-center gap-2 mb-2">
             <FormInput
               placeholder="친구 사용자명 입력"
               value={inputCode}
@@ -287,7 +288,7 @@ const FriendInviteSystem = () => {
             <h3 className="text-lg font-semibold mb-2 text-center text-darkBg">
               QR 코드를 스캔하세요
             </h3>
-            <div className="bg-gray-100 w-full h-64 flex items-center justify-center mb-4">
+            <div className="bg-gray-100 w-full h-64 flex items-center justify-center mb-2">
               <Button onClick={simulateScan} variant="primary" className="w-full">
                 스캔 시뮬레이션
               </Button>

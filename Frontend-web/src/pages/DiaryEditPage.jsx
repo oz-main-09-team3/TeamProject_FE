@@ -368,8 +368,8 @@ const DiaryEditPage = () => {
         <meta name="description" content="감자의 일기를 수정해보세요!" />
       </Helmet>
       
-      <div className="min-h-screen pt-20 text-lighttext dark:text-darkBrown transition-colors duration-300 flex justify-center items-center px-4 py-8">
-        <div className="w-full max-w-6xl bg-white shadow-md rounded-xl flex flex-col md:flex-row overflow-hidden">
+      <main className="text-lighttext dark:text-darkBrown transition-colors duration-300">
+        <div className="w-full max-w-6xl mx-auto bg-white shadow-md rounded-xl flex flex-col md:flex-row overflow-hidden">
           <div className="w-full md:w-2/3 p-6 flex flex-col">
             {/* 에디터 카드 컨테이너 - DiaryEditor와 동일한 구조 사용 */}
             <div className="flex flex-col gap-6">
@@ -393,7 +393,7 @@ const DiaryEditPage = () => {
               </div>
 
               {/* 날짜와 상태 표시 */}
-              <div className="flex justify-between items-center mb-4">
+              <div className="flex justify-between items-center">
                 <div className="text-2xl font-bold dark:text-darkBg">{date}</div>
                 <div className="edit-diary-status">수정 중...</div>
               </div>
@@ -433,7 +433,7 @@ const DiaryEditPage = () => {
         <Modal type="success" />
         <Modal type="warning" />
         <Modal type="confirm" />
-      </div>
+      </main>
     </>
   );
 };
