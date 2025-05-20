@@ -165,7 +165,7 @@ const DiaryEditor = () => {
               </div>
               {/* 에디터 컨테이너 */}
               <div className="editor-container">
-                <div ref={editorContainerRef} className="min-h-[400px]" />
+                <div ref={editorContainerRef} className="max-h-[400px]" style={{ height: '400px' }}/>
               </div>
             </div>
           </div>
