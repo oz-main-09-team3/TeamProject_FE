@@ -212,10 +212,10 @@ function ChartPage() {
   };
 
   return (
-    <main className="p-6">
-      <div className="w-full max-w-6xl mx-auto bg-yl100 dark:bg-darktext rounded-3xl shadow-lg p-6 relative font-[GangwonEduSaeeum_OTFMediumA]">
+    <main className="p-4">
+      <div className="w-full max-w-3xl mx-auto bg-yl100 dark:bg-darktext rounded-3xl shadow-lg p-4 relative font-[GangwonEduSaeeum_OTFMediumA]">
         {/* 상단 툴바: 뒤로가기 + 제목 */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-3">
           <BackButton to={-1} />
           <h1 className="text-3xl font-bold text-center flex-1 text-lighttext dark:text-darkBg">
             감정 일기 통계
@@ -224,10 +224,10 @@ function ChartPage() {
         </div>
 
         {/* 차트 그리드 레이아웃 */}
-        <div className="mt-6 flex flex-wrap justify-center gap-2 w-full">
+        <div className="mt-4 flex flex-col md:flex-row flex-wrap md:flex-nowrap justify-center gap-1 w-full">
           {/* 컬럼 차트 컨테이너 - RechartsBarChart 사용 */}
-          <div className="flex-1 bg-yl100 dark:bg-darkBg p-4 rounded-lg shadow-md min-w-[320px] max-w-[700px]">
-            <h2 className="text-xl font-semibold text-center mb-2 text-lighttext dark:text-darktext">
+          <div className="flex-1 min-w-0 min-h-[320px] md:min-h-[220px] bg-yl100 dark:bg-darkBg p-2 rounded-lg shadow-md overflow-visible">
+            <h2 className="text-xl font-semibold text-center mb-1 text-lighttext dark:text-darktext">
               월별 일기 작성 횟수
             </h2>
             <RechartsBarChart 
@@ -235,13 +235,13 @@ function ChartPage() {
               isLoading={isLoading}
               error={error}
               title="월별 일기 작성 횟수"
-              height={350}
+              height={260}
             />
           </div>
 
           {/* 파이 차트 컨테이너 - RechartsPieChart 사용 */}
-          <div className="flex-1 bg-yl100 dark:bg-darkBg p-4 rounded-lg shadow-md overflow-hidden min-w-[320px] max-w-[700px]">
-            <h2 className="text-xl font-semibold text-center mb-2 text-lighttext dark:text-darktext">
+          <div className="flex-1 min-w-0 min-h-[320px] md:min-h-[220px] bg-yl100 dark:bg-darkBg p-2 rounded-lg shadow-md overflow-visible">
+            <h2 className="text-xl font-semibold text-center mb-1 text-lighttext dark:text-darktext">
               {getCurrentMonthName()} 감정 분포
             </h2>
             <div className="relative w-full">
@@ -250,7 +250,7 @@ function ChartPage() {
                 isLoading={isLoading}
                 error={error}
                 title={`${getCurrentMonthName()} 감정 분포`}
-                height={350}
+                height={260}
               />
             </div>
           </div>
@@ -258,19 +258,19 @@ function ChartPage() {
 
         {/* 데이터 요약 정보 */}
         {!isLoading && !error && (
-          <div className="mt-4 bg-yl100 dark:bg-darkBg p-6 rounded-lg shadow-md">
+          <div className="mt-3 bg-yl100 dark:bg-darkBg p-3 rounded-lg shadow-md">
             <h2 className="text-xl font-semibold mb-1 text-lighttext dark:text-darktext">
               통계 요약
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              <div className="p-4 bg-lightYellow dark:bg-darkBrown rounded-lg">
-                <h3 className="text-lg font-semibold mb-2 text-lighttext dark:text-darktext">
+            <div className="grid grid-cols-2 gap-1">
+              <div className="p-3 bg-lightYellow dark:bg-darkBrown rounded-lg flex flex-col gap-1">
+                <h3 className="text-lg font-semibold mb-1 text-lighttext dark:text-darktext">
                   연간 통계
                 </h3>
                 <p className="text-lighttext dark:text-darktext">
                   올해 총 일기 작성 수: {monthlyCount?.series[0].data.reduce((acc, curr) => acc + curr, 0) || 0}개
                 </p>
-                <p className="text-lighttext dark:text-darktext mt-2">
+                <p className="text-lighttext dark:text-darktext">
                   가장 많이 작성한 달: {
                     monthlyCount 
                     ? monthlyCount.categories[
@@ -282,8 +282,8 @@ function ChartPage() {
                   }
                 </p>
               </div>
-              <div className="p-2 bg-lightYellow dark:bg-darkBrown rounded-lg">
-                <h3 className="text-lg font-semibold text-lighttext dark:text-darktext">
+              <div className="p-3 bg-lightYellow dark:bg-darkBrown rounded-lg flex flex-col gap-1">
+                <h3 className="text-lg font-semibold mb-1 text-lighttext dark:text-darktext">
                   이번 달 통계
                 </h3>
                 <p className="text-lighttext dark:text-darktext">
@@ -293,7 +293,7 @@ function ChartPage() {
                     : 0
                   }개
                 </p>
-                <p className="text-lighttext dark:text-darktext mt-2">
+                <p className="text-lighttext dark:text-darktext">
                   가장 많이 사용한 감정: {
                     emotionDistribution?.series[0]?.name === '데이터 없음'
                     ? '없음'

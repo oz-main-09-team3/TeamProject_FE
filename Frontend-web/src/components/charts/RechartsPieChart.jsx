@@ -254,10 +254,9 @@ const RechartsPieChart = ({
               cx="50%"
               cy="50%"
               labelLine={false}
-              outerRadius={height * 0.3}
+              outerRadius="100%"
               fill="#8884d8"
               dataKey="value"
-              label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
             >
               {chartData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
@@ -275,7 +274,7 @@ const RechartsPieChart = ({
           left: 0,
           bottom: 0,
           background: 'rgba(30, 20, 10, 0.95)',
-          padding: '8px 0',
+          padding: '2px 0',
           zIndex: 10,
         }}
       >
