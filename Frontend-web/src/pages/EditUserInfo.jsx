@@ -228,19 +228,19 @@ export default function EditUserInfo() {
     }
 
     try {
-      const updateData = {
-        username: state.nickname,
-        phone_number: state.phone_number.replace(/-/g, ''),
-        email: state.email,
-        birth_date: state.birth_date,
-      };
-      
-      if (profileImageFile) {
-        const reader = new FileReader();
-        reader.onloadend = async () => {
+const updateData = {
+  nickname: state.nickname,
+  phone_num: state.phone_number.replace(/-/g, ''),
+  email: state.email,
+  birthday: state.birth_date,
+};
+
+if (profileImageFile) {
+  const reader = new FileReader();
+  reader.onloadend = async () => {
           try {
-            updateData.profile_image = reader.result.split(',')[1];
-            const response = await updateMyInfo(updateData);
+              updateData.profile = reader.result;
+      const response = await updateMyInfo(updateData);
             console.log("Update response:", response);
             
             openModal('success', {
@@ -329,9 +329,11 @@ export default function EditUserInfo() {
 
   return (
     <>
-      <main className="flex items-center justify-center min-h-screen bg-lightBg dark:bg-darkdark px-4">
-        <div className="w-full max-w-md relative pt-[100px] pb-8 flex flex-col gap-3 items-center bg-yl100 dark:bg-darktext rounded-3xl shadow-lg">
+          <main className="flex items-center justify-center min-h-screen bg-lightBg dark:bg-darkdark px-4">
+      <div className="w-full max-w-md relative pt-[100px] pb-8 flex flex-col gap-3 items-center bg-yl100 dark:bg-darktext rounded-3xl shadow-lg">
+        <div className="absolute top-5 left-5">
           <BackButton to="/mypage/info" />
+        </div>
 
           <div className="absolute -top-[92px]">
             <div
