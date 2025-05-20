@@ -199,102 +199,64 @@ export default function EditUserInfo() {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  
+  if (phoneError) {
+    openModal('warning', {
+      title: '입력 오류',
+      content: '전화번호 형식이 올바르지 않습니다.',
+      confirmText: '확인'
+    });
+    return;
+  }
+  if (emailError) {
+    openModal('warning', {
+      title: '입력 오류',
+      content: '이메일 형식이 올바르지 않습니다.',
+      confirmText: '확인'
+    });
+    return;
+  }
+  if (birthdateError) {
+    openModal('warning', {
+      title: '입력 오류',
+      content: '생년월일이 올바르지 않습니다.',
+      confirmText: '확인'
+    });
+    return;
+  }
+
+  try {
+    const updateData = {
+      nickname: state.nickname,
+      phone_num: state.phone_number.replace(/-/g, ''),
+      email: state.email,
+      birthday: state.birth_date,
+    };
+
+    if (profileImageFile) {
+      updateData.profile = profileImageFile;
+    }
     
-    if (phoneError) {
-      openModal('warning', {
-        title: '입력 오류',
-        content: '전화번호 형식이 올바르지 않습니다.',
-        confirmText: '확인'
-      });
-      return;
-    }
-    if (emailError) {
-      openModal('warning', {
-        title: '입력 오류',
-        content: '이메일 형식이 올바르지 않습니다.',
-        confirmText: '확인'
-      });
-      return;
-    }
-    if (birthdateError) {
-      openModal('warning', {
-        title: '입력 오류',
-        content: '생년월일이 올바르지 않습니다.',
-        confirmText: '확인'
-      });
-      return;
-    }
-
-    try {
-const updateData = {
-  nickname: state.nickname,
-  phone_num: state.phone_number.replace(/-/g, ''),
-  email: state.email,
-  birthday: state.birth_date,
-};
-
-if (profileImageFile) {
-  const reader = new FileReader();
-  reader.onloadend = async () => {
-          try {
-              updateData.profile = reader.result;
-      const response = await updateMyInfo(updateData);
-            console.log("Update response:", response);
-            
-            openModal('success', {
-              title: '완료',
-              content: '저장되었습니다.',
-              confirmText: '확인',
-              onConfirm: () => navigate('/mypage/info')
-            });
-          } catch (error) {
-            console.error("Failed to update user info with image:", error);
-            openModal('error', {
-              title: '오류',
-              content: error.response?.data?.message || '정보 수정에 실패했습니다. 다시 시도해주세요.',
-              confirmText: '확인'
-            });
-          }
-        };
-        reader.onerror = () => {
-          openModal('error', {
-            title: '오류',
-            content: '이미지 파일을 읽는데 실패했습니다.',
-            confirmText: '확인'
-          });
-        };
-        reader.readAsDataURL(profileImageFile);
-      } else {
-        try {
-          const response = await updateMyInfo(updateData);
-          console.log("Update response:", response);
+    const response = await updateMyInfo(updateData);
+    console.log("Update response:", response);
           
-          openModal('success', {
-            title: '완료',
-            content: '저장되었습니다.',
-            confirmText: '확인',
-            onConfirm: () => navigate('/mypage/info')
-          });
-        } catch (error) {
-          console.error("Failed to update user info:", error);
-          openModal('error', {
-            title: '오류',
-            content: error.response?.data?.message || '정보 수정에 실패했습니다. 다시 시도해주세요.',
-            confirmText: '확인'
-          });
-        }
-      }
-    } catch (error) {
-      console.error("Failed to update user info:", error);
-      openModal('error', {
-        title: '오류',
-        content: error.response?.data?.message || '정보 수정에 실패했습니다. 다시 시도해주세요.',
-        confirmText: '확인'
-      });
-    }
-  };
+    openModal('success', {
+      title: '완료',
+      content: '저장되었습니다.',
+      confirmText: '확인',
+      onConfirm: () => navigate('/mypage/info')
+    });
+  } catch (error) {
+    console.error("Failed to update user info:", error);
+    openModal('error', {
+      title: '오류',
+      content: error.response?.data?.message || '정보 수정에 실패했습니다. 다시 시도해주세요.',
+      confirmText: '확인'
+    });
+  }
+};
 
   const handleImageClick = () => {
     fileInputRef.current?.click();
