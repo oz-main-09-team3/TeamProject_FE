@@ -1,0 +1,191 @@
+# 감정 일기 앱 - 개발 가이드
+
+## 프로젝트 소개
+
+이 앱은 사용자가 자신의 감정을 기록하고 친구들과 공유할 수 있는 다이어리 애플리케이션입니다. 웹 프론트엔드 코드를 React Native로 변환하여 모바일 앱으로 제작했습니다.
+
+## 주요 기능
+
+- 🔐 소셜 로그인 (카카오, 네이버, 구글)
+- 📝 일기 작성, 수정, 삭제
+- 😊 감정 이모지 선택
+- 👍 일기 좋아요
+- 💬 댓글 기능
+- 📅 월별 캘린더 뷰
+- 📊 감정 통계
+- 👫 친구 추가 및 친구 일기 조회
+- 🌓 다크 모드 지원
+
+## 기술 스택
+
+- **React Native**: 모바일 앱 개발 프레임워크
+- **Expo**: 개발 및 배포 도구
+- **React Navigation**: 화면 이동 및 네비게이션
+- **Zustand**: 상태 관리
+- **Axios**: API 통신
+- **AsyncStorage**: 로컬 데이터 저장
+
+## 폴더 구조
+
+```
+src/
+├── components/         # 재사용 가능한 컴포넌트
+│   ├── calendar/       # 캘린더 관련 컴포넌트
+│   ├── charts/         # 차트 관련 컴포넌트
+│   └── diary/          # 일기 관련 컴포넌트
+├── constants/          # 상수 값 정의
+├── contexts/           # React Context
+├── screens/            # 화면 컴포넌트
+├── service/            # API 서비스
+├── store/              # Zustand 스토어
+├── utils/              # 유틸리티 함수
+└── assets/             # 이미지, 폰트 등의 정적 자원
+```
+
+## 설치 및 실행 방법
+
+### 사전 요구사항
+
+- Node.js 14 이상
+- npm 또는 yarn
+- Expo CLI
+- iOS 시뮬레이터 또는 Android 에뮬레이터 (선택 사항)
+
+### 설치
+
+1. 저장소 클론
+
+```bash
+git clone <repository-url>
+cd emotion-diary-app
+```
+
+2. 패키지 설치
+
+```bash
+npm install
+# 또는
+yarn install
+```
+
+3. 환경 변수 설정
+
+`.env` 파일을 프로젝트 루트에 생성하고 필요한 환경 변수를 설정합니다:
+
+```
+EXPO_PUBLIC_API_URL=https://your-backend-url.com
+EXPO_PUBLIC_KAKAO_CLIENT_ID=your_kakao_client_id
+EXPO_PUBLIC_NAVER_CLIENT_ID=your_naver_client_id
+EXPO_PUBLIC_GOOGLE_CLIENT_ID=your_google_client_id
+```
+
+### 실행
+
+```bash
+npm start
+# 또는
+yarn start
+```
+
+Expo 개발 서버가 시작됩니다. 터미널에 표시되는 QR 코드를 iOS의 카메라 앱이나 Android의 Expo Go 앱으로 스캔하여 디바이스에서 실행하거나, 시뮬레이터/에뮬레이터에서 실행할 수 있습니다.
+
+iOS 시뮬레이터에서 실행:
+```bash
+npm run ios
+```
+
+Android 에뮬레이터에서 실행:
+```bash
+npm run android
+```
+
+## 백엔드 연동
+
+이 앱은 기존의 웹 버전과 동일한 백엔드 API를 사용합니다. 주요 API 엔드포인트는 다음과 같습니다:
+
+- `/api/auth/*`: 인증 관련 API
+- `/api/diary/*`: 일기 관련 API
+- `/api/users/*`: 사용자 정보 관련 API
+- `/api/friends/*`: 친구 관련 API
+- `/api/emotions/*`: 감정 관련 API
+
+API 요청은 `src/service/` 디렉토리 내 파일들에 구현되어 있습니다.
+
+## 상태 관리
+
+이 앱은 Zustand를 사용하여 상태를 관리합니다. 주요 스토어는 다음과 같습니다:
+
+- `authStore`: 인증 상태 관리
+- `diaryStore`: 일기 데이터 관리
+- `uiStore`: UI 상태 (다크 모드 등) 관리
+- `friendStore`: 친구 데이터 관리
+
+## 소셜 로그인 설정
+
+각 소셜 로그인 서비스에 앱을 등록하고, 리디렉션 URL을 설정해야 합니다:
+
+- 카카오: `{scheme}://auth/callback/kakao`
+- 네이버: `{scheme}://auth/callback/naver`
+- 구글: `{scheme}://auth/callback/google`
+
+여기서 `{scheme}`은 앱의 URL 스킴으로, `app.json`의 `scheme` 속성에 정의되어 있습니다.
+
+## 다크 모드
+
+앱은 다크 모드를 지원합니다. 사용자는 UI에서 테마를 전환할 수 있으며, 시스템 설정에 따라 자동으로 테마가 적용되기도 합니다. 테마 관련 로직은 `src/store/uiStore.js`와 `src/contexts/ThemeContext.js`에 구현되어 있습니다.
+
+## API 오류 처리
+
+API 요청 중 오류가 발생할 경우 다음과 같이 처리합니다:
+
+1. 401 오류 (인증 만료): 자동으로 로그아웃 처리
+2. 기타 오류: 사용자에게 적절한 오류 메시지 표시
+
+## 이미지 캐싱 및 최적화
+
+앱은 이미지 캐싱을 통해 네트워크 요청을 최소화합니다. 또한 감정 이모지와 같은 자주 사용되는 이미지는 앱 번들에 포함시켜 빠른 로딩 시간을 보장합니다.
+
+## 보안
+
+사용자 인증 정보(토큰)는 AsyncStorage에 안전하게 저장됩니다. API 요청 시 자동으로 인증 토큰이 헤더에 포함됩니다.
+
+## 테스트
+
+단위 테스트와 통합 테스트를 위한 기본 설정이 포함되어 있습니다. 다음 명령어로 테스트를 실행할 수 있습니다:
+
+```bash
+npm test
+```
+
+## 배포
+
+### iOS 배포
+
+1. App Store Connect에 앱 등록
+2. Expo에서 빌드 생성
+3. Xcode로 iOS 빌드 서명
+4. App Store에 업로드
+
+```bash
+eas build --platform ios
+```
+
+### Android 배포
+
+1. Google Play Console에 앱 등록
+2. Expo에서 빌드 생성
+3. Google Play에 업로드
+
+```bash
+eas build --platform android
+```
+
+## 주의 사항
+
+- 앱은 인터넷 연결이 필요합니다.
+- 소셜 로그인을 위해서는 각 서비스의 개발자 계정이 필요합니다.
+- 백엔드 서버가 실행 중이어야 앱이 정상적으로 작동합니다.
+
+## 라이센스
+
+이 프로젝트는 MIT 라이센스 하에 배포됩니다. 자세한 내용은 LICENSE 파일을 참조하세요.
