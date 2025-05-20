@@ -6,6 +6,40 @@ import emptyImage from "../assets/empty.png";
 import { useNavigate } from "react-router-dom";
 import useFriendStore from "../store/friendStore";
 
+// CloudFront URL 및 S3 URL 상수 정의
+const CLOUDFRONT_URL = "https://dpjpkgz1vl8qy.cloudfront.net";
+const S3_URL_PATTERN = /https:\/\/handsomepotato\.s3\.ap-northeast-2\.amazonaws\.com/;
+
+/**
+ * S3 URL을 CloudFront URL로 변환하는 함수
+ * @param {string} profilePath - 프로필 이미지 경로 또는 URL
+ * @returns {string} CloudFront URL을 사용하는 이미지 URL
+ */
+const getProfileImageUrl = (profilePath) => {
+  if (!profilePath) return testimage; // 프로필 이미지가 없으면 기본 이미지 사용
+  
+  // S3 URL을 CloudFront URL로 대체
+  if (profilePath.match(S3_URL_PATTERN)) {
+    // S3 URL 패턴에서 /media/profiles/ 이후 경로만 추출
+    const pathMatch = profilePath.match(/\/media\/profiles\/(.+)$/);
+    if (pathMatch && pathMatch[1]) {
+      return `${CLOUDFRONT_URL}/media/profiles/${pathMatch[1]}`;
+    }
+  }
+  
+  // 이미 CloudFront URL인 경우 그대로 사용
+  if (profilePath.startsWith(CLOUDFRONT_URL)) return profilePath;
+  
+  // 상대 경로인 경우 CloudFront URL에 추가
+  if (!profilePath.startsWith('http')) {
+    const path = profilePath.startsWith('/') ? profilePath.slice(1) : profilePath;
+    return `${CLOUDFRONT_URL}/${path}`;
+  }
+  
+  // 그 외의 경우 원본 URL 반환
+  return profilePath;
+};
+
 /**
  * 친구 목록을 보여주는 컴포넌트
  * API 연동된 친구 목록 표시 및 검색 기능 제공
@@ -81,7 +115,7 @@ export default function FriendsList({ onFriendClick }) {
           filteredFriends.map((friend) => (
             <RowCard
               key={friend.id}
-              emojiSrc={friend.profile || testimage}
+              emojiSrc={getProfileImageUrl(friend.profile)}
               headerText={friend.nickname || "친구"}
               rightIcon={
                 <ArrowRight
@@ -107,5 +141,5 @@ export default function FriendsList({ onFriendClick }) {
         )}
       </div>
     </div>
-      );
+  );
 }

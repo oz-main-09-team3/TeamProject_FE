@@ -8,6 +8,40 @@ import { logout } from "../service/authApi";
 import useUiStore from "../store/uiStore";
 import useAuthStore from "../store/authStore";
 
+// CloudFront URL 상수 정의
+const CLOUDFRONT_URL = "https://dpjpkgz1vl8qy.cloudfront.net";
+const S3_URL_PATTERN = /https:\/\/handsomepotato\.s3\.ap-northeast-2\.amazonaws\.com/;
+
+/**
+ * 이미지 URL을 CloudFront URL로 변환하는 함수
+ * @param {string} imagePath - 이미지 경로 또는 URL
+ * @returns {string} CloudFront URL을 사용하는 이미지 URL
+ */
+const getImageUrl = (imagePath) => {
+  if (!imagePath) return "/profile.png"; // 이미지가 없으면 기본 이미지 사용
+  
+  // 이미 상대 경로인 경우 그대로 사용 (예: /profile.png)
+  if (imagePath.startsWith('/') && !imagePath.startsWith('//')) return imagePath;
+  
+  // S3 URL을 CloudFront URL로 대체
+  if (imagePath.match(S3_URL_PATTERN)) {
+    // S3 URL 패턴에서 /media/ 이후 경로만 추출
+    const pathMatch = imagePath.match(/\/media\/(.+)$/);
+    if (pathMatch && pathMatch[1]) {
+      return `${CLOUDFRONT_URL}/media/${pathMatch[1]}`;
+    }
+  }
+  
+  // 이미 CloudFront URL인 경우 그대로 사용
+  if (imagePath.startsWith(CLOUDFRONT_URL)) return imagePath;
+  
+  // HTTP(S)로 시작하지만 S3나 CloudFront URL이 아닌 경우 그대로 사용
+  if (imagePath.startsWith('http')) return imagePath;
+  
+  // 그 외의 경우 CloudFront URL에 추가
+  return `${CLOUDFRONT_URL}/${imagePath.startsWith('/') ? imagePath.slice(1) : imagePath}`;
+};
+
 // 회원 탈퇴 아이템을 찾아서 아이콘 교체
 const MENU_ITEMS = MENU_ITEMS_ORIGIN.map(item =>
   item.id === 'withdraw'
@@ -117,7 +151,7 @@ export default function MyPage() {
             style={{ borderColor: "transparent" }}
           >
             <img
-              src={userInfo?.profile || "/profile.png"}
+              src={userInfo?.profile ? getImageUrl(userInfo.profile) : "/profile.png"}
               alt="프로필 이미지"
               className="w-full h-full object-cover"
             />
