@@ -83,8 +83,9 @@ const UserInfo = () => {
     <main className="flex items-center justify-center min-h-screen bg-lightBg dark:bg-darkdark px-4">
       {/* 전체 카드: 프로필 + 회원 정보 */}
       <div className="w-full max-w-md relative pt-[100px] pb-8 flex flex-col gap-3 items-center bg-yl100 dark:bg-darktext rounded-3xl shadow-lg">
-        {/* 뒤로 가기 버튼 */}
+                <div className="absolute top-5 left-5">
         <BackButton to="/mypage" />
+        </div>
         
         {/* 프로필 이미지 */}
         <div className="absolute -top-[92px]">
