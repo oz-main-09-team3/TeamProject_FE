@@ -92,19 +92,19 @@ export default function NavigationBar() {
             }
           }
         }}
-        className={`relative flex items-center gap-3 w-full md:w-auto p-2 md:p-0 group
+        className={`relative flex items-center w-full md:w-auto p-1 md:p-0 group
           ${active ? "nav-icon-active font-semibold" : "nav-icon font-medium"}`}
         aria-label={label}
       >
-        <div className="transition-transform duration-100">
+        <div className="transition-transform duration-100 relative">
           {children}
+          <div className="hidden md:block absolute top-full left-1/2 -translate-x-1/2 mt-0.5 whitespace-nowrap bg-lightGold dark:bg-darkBrown text-lighttext dark:text-darktext text-[10px] leading-none rounded-sm px-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-[9999] font-semibold">
+            {label}
+          </div>
         </div>
         <span className={`md:hidden ${active ? "text-lightOrange dark:text-darkOrange font-semibold" : "text-lighttext dark:text-darktext font-medium"}`}>
           {label}
         </span>
-        <div className="hidden md:block absolute top-full mt-1 left-1/2 -translate-x-1/2 whitespace-nowrap bg-lightGold dark:bg-darkBrown text-lighttext dark:text-darktext text-[10px] rounded-sm px-1.5 py-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50">
-          {label}
-        </div>
       </button>
     );
   };
@@ -156,12 +156,18 @@ export default function NavigationBar() {
           <FaCalendarAlt size={22} />
         </NavIcon>
         <div ref={friendsButtonRef}>
-          <NavIcon label="친구 목록" onClick={toggleFriends} isActive={isFriendsOpen}>
+          <NavIcon label="친구 목록" onClick={() => {
+            toggleFriends();
+            if (isMobileMenuOpen) toggleMobileMenu();
+          }} isActive={isFriendsOpen}>
             <FaUserFriends size={22} />
           </NavIcon>
         </div>
         <div ref={notificationsButtonRef}>
-          <NavIcon label="알림" onClick={toggleNotifications} isActive={isNotificationsOpen}>
+          <NavIcon label="알림" onClick={() => {
+            toggleNotifications();
+            if (isMobileMenuOpen) toggleMobileMenu();
+          }} isActive={isNotificationsOpen}>
             <FaBell size={22} />
           </NavIcon>
         </div>
@@ -189,12 +195,18 @@ export default function NavigationBar() {
           <FaCalendarAlt size={22} />
         </NavIcon>
         <div ref={friendsButtonRef}>
-          <NavIcon label="친구 목록" onClick={toggleFriends} isActive={isFriendsOpen}>
+          <NavIcon label="친구 목록" onClick={() => {
+            toggleFriends();
+            if (isMobileMenuOpen) toggleMobileMenu();
+          }} isActive={isFriendsOpen}>
             <FaUserFriends size={22} />
           </NavIcon>
         </div>
         <div ref={notificationsButtonRef}>
-          <NavIcon label="알림" onClick={toggleNotifications} isActive={isNotificationsOpen}>
+          <NavIcon label="알림" onClick={() => {
+            toggleNotifications();
+            if (isMobileMenuOpen) toggleMobileMenu();
+          }} isActive={isNotificationsOpen}>
             <FaBell size={22} />
           </NavIcon>
         </div>
