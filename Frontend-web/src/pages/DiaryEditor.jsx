@@ -92,6 +92,14 @@ const DiaryEditor = () => {
 
   // 저장 버튼 클릭 시 실행
   const handleSave = () => {
+    if (!mood) {
+      openModal('warning', {
+        title: '이모지 선택 필요',
+        content: '이모지를 선택해주세요.',
+        confirmText: '확인',
+      });
+      return;
+    }
     openModal('confirm', {
       title: '저장하시겠습니까?',
       content: '작성한 내용이 저장됩니다.',
@@ -146,7 +154,7 @@ const DiaryEditor = () => {
                   <button
                     className="w-10 h-10 bg-lightYellow dark:bg-darkCopper dark:text-darktext rounded-full flex items-center justify-center hover:bg-lightYellow/80 dark:hover:bg-darkCopper/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={handleSave}
-                    disabled={!isEditing || !mood}
+                    disabled={!isEditing}
                   >
                     <Save className="w-5 h-5" />
                   </button>

@@ -8,7 +8,7 @@
 @layer base {
   body {
     @apply bg-lightBg text-lighttext dark:bg-darkdark dark:text-darktext transition-colors duration-300;
-  font-family: 'GangwonEduSaeeum_OTFMediumA', sans-serif;
+    font-family: 'GangwonEduSaeeum_OTFMediumA', sans-serif;
   }
 
   /* 반응형 텍스트 및 패딩 설정 */
@@ -41,6 +41,28 @@
 
 /* toast-ui 차트 내부 폰트 강제 적용 */
 .tui-chart * {
+  font-family: 'GangwonEduSaeeum_OTFMediumA', sans-serif !important;
+}
+
+/* toast-ui 에디터 내부 폰트 강제 적용 */
+.toastui-editor-contents,
+.toastui-editor-defaultUI,
+.toastui-editor-defaultUI *,
+.toastui-editor-ww-container *,
+.toastui-editor-md-container * {
+  font-family: 'GangwonEduSaeeum_OTFMediumA', sans-serif !important;
+}
+
+/* 일기 상세 페이지 폰트 강제 적용 */
+.diary-content,
+.diary-content *,
+.markdown-renderer,
+.markdown-renderer *,
+[class*="text-gray"],
+[class*="text-lighttext"],
+[class*="text-darktext"],
+[class*="font-medium"],
+[class*="font-bold"] {
   font-family: 'GangwonEduSaeeum_OTFMediumA', sans-serif !important;
 }
 
