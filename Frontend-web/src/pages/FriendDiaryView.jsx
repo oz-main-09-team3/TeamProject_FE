@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { formatDate } from "../utils/dateUtils";
-import Comment from "../components/diary/Comment";
+import Comment from "../components/Comment";
 import { Send, Heart } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { fetchFriendDiaryDetail } from "../service/friendDiaryApi";
@@ -9,10 +9,14 @@ import useComments from "../hooks/useComments"; // 커스텀 훅 import
 import { useLike } from "../hooks/useLike";
 import BackButton from "../components/BackButton"; // 추가된 import
 import ActionButton from "../components/ActionButton";
+import FormInput from "../components/FormInput";
+import { getMyInfo } from "../service/userApi";
+import useUiStore from "../store/uiStore";
 
 const FriendDiaryView = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { openModal } = useUiStore();
 
   // 친구 아이디와 다이어리 아이디를 location.state로부터 받는 코드임
   const friendId = location.state?.friendId;
@@ -177,6 +181,56 @@ const FriendDiaryView = () => {
     );
   }
 
+  // 기존 handleSubmitComment는 useComments에서 받아옴
+  const handleSubmitCommentWithRefresh = async (e) => {
+    e.preventDefault();
+    setCommentsLoading(true);
+
+    try {
+      await handleSubmitComment(e);
+      await fetchDiaryDetail();
+    } catch (error) {
+      console.error('Error submitting comment:', error);
+    } finally {
+      setCommentsLoading(false);
+    }
+  };
+
+  const checkAndUpdateComment = async (commentId, content) => {
+    try {
+      // 현재 로그인한 사용자의 정보를 가져옵니다
+      const myInfo = await getMyInfo();
+      const currentUserId = myInfo.data.id;
+
+      // 댓글 작성자 확인
+      const comment = comments.find(c => c.id === commentId || c.comment_id === commentId);
+      if (!comment) {
+        console.error('댓글을 찾을 수 없습니다.');
+        return;
+      }
+
+      // 댓글 작성자가 아닌 경우 수정 불가
+      if (comment.user_id !== currentUserId) {
+        openModal('error', {
+          title: '권한 없음',
+          content: '자신이 작성한 댓글만 수정할 수 있습니다.',
+          confirmText: '확인'
+        });
+        return;
+      }
+
+      // 권한이 있는 경우 수정 진행
+      await handleUpdateComment(commentId, content);
+    } catch (error) {
+      console.error('댓글 수정 중 오류:', error);
+      openModal('error', {
+        title: '수정 실패',
+        content: '댓글 수정에 실패했습니다.',
+        confirmText: '확인'
+      });
+    }
+  };
+
   return (
     <div className="flex items-center justify-center min-h-screen px-4" style={{ fontFamily: "'GangwonEduSaeeum_OTFMediumA', sans-serif" }}>
       <div className="w-full max-w-6xl mx-auto shadow-xl p-6 font-sans rounded-2xl border-4 border-lightGold dark:border-darkOrange bg-yl100 dark:bg-darktext text-lighttext dark:text-darkbg transition-colors duration-300">
@@ -256,47 +310,39 @@ const FriendDiaryView = () => {
             </div>
 
             {/* 댓글 영역 */}
-            <div className="md:w-1/3 w-full flex flex-col gap-4 border-t md:border-t-0 md:border-l dark:text- border-lightGold dark:border-darkCopper pt-6 md:pt-0 md:pl-5 bg-yl100 dark:bg-darktext">
+            <div className="md:w-1/3 w-full flex flex-col gap-2 border-t md:border-t-0 md:border-l dark:text- border-lightGold dark:border-darkCopper md:pt-0 md:pl-5 bg-yl100 dark:bg-darktext">
               {/* 좋아요 수 표시 */}
               {likeCount > 0 && (
-                <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
-                  <Heart className={`w-4 h-4 ${
-                    diaryItems.find(item => item.id === diaryId)?.liked ? "fill-red-500 text-red-500" : ""
-                  }`} />
-                  <span>
-                    {likeCount === 1 
-                      ? "1명이 좋아합니다"
-                      : likeCount === 2
-                      ? "2명이 좋아합니다"
-                      : `${likeCount}명이 좋아합니다`}
+                <div className="mt-2 p-2 flex items-center gap-2 text-sm">
+                  <Heart className="w-4 h-4 fill-red-500 text-red-500" />
+                  <span className="text-lighttext dark:text-darkBg">
+                    {likeCount}명이 좋아합니다
                   </span>
                 </div>
               )}
 
-              <h3 className="text-lg font-medium dark:text-darkBg">댓글</h3>
-
-              {/* 댓글 입력 - 커스텀 훅의 함수 사용 */}
-              <form onSubmit={handleSubmitComment} className="mb-4">
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="댓글을 입력하세요..."
-                    className="flex-1 px-4 py-2 rounded-full bg-white text-lighttext dark:text-darkbg focus:outline-none focus:ring-2 focus:ring-lightGold dark:focus:ring-darkOrange border border-white"
-                    disabled={commentsLoading}
-                  />
-                  <button
-                    type="submit"
-                    className={`p-2 rounded-full hover:bg-gray-100 dark:hover:bg-darkOrange/80 transition-colors ${
-                      commentsLoading ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
-                    title="댓글 작성"
-                    disabled={commentsLoading}
-                  >
-                    <Send className="w-4 h-4 text-gray-500 dark:text-gray-800" />
-                  </button>
-                </div>
+              {/* 댓글 입력 - 인풋 오른쪽 바깥에 원형 버튼, 호버 시만 배경 */}
+              <form onSubmit={handleSubmitCommentWithRefresh} className="p-2 flex items-center gap-2">
+                <input
+                  type="text"
+                  name="comment"
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder="댓글을 입력하세요..."
+                  readOnly={commentsLoading}
+                  className="form-input w-full p-1.5 focus:p-2 transition-all duration-200 h-8 text-lighttext dark:text-darkBg placeholder:text-gray-500 dark:placeholder:text-gray-500"
+                />
+                <button
+                  type="submit"
+                  className={`w-8 h-8 p-0 flex-shrink-0 flex items-center justify-center rounded-full bg-transparent hover:bg-lightGold dark:hover:bg-darkOrange transition-colors ${
+                    commentsLoading ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                  title="댓글 작성"
+                  disabled={commentsLoading}
+                  tabIndex={-1}
+                >
+                  <Send className="w-4 h-4 text-lighttext dark:text-darkBg" />
+                </button>
               </form>
 
               {/* 댓글 목록 */}
@@ -306,12 +352,13 @@ const FriendDiaryView = () => {
                     <Comment
                       key={comment.id || comment.comment_id}
                       diaryId={diaryId}
-                      friendId={friendId}  // friendId 추가
+                      friendId={friendId}
                       comment={comment}
                       likedComments={likedComments}
                       changeLikeButtonColor={changeLikeButtonColor}
                       onUpdateComment={handleUpdateComment}
                       onDeleteComment={(commentId) => handleDeleteComment(commentId, diaryId, friendId)}
+                      onEditComment={checkAndUpdateComment}
                     />
                   ))
                 ) : (
