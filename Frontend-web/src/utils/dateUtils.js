@@ -1,13 +1,15 @@
 /**
- * 현재 날짜를 YYYY-MM-DD 형식으로 반환
- * @returns {string} 포맷된 날짜 문자열
+ * 날짜를 YYYY-MM-DD 형식으로 포맷팅
+ * @param {Date|string} dateString - 변환할 날짜
+ * @returns {string} YYYY-MM-DD 형식의 문자열
  */
-export const formatDate = () => {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const date = String(today.getDate()).padStart(2, '0');
-  return `${year}-${month}-${date}`;
+export const formatDate = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };
 
 /**
