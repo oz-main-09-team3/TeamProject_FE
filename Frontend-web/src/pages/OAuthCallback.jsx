@@ -81,7 +81,7 @@ export default function OAuthCallback() {
     };
     
     handleLogin();
-    
+     
     // 컴포넌트 언마운트 시 에러 상태 초기화
     return () => {
       clearError();
