@@ -8,7 +8,9 @@ import Button from "../components/Button";
 import FormInput from "../components/FormInput";
 import useUiStore from "../store/uiStore";
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+// CloudFront URL 상수 정의
+const CLOUDFRONT_URL = "https://dpjpkgz1vl8qy.cloudfront.net";
+const S3_URL_PATTERN = /https:\/\/handsomepotato\.s3\.ap-northeast-2\.amazonaws\.com/;
 
 function reducer(state, action) {
   return { ...state, [action.name]: action.value };
@@ -32,6 +34,35 @@ export default function EditUserInfo() {
     return onlyNums.slice(0, 3) + '-' + onlyNums.slice(3, 7) + '-' + onlyNums.slice(7, 11);
   };
 
+  // CloudFront URL을 사용하여 이미지 URL 변환하는 함수
+  const getCloudFrontImageUrl = (imagePath) => {
+    if (!imagePath) return "/profile.png";
+    
+    // 이미 로컬 상대 경로인 경우 그대로 사용
+    if (imagePath.startsWith('/') && !imagePath.startsWith('//')) return imagePath;
+    
+    // S3 URL을 CloudFront URL로 대체
+    if (imagePath.match(S3_URL_PATTERN)) {
+      // S3 URL 패턴에서 /media/ 이후 경로만 추출
+      const pathMatch = imagePath.match(/\/media\/(.+)$/);
+      if (pathMatch && pathMatch[1]) {
+        return `${CLOUDFRONT_URL}/media/${pathMatch[1]}`;
+      }
+    }
+    
+    // 이미 CloudFront URL인 경우 그대로 사용
+    if (imagePath.startsWith(CLOUDFRONT_URL)) return imagePath;
+    
+    // base64 데이터 URL인 경우 그대로 사용
+    if (imagePath.startsWith('data:')) return imagePath;
+    
+    // HTTP(S)로 시작하는 URL (외부 이미지)
+    if (imagePath.startsWith('http')) return imagePath;
+    
+    // 상대 경로인 경우 CloudFront URL에 추가
+    return `${CLOUDFRONT_URL}/${imagePath.startsWith('/') ? imagePath.slice(1) : imagePath}`;
+  };
+
   const initialState = {
     nickname: receivedUserInfo?.nickname || receivedUserInfo?.username || "",
     phone_number: formatPhoneNumber(receivedUserInfo?.phone_number || receivedUserInfo?.phone || receivedUserInfo?.phone_num || ""),
@@ -47,7 +78,9 @@ export default function EditUserInfo() {
   const [phoneError, setPhoneError] = useState('');
   const [birthdateError, setBirthdateError] = useState('');
   const [profileImageFile, setProfileImageFile] = useState(null);
-  const [profileImageUrl, setProfileImageUrl] = useState(receivedUserInfo?.profile_image || "/profile.png");
+  const [profileImageUrl, setProfileImageUrl] = useState(
+    getCloudFrontImageUrl(receivedUserInfo?.profile_image || receivedUserInfo?.profile) || "/profile.png"
+  );
   const fileInputRef = useRef(null);
   const imageRef = useRef(null);
 
@@ -57,7 +90,9 @@ export default function EditUserInfo() {
         const response = await getMyInfo();
         const user = response.data || response;
         if (user?.profile) {
-          setProfileImageUrl(user.profile.startsWith('http') ? user.profile : `${BACKEND_URL}${user.profile}`);
+          // CloudFront URL로 변환
+          const imageUrl = getCloudFrontImageUrl(user.profile);
+          setProfileImageUrl(imageUrl);
           dispatch({ name: 'profile_image', value: user.profile });
         } else {
           setProfileImageUrl("/profile.png");

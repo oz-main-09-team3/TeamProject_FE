@@ -6,6 +6,10 @@ import BackButton from "../components/BackButton";
 import Button from "../components/Button";
 import { formatPhoneNumber, formatDateYYYYMMDD } from "../utils/dateUtils";
 
+// CloudFront URL 상수 정의
+const CLOUDFRONT_URL = "https://dpjpkgz1vl8qy.cloudfront.net";
+const S3_URL_PATTERN = /https:\/\/handsomepotato\.s3\.ap-northeast-2\.amazonaws\.com/;
+
 const UserInfo = () => {
   const navigate = useNavigate();
   
@@ -27,19 +31,32 @@ const UserInfo = () => {
     }
   }, [isAuthenticated, fetchUserInfo, navigate]);
 
-  // 프로필 이미지 URL 생성
+  // 프로필 이미지 URL 생성 - CloudFront URL 사용으로 수정
   const getProfileImageUrl = () => {
-    if (user?.profile) {
-      const imageUrl = user.profile;
-      // 절대 경로인 경우 그대로 사용
-      if (imageUrl.startsWith('https')) {
-        return imageUrl;
+    if (!user?.profile) return "/profile.png"; // 프로필이 없으면 기본 이미지 사용
+    
+    const imageUrl = user.profile;
+    
+    // 이미 로컬 상대 경로인 경우 그대로 사용
+    if (imageUrl.startsWith('/') && !imageUrl.startsWith('//')) return imageUrl;
+    
+    // S3 URL을 CloudFront URL로 대체
+    if (imageUrl.match(S3_URL_PATTERN)) {
+      // S3 URL 패턴에서 /media/ 이후 경로만 추출
+      const pathMatch = imageUrl.match(/\/media\/(.+)$/);
+      if (pathMatch && pathMatch[1]) {
+        return `${CLOUDFRONT_URL}/media/${pathMatch[1]}`;
       }
-      // 상대 경로인 경우 백엔드 URL과 결합
-      return `${import.meta.env.VITE_BACKEND_URL}${imageUrl}`;
     }
-    // 기본 이미지
-    return "/profile.png";
+    
+    // 이미 CloudFront URL인 경우 그대로 사용
+    if (imageUrl.startsWith(CLOUDFRONT_URL)) return imageUrl;
+    
+    // HTTPS로 시작하는 URL (외부 이미지)
+    if (imageUrl.startsWith('http')) return imageUrl;
+    
+    // 상대 경로인 경우 CloudFront URL에 추가
+    return `${CLOUDFRONT_URL}/${imageUrl.startsWith('/') ? imageUrl.slice(1) : imageUrl}`;
   };
 
   if (isLoading) {
