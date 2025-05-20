@@ -10,3 +10,38 @@ body {
     padding: 0;
     margin: 0;
 }
+
+/* 스크롤바 스타일 - 숨기면서 기능은 유지 */
+.diary-scroll-container {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: transparent transparent; /* Firefox */
+}
+
+.diary-scroll-container::-webkit-scrollbar {
+  width: 6px; /* Chrome, Safari, Edge */
+}
+
+.diary-scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.diary-scroll-container::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+}
+
+/* 호버 시 스크롤바 살짝 보이기 (선택 사항) */
+.diary-scroll-container:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+/* 다크 모드 지원 */
+@media (prefers-color-scheme: dark) {
+  .diary-scroll-container::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .diary-scroll-container:hover::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+}
