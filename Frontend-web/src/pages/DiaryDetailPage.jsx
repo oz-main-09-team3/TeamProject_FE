@@ -1,10 +1,12 @@
 import React, { useEffect } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
-import { ChevronLeft, Pencil, Trash2, Heart } from "lucide-react";
+import { Pencil, Trash2, Heart } from "lucide-react";
 import MarkdownRenderer from "../components/MarkdownRenderer";
 import useDiaryStore from "../store/diaryStore";
 import useUiStore from "../store/uiStore";
 import { getEmojiSrc } from "../utils/emojiUtils";
+import BackButton from "../components/BackButton";
+import ActionButton from "../components/ActionButton";
 
 const DiaryDetailPage = () => {
   const navigate = useNavigate();
@@ -201,45 +203,28 @@ const DiaryDetailPage = () => {
 
   return (
     <div className="flex items-center justify-center min-h-screen px-4">
-      <div className="w-full max-w-6xl mx-auto shadow-xl p-10 font-sans rounded-2xl border-4 border-lightGold dark:border-darkOrange bg-yl100 dark:bg-darktext text-lighttext dark:text-darkbg transition-colors duration-300">
+      <div className="w-full max-w-6xl mx-auto shadow-xl p-6 font-sans rounded-2xl border-4 border-lightGold dark:border-darkOrange bg-yl100 dark:bg-darktext text-lighttext dark:text-darkbg transition-colors duration-300">
         <div className="flex flex-col gap-6">
           <div className="flex justify-between items-center">
+            <BackButton to={-1} />
             <div className="flex gap-2">
-              <button
-                onClick={handleGoBack}
-                className="p-3 bg-lightYellow dark:bg-darkCopper dark:text-darktext rounded-full w-10 h-10 flex items-center justify-center hover:bg-lightYellow/80 dark:hover:bg-darkCopper/80 transition-colors"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="flex gap-2">
-              <button
+              <ActionButton
+                icon={Heart}
                 onClick={handleDiaryLike}
-                className="p-3 bg-lightYellow dark:bg-darkCopper dark:text-darktext rounded-full w-10 h-10 flex items-center justify-center hover:bg-lightYellow/80 dark:hover:bg-darkCopper/80 transition-colors"
                 title={currentDiary.liked ? "좋아요 취소" : "좋아요"}
-              >
-                <Heart
-                  className={`w-5 h-5 ${
-                    currentDiary.liked
-                      ? "fill-red-500 text-red-500"
-                      : "text-lighttext dark:text-darktext"
-                  }`}
-                />
-              </button>
-              <button
+                className={currentDiary.liked ? "fill-red-500 text-red-500" : ""}
+              />
+              <ActionButton
+                icon={Pencil}
                 onClick={handleEdit}
-                className="p-3 bg-lightYellow dark:bg-darkCopper dark:text-darktext rounded-full w-10 h-10 flex items-center justify-center hover:bg-lightYellow/80 dark:hover:bg-darkCopper/80 transition-colors"
                 title="수정"
-              >
-                <Pencil className="w-5 h-5" />
-              </button>
-              <button
+              />
+              <ActionButton
+                icon={Trash2}
                 onClick={handleDelete}
-                className="p-3 bg-red-500 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-red-600 transition-colors"
                 title="삭제"
-              >
-                <Trash2 className="w-5 h-5" />
-              </button>
+                variant="danger"
+              />
             </div>
           </div>
 
@@ -264,13 +249,16 @@ const DiaryDetailPage = () => {
                 {currentDiary.date}
               </div>
 
-              <div className="w-full rounded-lg border border-lightGold dark:border-darkCopper shadow-sm p-5 dark:text-darkBg bg-white min-h-[320px]">
-                <div className="mt-4">
-                  <MarkdownRenderer 
-                    content={currentDiary.content} 
-                    className="text-gray-700 dark:text-gray-300"
-                  />
-                  
+              <div className="w-full rounded-lg border border-lightGold dark:border-darkCopper shadow-sm p-5 dark:text-darkBg bg-white min-h-[320px] diary-content flex flex-col justify-between">
+                <div className="mt-4 flex-1">
+                  {currentDiary.content ? (
+                    <MarkdownRenderer 
+                      content={currentDiary.content} 
+                      className="text-gray-700 dark:text-gray-300 markdown-renderer"
+                    />
+                  ) : (
+                    <p>내용이 없습니다.</p>
+                  )}
                   {/* 이미지 표시 */}
                   {currentDiary.images && currentDiary.images.length > 0 && (
                     <div className="mt-6 space-y-4">
@@ -284,52 +272,51 @@ const DiaryDetailPage = () => {
                       ))}
                     </div>
                   )}
-                  
-                  {/* 작성자 정보 */}
-                  <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center gap-3">
-                      {currentDiary.userProfile && (
-                        <img 
-                          src={currentDiary.userProfile} 
-                          alt={currentDiary.userNickname} 
-                          className="w-10 h-10 rounded-full"
-                          onError={(e) => {
-                            e.target.style.display = 'none';
-                          }}
-                        />
-                      )}
-                      <div>
-                        <div className="font-medium">{currentDiary.userNickname}</div>
-                        <div className="text-sm text-gray-500">@{currentDiary.userName}</div>
-                      </div>
+                </div>
+                {/* 작성자 정보: 항상 박스 하단에 */}
+                <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center gap-3">
+                    {currentDiary.userProfile && (
+                      <img 
+                        src={currentDiary.userProfile} 
+                        alt={currentDiary.userNickname} 
+                        className="w-10 h-10 rounded-full"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                        }}
+                      />
+                    )}
+                    <div>
+                      <div className="font-medium">{currentDiary.userNickname}</div>
+                      <div className="text-sm text-gray-500">@{currentDiary.userName}</div>
                     </div>
                   </div>
-                  
-                  {/* 좋아요 수 표시 */}
-                  {currentDiary.likeCount > 0 && (
-                    <div className="mt-4 flex items-center gap-2 text-sm text-gray-600">
-                      <Heart className={`w-4 h-4 ${currentDiary.liked ? "fill-red-500 text-red-500" : ""}`} />
-                      <span>{currentDiary.likeCount}명이 좋아합니다</span>
-                    </div>
-                  )}
-                  
-                  {/* 댓글 표시 */}
-                  {currentDiary.comments && currentDiary.comments.length > 0 && (
-                    <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-                      <h3 className="font-medium mb-3">댓글 {currentDiary.comments.length}개</h3>
-                      {currentDiary.comments.map((comment) => (
-                        <div key={comment.comment_id} className="mb-3">
-                          <div className="text-sm font-medium">사용자 {comment.user_id}</div>
-                          <div className="text-gray-700">{comment.content}</div>
-                          <div className="text-xs text-gray-500 mt-1">
-                            {new Date(comment.created_at).toLocaleString('ko-KR')}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
               </div>
+
+              {/* 좋아요 수 표시 - 댓글 영역 위 */}
+              {currentDiary.likeCount > 0 && (
+                <div className="mt-4 flex items-center gap-2 text-sm text-red-500">
+                  <Heart className="w-4 h-4 fill-red-500 text-red-500" />
+                  <span>{currentDiary.likeCount}명이 좋아합니다</span>
+                </div>
+              )}
+
+              {/* 댓글 표시 */}
+              {currentDiary.comments && currentDiary.comments.length > 0 && (
+                <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <h3 className="font-medium mb-3">댓글 {currentDiary.comments.length}개</h3>
+                  {currentDiary.comments.map((comment) => (
+                    <div key={comment.comment_id} className="mb-3">
+                      <div className="text-sm font-medium">사용자 {comment.user_id}</div>
+                      <div className="text-gray-700">{comment.content}</div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {new Date(comment.created_at).toLocaleString('ko-KR')}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

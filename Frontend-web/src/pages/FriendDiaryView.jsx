@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { formatDate } from "../utils/dateUtils";
 import Comment from "../components/diary/Comment";
-import { ChevronLeft, Send } from "lucide-react";
+import { Send, Heart } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { fetchFriendDiaryDetail } from "../service/friendDiaryApi";
+import { addLike, removeLike } from "../service/likeApi";
 import useComments from "../hooks/useComments"; // 커스텀 훅 import
+import { useLike } from "../hooks/useLike";
+import BackButton from "../components/BackButton"; // 추가된 import
+import ActionButton from "../components/ActionButton";
 
 const FriendDiaryView = () => {
   const navigate = useNavigate();
@@ -19,9 +23,12 @@ const FriendDiaryView = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [imageUrl, setImageUrl] = useState(''); // 이미지 URL 상태 추가
+  const [likeCount, setLikeCount] = useState(0);
   
   // 좋아요 상태 관리
   const [likedComments, setLikedComments] = useState({});
+  const [diaryItems, setDiaryItems] = useState([]);
+  const { handleLike, loadingId, animatingId } = useLike(diaryItems, setDiaryItems);
 
   // useComments 훅 사용
   const {
@@ -36,10 +43,6 @@ const FriendDiaryView = () => {
     handleSubmitComment
   } = useComments(friendId, diaryId);
 
-  const handleGoBack = () => {
-    navigate(-1);
-  };
-
   const changeLikeButtonColor = (commentId) => {
     setLikedComments((prev) => ({
       ...prev,
@@ -48,6 +51,26 @@ const FriendDiaryView = () => {
     
     // 좋아요 토글 함수 호출
     handleLikeComment(commentId);
+  };
+  
+  // 일기 좋아요 토글 함수
+  const handleDiaryLike = async (e) => {
+    if (!diaryId) return;
+    
+    try {
+      if (diaryItems.find(item => item.id === diaryId)?.liked) {
+        await removeLike(diaryId);
+        setLikeCount(prev => prev - 1);
+      } else {
+        await addLike(diaryId);
+        setLikeCount(prev => prev + 1);
+      }
+      
+      // useLike 훅의 handleLike 호출
+      handleLike(diaryId, e);
+    } catch (error) {
+      console.error('좋아요 처리 중 오류:', error);
+    }
   };
   
   // 이모지 이미지 URL을 완전한 URL로 변환
@@ -125,6 +148,17 @@ const FriendDiaryView = () => {
     fetchDiaryDetail();
   }, [friendId, diaryId]);
 
+  // 일기 데이터 로드 시 좋아요 상태도 함께 설정
+  useEffect(() => {
+    if (diary) {
+      setDiaryItems([{
+        id: diaryId,
+        liked: diary.liked || false
+      }]);
+      setLikeCount(diary.likeCount || 0);
+    }
+  }, [diary, diaryId]);
+
   // 로딩 상태 표시
   if (loading) {
     return (
@@ -144,18 +178,21 @@ const FriendDiaryView = () => {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen px-4">
-      <div className="w-full max-w-6xl mx-auto shadow-xl p-10 font-sans rounded-2xl border-4 border-lightGold dark:border-darkOrange bg-yl100 dark:bg-darktext text-lighttext dark:text-darkbg transition-colors duration-300">
+    <div className="flex items-center justify-center min-h-screen px-4" style={{ fontFamily: "'GangwonEduSaeeum_OTFMediumA', sans-serif" }}>
+      <div className="w-full max-w-6xl mx-auto shadow-xl p-6 font-sans rounded-2xl border-4 border-lightGold dark:border-darkOrange bg-yl100 dark:bg-darktext text-lighttext dark:text-darkbg transition-colors duration-300">
         <div className="flex flex-col gap-6">
-          {/* ← 뒤로가기 버튼 */}
+          {/* 헤더 영역 */}
           <div className="flex justify-between items-center">
+            <BackButton to={-1} />
             <div className="flex gap-2">
-              <button
-                onClick={handleGoBack}
-                className="p-3 bg-lightYellow dark:bg-darkCopper dark:text-darktext rounded-full w-10 h-10 flex items-center justify-center hover:bg-lightYellow/80 dark:hover:bg-darkCopper/80 transition-colors"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
+              <ActionButton
+                icon={Heart}
+                onClick={handleDiaryLike}
+                title={diaryItems.find(item => item.id === diaryId)?.liked ? "좋아요 취소" : "좋아요"}
+                className={`${loadingId === diaryId ? 'opacity-50' : ''} ${
+                  diaryItems.find(item => item.id === diaryId)?.liked ? "fill-red-500 text-red-500" : ""
+                }`}
+              />
             </div>
           </div>
 
@@ -179,24 +216,63 @@ const FriendDiaryView = () => {
                 </div>
               </div>
 
-              <div className="text-2xl font-bold mb-4 dark:text-darkBg">
+              <div className="text-2xl font-bold mb-4 dark:text-darkBg font-['GangwonEduSaeeum_OTFMediumA']">
                 {diary && diary.created_at 
                   ? formatDate(new Date(diary.created_at)) 
                   : formatDate()}
               </div>
 
-              <div className="w-full rounded-lg border border-lightGold dark:border-darkCopper shadow-sm p-5 dark:text-darkBg bg-white min-h-[320px]">
+              <div className="w-full rounded-lg border border-lightGold dark:border-darkCopper shadow-sm p-5 dark:text-darkBg bg-white min-h-[320px] font-['GangwonEduSaeeum_OTFMediumA'] flex flex-col justify-between">
                 {/* 일기 내용 표시 */}
-                {diary && diary.content ? (
-                  <p>{diary.content}</p>
-                ) : (
-                  <p>내용이 없습니다.</p>
+                <div className="mt-4 flex-1">
+                  {diary && diary.content ? (
+                    <p>{diary.content}</p>
+                  ) : (
+                    <p>내용이 없습니다.</p>
+                  )}
+                </div>
+                {/* 작성자 정보: 박스 내부 하단 */}
+                {diary && (
+                  <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center gap-3">
+                      {diary.userProfile && (
+                        <img
+                          src={diary.userProfile}
+                          alt={diary.userNickname}
+                          className="w-10 h-10 rounded-full"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                      )}
+                      <div>
+                        <div className="font-medium">{diary.userNickname}</div>
+                        <div className="text-sm text-gray-500">@{diary.userName}</div>
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
 
             {/* 댓글 영역 */}
             <div className="md:w-1/3 w-full flex flex-col gap-4 border-t md:border-t-0 md:border-l dark:text- border-lightGold dark:border-darkCopper pt-6 md:pt-0 md:pl-5 bg-yl100 dark:bg-darktext">
+              {/* 좋아요 수 표시 */}
+              {likeCount > 0 && (
+                <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
+                  <Heart className={`w-4 h-4 ${
+                    diaryItems.find(item => item.id === diaryId)?.liked ? "fill-red-500 text-red-500" : ""
+                  }`} />
+                  <span>
+                    {likeCount === 1 
+                      ? "1명이 좋아합니다"
+                      : likeCount === 2
+                      ? "2명이 좋아합니다"
+                      : `${likeCount}명이 좋아합니다`}
+                  </span>
+                </div>
+              )}
+
               <h3 className="text-lg font-medium dark:text-darkBg">댓글</h3>
 
               {/* 댓글 입력 - 커스텀 훅의 함수 사용 */}
@@ -228,15 +304,15 @@ const FriendDiaryView = () => {
                 {comments.length > 0 ? (
                   comments.map((comment) => (
                     <Comment
-  key={comment.id || comment.comment_id}
-  diaryId={diaryId}
-  friendId={friendId}  // friendId 추가
-  comment={comment}
-  likedComments={likedComments}
-  changeLikeButtonColor={changeLikeButtonColor}
-  onUpdateComment={handleUpdateComment}
-  onDeleteComment={(commentId) => handleDeleteComment(commentId, diaryId, friendId)}
-/>
+                      key={comment.id || comment.comment_id}
+                      diaryId={diaryId}
+                      friendId={friendId}  // friendId 추가
+                      comment={comment}
+                      likedComments={likedComments}
+                      changeLikeButtonColor={changeLikeButtonColor}
+                      onUpdateComment={handleUpdateComment}
+                      onDeleteComment={(commentId) => handleDeleteComment(commentId, diaryId, friendId)}
+                    />
                   ))
                 ) : (
                   <div className="text-center text-gray-500 py-8">
