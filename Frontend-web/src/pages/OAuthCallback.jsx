@@ -1,13 +1,11 @@
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import useAuthStore from "../store/authStore";
-import useUiStore from "../store/uiStore";
 
 export default function OAuthCallback() {
   const location = useLocation();
   const navigate = useNavigate();
   const { login, error, clearError } = useAuthStore();
-  const { openModal } = useUiStore();
   
   useEffect(() => {
     const query = new URLSearchParams(location.search);
@@ -16,12 +14,7 @@ export default function OAuthCallback() {
     
     if (!code) {
       console.error("code가 없습니다");
-      openModal('error', {
-        title: '로그인 오류',
-        content: '인증 코드가 없습니다.',
-        confirmText: '확인',
-        onConfirm: () => navigate("/")
-      });
+      navigate("/"); // 모달 없이 바로 로그인 페이지로 이동
       return;
     }
     
@@ -36,12 +29,7 @@ export default function OAuthCallback() {
     
     if (!provider) {
       console.error("provider를 알 수 없습니다");
-      openModal('error', {
-        title: '로그인 오류',
-        content: '지원하지 않는 로그인 방식입니다.',
-        confirmText: '확인',
-        onConfirm: () => navigate("/")
-      });
+      navigate("/"); // 모달 없이 바로 로그인 페이지로 이동
       return;
     }
     
@@ -56,37 +44,25 @@ export default function OAuthCallback() {
         });
         
         if (success) {
-          openModal('success', {
-            title: '로그인 성공',
-            content: `${provider} 로그인에 성공했습니다.`,
-            confirmText: '확인',
-            onConfirm: () => navigate("/main")
-          });
+          // 모달 없이 바로 메인 페이지로 이동
+          navigate("/main");
         } else {
-          openModal('error', {
-            title: '로그인 실패',
-            content: `${provider} 로그인에 실패했습니다. 다시 시도해주세요.`,
-            confirmText: '확인',
-            onConfirm: () => navigate("/")
-          });
+          // 실패 시 로그인 페이지로 이동
+          navigate("/");
         }
       } catch (err) {
-        openModal('error', {
-          title: '로그인 실패',
-          content: `로그인 처리 중 오류가 발생했습니다: ${err.message}`,
-          confirmText: '확인',
-          onConfirm: () => navigate("/")
-        });
+        console.error("로그인 처리 중 오류가 발생했습니다:", err.message);
+        navigate("/");
       }
     };
     
     handleLogin();
-     
+    
     // 컴포넌트 언마운트 시 에러 상태 초기화
     return () => {
       clearError();
     };
-  }, [location, navigate, login, openModal, clearError]);
+  }, [location, navigate, login, clearError]);
   
   return (
     <div className="flex justify-center items-center h-screen">
