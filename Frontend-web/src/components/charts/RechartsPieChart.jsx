@@ -1,10 +1,10 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { EMOJI_COLORS } from '../../constants/EmojiColors'; 
 import { EMOJI_TEXT_MAP } from '../../constants/Emoji'; 
 
 /**
- * Recharts 라이브러리를 사용한 파이 차트 컴포넌트
+ * Recharts 라이브러리를 사용한 파이 차트 컴포넌트 (접을 수 있는 범례)
  * @param {Object} props
  * @param {Array} props.data - 차트에 표시할 데이터
  * @param {string} [props.title="감정 분포"] - 차트 제목
@@ -20,13 +20,11 @@ const RechartsPieChart = ({
   isLoading = false,
   error = null
 }) => {
-  const legendRef = useRef(null);
-  const [startX, setStartX] = useState(null);
-  const [scrollLeft, setScrollLeft] = useState(0);
+  // 범례 표시 여부 상태
+  const [showLegend, setShowLegend] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
-  const [showLeftArrow, setShowLeftArrow] = useState(false);
-  const [showRightArrow, setShowRightArrow] = useState(false);
-
+  
+  // 데이터 변환 함수
   const transformData = (inputData) => {
     if (!inputData || !inputData.series || !Array.isArray(inputData.series)) {
       return [];
@@ -70,11 +68,11 @@ const RechartsPieChart = ({
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="p-2 bg-yl100 dark:bg-darkBg shadow-lg rounded-md border border-lightGold dark:border-darkCopper">
-          <p className="font-bold text-lighttext dark:text-darktext" style={{ color: payload[0].payload.color }}>
+        <div className="p-2 bg-white dark:bg-darkBg shadow-lg rounded-md border border-gray-200 dark:border-gray-700">
+          <p className="font-bold text-gray-800 dark:text-white" style={{ color: payload[0].payload.color }}>
             {payload[0].name}
           </p>
-          <p className="text-lighttext dark:text-darktext">
+          <p className="text-gray-700 dark:text-gray-300">
             {`${payload[0].value}개`}
           </p>
         </div>
@@ -83,135 +81,77 @@ const RechartsPieChart = ({
     return null;
   };
 
-  const handleTouchStart = (e) => {
-    setStartX(e.touches[0].pageX - legendRef.current.offsetLeft);
-    setScrollLeft(legendRef.current.scrollLeft);
+  // 범례 토글 함수
+  const toggleLegend = () => {
+    setShowLegend(!showLegend);
   };
 
-  const handleTouchMove = (e) => {
-    if (!startX) return;
-    e.preventDefault();
-    const x = e.touches[0].pageX - legendRef.current.offsetLeft;
-    const walk = (x - startX) * 2;
-    legendRef.current.scrollLeft = scrollLeft - walk;
-  };
-
-  const handleTouchEnd = () => {
-    setStartX(null);
-  };
-
-  const checkScrollArrows = () => {
-    if (legendRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = legendRef.current;
-      setShowLeftArrow(scrollLeft > 10);
-      setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10);
-    }
-  };
-
-  useEffect(() => {
-    // 초기 로드 시와 데이터 변경 시 스크롤 상태 체크
-    checkScrollArrows();
-    
-    // ResizeObserver를 사용하여 크기 변경 감지
-    const resizeObserver = new ResizeObserver(() => {
-      checkScrollArrows();
-    });
-
-    if (legendRef.current) {
-      resizeObserver.observe(legendRef.current);
-    }
-
-    return () => {
-      if (legendRef.current) {
-        resizeObserver.disconnect();
-      }
-    };
-  }, [chartData]);
-
-  const scrollLegend = (direction) => {
-    if (legendRef.current) {
-      const scrollAmount = direction === 'left' ? -200 : 200;
-      const currentScroll = legendRef.current.scrollLeft;
-      
-      legendRef.current.scrollTo({
-        left: currentScroll + scrollAmount,
-        behavior: 'smooth'
-      });
-
-      // 스크롤 후 화살표 상태 업데이트
-      setTimeout(checkScrollArrows, 300);
-    }
-  };
-
-  const handleScroll = () => {
-    checkScrollArrows();
-  };
-
-  const CustomLegend = () => (
-    <div className="relative w-full">
-      {/* Left Arrow */}
-      {showLeftArrow && (
-        <button
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-30 bg-yl100/80 dark:bg-darkBg/80 hover:bg-yl100 dark:hover:bg-darkBg p-2 rounded-r-md shadow-md"
-          onClick={() => scrollLegend('right')}
+  // 접을 수 있는 범례 컴포넌트
+  const CollapsibleLegend = () => (
+    <div className={`w-full bg-white/95 dark:bg-darkBg/95 transition-all duration-300 ease-in-out shadow-md`}
+         style={{
+           position: 'absolute',
+           left: 0,
+           bottom: 0,
+           zIndex: 10,
+           height: showLegend ? '200px' : '40px', // 펼쳤을 때와 접었을 때의 높이
+           overflow: 'hidden'
+         }}>
+      {/* 토글 버튼 - 상단에 고정 */}
+      <div className="w-full sticky top-0 z-20 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <button 
+          onClick={toggleLegend}
+          className="w-full py-2 px-4 flex items-center justify-between"
+          aria-expanded={showLegend}
+          aria-controls="legend-content"
         >
-          <svg className="w-6 h-6 text-lighttext dark:text-darktext" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-      )}
-
-      {/* Right Arrow */}
-      {showRightArrow && (
-        <button
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-30 bg-yl100/80 dark:bg-darkBg/80 hover:bg-yl100 dark:hover:bg-darkBg p-2 rounded-l-md shadow-md"
-          onClick={() => scrollLegend('left')}
-        >
-          <svg className="w-6 h-6 text-lighttext dark:text-darktext" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-      )}
-
-      <div
-        ref={legendRef}
-        className="flex flex-nowrap items-center justify-start gap-3 px-12"
-        style={{
-          overflowX: 'auto',
-          overflowY: 'hidden',
-          whiteSpace: 'nowrap',
-          WebkitOverflowScrolling: 'touch',
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none',
-          zIndex: 20,
-          position: 'relative',
-          width: '100%',
-          paddingTop: '8px',
-          paddingBottom: '8px'
-        }}
-        onScroll={handleScroll}
-      >
-        <div className="flex items-center gap-2 mb-1 mr-4 flex-shrink-0">
-          <span className="text-lighttext dark:text-darktext font-bold" style={{ fontSize: 14 }}>
-            전체: {totalCount}개
+          <span className="text-gray-800 dark:text-white font-medium">
+            {showLegend ? '범례 접기' : '범례 보기'} (총 {totalCount}개)
           </span>
+          <svg 
+            className={`w-5 h-5 text-gray-600 dark:text-gray-300 transform transition-transform duration-300 ${showLegend ? 'rotate-180' : ''}`} 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+      </div>
+
+      {/* 범례 내용 - 스크롤 가능하지만 스크롤바 숨김 */}
+      <div 
+        id="legend-content"
+        className={`p-3 ${showLegend ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300`}
+        style={{ 
+          height: 'calc(100% - 40px)', 
+          overflowY: 'auto',
+          scrollbarWidth: 'none', // Firefox
+          msOverflowStyle: 'none', // IE/Edge
+        }}
+      >
+        <div className="grid grid-cols-1 gap-2">
+          {chartData.map((entry, index) => (
+            <div key={index} className="flex items-center gap-2">
+              <div
+                className="w-4 h-4 rounded-sm flex-shrink-0"
+                style={{ backgroundColor: entry.color }}
+              />
+              <span className="text-gray-800 dark:text-white text-sm">
+                {entry.name} ({entry.value}개)
+              </span>
+            </div>
+          ))}
         </div>
-        {chartData.map((entry, index) => (
-          <div key={index} className="flex items-center gap-2 mb-1 flex-shrink-0">
-            <div
-              className="w-4 h-4 rounded-sm"
-              style={{ backgroundColor: entry.color }}
-            />
-            <span className="text-lighttext dark:text-darktext" style={{ fontSize: 14 }}>
-              {entry.name} ({entry.value}개)
-            </span>
-          </div>
-        ))}
-        <style>{`
-          .flex-nowrap::-webkit-scrollbar {
-            display: none;
-          }
-        `}</style>
+        
+        {/* WebKit 브라우저용 스크롤바 숨김 스타일 */}
+        <style>
+          {`
+            #legend-content::-webkit-scrollbar {
+              display: none;
+            }
+          `}
+        </style>
       </div>
     </div>
   );
@@ -234,19 +174,30 @@ const RechartsPieChart = ({
 
   if (!chartData || chartData.length === 0) {
     return (
-      <div className="w-full flex items-center justify-center text-lighttext/70 p-2" style={{ height: `${height}px` }}>
+      <div className="w-full flex items-center justify-center text-gray-500 p-2" style={{ height: `${height}px` }}>
         <p>표시할 데이터가 없습니다.</p>
       </div>
     );
   }
 
+  // 차트가 차지할 높이 계산 (범례가 펼쳐진 경우 차트 높이 조정)
+  const chartHeight = height - 40; // 버튼 높이만큼만 빼기 (범례는 항상 아래쪽 오버레이로 표시)
+
   return (
     <div
-      className="w-full relative flex flex-col items-center"
+      className="w-full relative"
       style={{ height, minHeight: height, maxHeight: height, overflow: 'hidden' }}
     >
-      {/* 차트 영역 (상단 고정, 남은 공간 모두 차지) */}
-      <div style={{ width: '100%', height: height * 0.8, minHeight: height * 0.8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      {/* 차트 영역 */}
+      <div 
+        className="w-full"
+        style={{ 
+          height: showLegend ? chartHeight - 160 : chartHeight, // 범례가 펼쳐질 때 차트 영역 축소
+          transition: 'height 0.3s ease-in-out',
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center' 
+        }}>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -254,7 +205,7 @@ const RechartsPieChart = ({
               cx="50%"
               cy="50%"
               labelLine={false}
-              outerRadius="100%"
+              outerRadius="80%"
               fill="#8884d8"
               dataKey="value"
             >
@@ -266,20 +217,9 @@ const RechartsPieChart = ({
           </PieChart>
         </ResponsiveContainer>
       </div>
-      {/* 범례 영역 (하단 고정, 가로 스크롤) */}
-      <div
-        className="w-full"
-        style={{
-          position: 'absolute',
-          left: 0,
-          bottom: 0,
-          background: 'rgba(30, 20, 10, 0.95)',
-          padding: '2px 0',
-          zIndex: 10,
-        }}
-      >
-        <CustomLegend />
-      </div>
+      
+      {/* 접을 수 있는 범례 영역 */}
+      <CollapsibleLegend />
     </div>
   );
 };
