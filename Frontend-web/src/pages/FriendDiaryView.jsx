@@ -194,39 +194,77 @@ const FriendDiaryView = () => {
   };
 
   const checkAndUpdateComment = async (commentId, content) => {
-    try {
-      // 현재 로그인한 사용자의 정보를 가져옵니다
-      const myInfo = await getMyInfo();
-      const currentUserId = myInfo.data.id;
+  console.log("💬 댓글 수정 시작:", { 
+    commentId, 
+    content, 
+    friendId, 
+    diaryId,
+    isFriendDiary: !!friendId
+  });
+  
+  if (!friendId || !diaryId) {
+    console.error("❌ 친구 ID 또는 다이어리 ID가 없습니다:", { friendId, diaryId });
+    openModal('error', {
+      title: '수정 실패',
+      content: '친구 ID 또는 다이어리 ID를 찾을 수 없습니다.',
+      confirmText: '확인'
+    });
+    return;
+  }
+  
+  try {
+    // 현재 로그인한 사용자의 정보를 가져옵니다
+    console.log("사용자 정보 요청 중...");
+    const myInfo = await getMyInfo();
+    console.log("사용자 정보:", myInfo.data);
+    const currentUserId = myInfo.data.id;
+    console.log("현재 사용자 ID:", currentUserId);
 
-      // 댓글 작성자 확인
-      const comment = comments.find(c => c.id === commentId || c.comment_id === commentId);
-      if (!comment) {
-        console.error('댓글을 찾을 수 없습니다.');
-        return;
-      }
+    // 댓글 작성자 확인
+    const comment = comments.find(c => c.id === commentId || c.comment_id === commentId);
+    console.log("수정할 댓글 찾기:", { 
+      찾는댓글ID: commentId, 
+      찾은댓글: comment, 
+      모든댓글수: comments.length
+    });
+    
+    if (!comment) {
+      console.error('❌ 댓글을 찾을 수 없습니다:', commentId);
+      return;
+    }
 
-      // 댓글 작성자가 아닌 경우 수정 불가
-      if (comment.user_id !== currentUserId) {
-        openModal('error', {
-          title: '권한 없음',
-          content: '자신이 작성한 댓글만 수정할 수 있습니다.',
-          confirmText: '확인'
-        });
-        return;
-      }
-
-      // 권한이 있는 경우 수정 진행
-      await handleUpdateComment(commentId, content);
-    } catch (error) {
-      console.error('댓글 수정 중 오류:', error);
+    // 댓글 작성자가 아닌 경우 수정 불가
+    if (comment.user.id !== currentUserId) {
+      console.error("❌ 권한 없음: 자신이 작성한 댓글만 수정할 수 있습니다.");
       openModal('error', {
-        title: '수정 실패',
-        content: '댓글 수정에 실패했습니다.',
+        title: '권한 없음',
+        content: '자신이 작성한 댓글만 수정할 수 있습니다.',
         confirmText: '확인'
       });
+      return;
     }
-  };
+
+    // 권한이 있는 경우 수정 진행 - useComments 훅의 handleUpdateComment 함수를 직접 호출
+    // useComments 훅은 이미 friendId와 diaryId를 알고 있음
+    console.log("✅ 권한 확인 완료, 댓글 수정 진행:", { commentId, content });
+    await handleUpdateComment(commentId, content);
+    console.log("✅ 댓글 수정 성공!");
+    
+    // 댓글 목록 새로고침
+    console.log("댓글 목록 새로고침 시작");
+    await fetchDiaryDetail();
+    console.log("댓글 목록 새로고침 완료");
+    
+  } catch (error) {
+    console.error('❌ 댓글 수정 중 오류:', error);
+    console.error('❌ 오류 세부 정보:', error.response?.data || error.message);
+    openModal('error', {
+      title: '수정 실패',
+      content: '댓글 수정에 실패했습니다: ' + (error.message || '알 수 없는 오류'),
+      confirmText: '확인'
+    });
+  }
+};
 
   return (
     <main style={{ fontFamily: "'GangwonEduSaeeum_OTFMediumA', sans-serif" }}>
