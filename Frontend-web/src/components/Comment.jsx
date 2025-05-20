@@ -2,6 +2,16 @@ import React from "react";
 import { Heart, Trash2, Pencil } from "lucide-react";
 import useUiStore from "../store/uiStore";
 
+// CloudFront URL 상수 정의
+const CLOUDFRONT_URL = "https://dpjpkgz1vl8qy.cloudfront.net";
+const S3_URL_PATTERN = /https:\/\/handsomepotato\.s3\.ap-northeast-2\.amazonaws\.com/;
+
+// S3 URL을 CloudFront URL로 변환하는 함수
+const convertToCloudFrontUrl = (url) => {
+  if (!url) return '';
+  return url.replace(S3_URL_PATTERN, CLOUDFRONT_URL);
+};
+
 const SmallRoundButton = ({ icon: Icon, onClick, title, className = "", variant }) => {
   let base = "w-5 h-5 p-0.5 flex items-center justify-center rounded-full transition-colors bg-transparent";
   let iconColor = "text-lighttext dark:text-darkBg";
@@ -21,9 +31,21 @@ const SmallRoundButton = ({ icon: Icon, onClick, title, className = "", variant 
 const Comment = ({ comment, diaryId, friendId, likedComments, changeLikeButtonColor, onDeleteComment, onEditComment }) => {
   const { openModal } = useUiStore();
   const commentId = comment.id || comment.comment_id;
+  
+  // 중첩된 user 객체에서 프로필 정보 추출
+  const user = comment.user || {};
+  
+  // 프로필 이미지 URL 변환
+  const profileUrl = user.profile ? convertToCloudFrontUrl(user.profile) : '';
+  
+  // 사용자 정보 추출
+  const nickname = user.nickname || '사용자';
+  const username = user.username || '';
 
   function handleClickLikeButton() {
-    changeLikeButtonColor(commentId);
+    if (typeof changeLikeButtonColor === 'function') {
+      changeLikeButtonColor(commentId);
+    }
   }
 
   function handleClickDeleteButton() {
@@ -32,7 +54,11 @@ const Comment = ({ comment, diaryId, friendId, likedComments, changeLikeButtonCo
       content: '댓글을 삭제하시겠습니까?',
       confirmText: '삭제',
       cancelText: '취소',
-      onConfirm: () => onDeleteComment(commentId)
+      onConfirm: () => {
+        if (typeof onDeleteComment === 'function') {
+          onDeleteComment(commentId);
+        }
+      }
     });
   }
 
@@ -42,31 +68,44 @@ const Comment = ({ comment, diaryId, friendId, likedComments, changeLikeButtonCo
       content: '댓글을 수정하시겠습니까?',
       confirmText: '수정',
       cancelText: '취소',
-      onConfirm: () => onEditComment(commentId, comment.content)
+      onConfirm: () => {
+        if (typeof onEditComment === 'function') {
+          onEditComment(commentId, comment.content);
+        }
+      }
     });
   }
 
   return (
-    <div className="w-full py-3 px-4 sm:py-4 sm:px-6 rounded-xl shadow-md border-2 border-lighttext/20 dark:border-darkBg/20 mb-2 flex flex-col">
+<div className="w-full pt-3 pr-2 pb-1.5 pl-4 rounded-xl shadow-md border-2 border-lighttext/20 dark:border-darkBg/20 mb-2 flex flex-col">
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
-          {comment.userProfile && (
+          {profileUrl && (
             <img 
-              src={comment.userProfile} 
-              alt={comment.userNickname}
+              src={profileUrl} 
+              alt={nickname}
               className="w-7 h-7 rounded-full"
-              onError={(e) => { e.target.style.display = 'none'; }}
+              onError={(e) => { 
+                console.error('프로필 이미지 로드 실패:', profileUrl); 
+                e.target.style.display = 'none'; 
+              }}
             />
           )}
           <span className="font-semibold text-sm text-lighttext dark:text-darkBg">
-            {comment.userNickname || comment.user_id}
+            {nickname}
           </span>
-          <span className="text-xs text-gray-500 dark:text-darkBg ml-1">
-            @{comment.userName || comment.user_id}
-          </span>
+          {username && (
+            <span className="text-xs text-gray-500 dark:text-darkBg ml-1">
+              @{username}
+            </span>
+          )}
         </div>
         <span className="text-xs text-gray-500 dark:text-darkBg pr-4">
-          {comment.created_at.split("T")[0]}
+          {comment.created_at && typeof comment.created_at === 'string' 
+            ? comment.created_at.includes("T") 
+              ? comment.created_at.split("T")[0]
+              : comment.created_at
+            : '날짜 없음'}
         </span>
       </div>
       <div className="flex items-center justify-between">
@@ -77,9 +116,9 @@ const Comment = ({ comment, diaryId, friendId, likedComments, changeLikeButtonCo
           <SmallRoundButton
             icon={Heart}
             onClick={handleClickLikeButton}
-            title={likedComments[commentId] ? "좋아요 취소" : "좋아요"}
+            title={(likedComments && likedComments[commentId]) ? "좋아요 취소" : "좋아요"}
             className={
-              (likedComments[commentId] ? "fill-red-500 text-red-500 border border-red-500 " : "") +
+              ((likedComments && likedComments[commentId]) ? "fill-red-500 text-red-500 border border-red-500 " : "") +
               "hover:bg-lighttext/10 dark:hover:bg-darkBg/20"
             }
           />

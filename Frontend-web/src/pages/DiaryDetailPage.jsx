@@ -29,14 +29,15 @@ const DiaryDetailPage = () => {
   
   const { openModal } = useUiStore();
 
-  const diaryId = currentDiary?.diary_id || currentDiary?.id;
-  
+  // 일기 ID는 여러 소스에서 가져올 수 있음 - URL 파라미터, state, 현재 일기 객체
+  const [activeDiaryId, setActiveDiaryId] = useState(null);
+
   // 좋아요 상태 관리
   const [diaryItems, setDiaryItems] = useState([]);
   const [likeCount, setLikeCount] = useState(0);
   const { handleLike, loadingId, animatingId } = useLike(diaryItems, setDiaryItems);
 
-  // useComments 훅 사용
+  // useComments 훅 사용 - 일반 다이어리용 (undefined는 친구 ID)
   const {
     comments,
     newComment,
@@ -46,47 +47,50 @@ const DiaryDetailPage = () => {
     loading: commentsLoading,
     setInitialComments,
     handleUpdateComment,
-  } = useComments(undefined, diaryId);
+    loadComments, // 새로 추가된 함수
+  } = useComments(undefined, activeDiaryId);
+
+  // 활성 일기 ID 설정 - 여러 소스에서 ID를 추출하는 로직
+  useEffect(() => {
+    const diaryId = id || location.state?.diary?.id || location.state?.diary?.diary_id || 
+                   currentDiary?.id || currentDiary?.diary_id;
+    
+    console.log('Setting active diary ID:', diaryId);
+    if (diaryId) {
+      setActiveDiaryId(diaryId);
+    }
+  }, [id, location.state, currentDiary]);
 
   // 일기 데이터 불러오기
   useEffect(() => {
     const loadDiaryData = async () => {
+      if (!activeDiaryId) {
+        console.error('No diary ID found');
+        return;
+      }
+
       try {
-        const diaryId = id || location.state?.diary?.id || location.state?.diary?.diary_id;
         console.log('=== Loading Diary Data ===');
-        console.log('URL ID:', id);
-        console.log('State Diary:', location.state?.diary);
-        console.log('Diary ID to fetch:', diaryId);
+        console.log('Active Diary ID:', activeDiaryId);
 
-        if (!diaryId) {
-          console.error('No diary ID found');
-          openModal('error', {
-            title: '오류',
-            content: '일기 정보를 찾을 수 없습니다.',
-            confirmText: '확인',
-            onConfirm: () => navigate('/main')
-          });
-          return;
-        }
-
-        const diaryData = await fetchDiary(diaryId);
+        const diaryData = await fetchDiary(activeDiaryId);
         console.log('Fetched diary data:', diaryData);
         
-        // ID가 없는 경우 location.state의 ID를 사용
+        // ID가 없는 경우 active ID를 사용
         if (!diaryData.id && !diaryData.diary_id) {
-          diaryData.id = diaryId;
-          diaryData.diary_id = diaryId;
+          diaryData.id = activeDiaryId;
+          diaryData.diary_id = activeDiaryId;
         }
 
         // 댓글 데이터 설정
         if (diaryData.comments && Array.isArray(diaryData.comments)) {
           console.log('Setting initial comments:', diaryData.comments);
           setInitialComments(diaryData.comments);
-        }
+        } 
 
         // 좋아요 상태 설정
         setDiaryItems([{
-          id: diaryId,
+          id: activeDiaryId,
           liked: diaryData.liked || false
         }]);
         setLikeCount(diaryData.likeCount || 0);
@@ -101,43 +105,18 @@ const DiaryDetailPage = () => {
       }
     };
     
-    loadDiaryData();
-  }, [id, location.state, fetchDiary, navigate, openModal, setInitialComments]);
+    if (activeDiaryId) {
+      loadDiaryData();
+    }
+  }, [activeDiaryId, fetchDiary, navigate, openModal, setInitialComments, loadComments]);
 
   const handleGoBack = () => {
     navigate(-1);
   };
 
   const handleEdit = () => {
-    console.log('=== Edit Button Clicked ===');
-    console.log('Current Diary:', currentDiary);
-    console.log('Location State:', location.state);
-    
-    // location.state에서 ID 가져오기
-    const stateId = location.state?.diary?.id;
-    console.log('State ID:', stateId);
-    
-    if (!currentDiary && !stateId) {
-      console.error('No diary data available');
-      openModal('error', {
-        title: '오류',
-        content: '일기 정보를 찾을 수 없습니다.',
-        confirmText: '확인'
-      });
-      return;
-    }
-
-    // ID 추출 로직 개선
-    const diaryId = stateId || id || currentDiary?.id || currentDiary?.diary_id;
-    console.log('=== Diary ID Debug ===');
-    console.log('URL ID:', id);
-    console.log('State ID:', stateId);
-    console.log('Current Diary ID:', currentDiary?.id);
-    console.log('Current Diary diary_id:', currentDiary?.diary_id);
-    console.log('Final ID:', diaryId);
-    
-    if (!diaryId) {
-      console.error('No diary ID found in object:', currentDiary);
+    if (!activeDiaryId) {
+      console.error('No diary ID found');
       openModal('error', {
         title: '오류',
         content: '일기 정보를 찾을 수 없습니다.',
@@ -150,13 +129,13 @@ const DiaryDetailPage = () => {
       title: '수정하시겠습니까?',
       content: '일기를 수정하시겠습니까?',
       onConfirm: () => {
-        console.log('Navigating to edit page with ID:', diaryId);
+        console.log('Navigating to edit page with ID:', activeDiaryId);
         // URL에 ID를 포함하고, state에도 diary 정보를 전달
-        navigate(`/diary/edit/${diaryId}`, { 
+        navigate(`/diary/edit/${activeDiaryId}`, { 
           state: { 
             diary: {
-              id: diaryId,
-              diary_id: diaryId,
+              id: activeDiaryId,
+              diary_id: activeDiaryId,
               content: currentDiary?.content || '',
               emotionId: currentDiary?.emotionId || currentDiary?.emotion_id || 1,
               date: currentDiary?.date || '',
@@ -170,15 +149,14 @@ const DiaryDetailPage = () => {
   };
 
   const handleDelete = () => {
-    if (!currentDiary) return;
+    if (!currentDiary || !activeDiaryId) return;
     
     openModal('error', {
       title: '일기를 삭제하시겠습니까?',
       content: '삭제된 일기는 복구할 수 없습니다.',
       onConfirm: async () => {
         try {
-          const diaryId = currentDiary.diary_id || currentDiary.id;
-          await deleteDiary(diaryId);
+          await deleteDiary(activeDiaryId);
           
           openModal('success', {
             title: '삭제 완료',
@@ -201,19 +179,19 @@ const DiaryDetailPage = () => {
     e.preventDefault();
     e.stopPropagation();
     
-    if (!diaryId) return;
+    if (!activeDiaryId) return;
     
     try {
-      if (diaryItems.find(item => item.id === diaryId)?.liked) {
-        await removeLike(diaryId);
+      if (diaryItems.find(item => item.id === activeDiaryId)?.liked) {
+        await removeLike(activeDiaryId);
         setLikeCount(prev => prev - 1);
       } else {
-        await addLike(diaryId);
+        await addLike(activeDiaryId);
         setLikeCount(prev => prev + 1);
       }
       
       // useLike 훅의 handleLike 호출
-      handleLike(diaryId, e);
+      handleLike(activeDiaryId, e);
     } catch (error) {
       console.error('좋아요 처리 중 오류:', error);
     }
@@ -223,11 +201,9 @@ const DiaryDetailPage = () => {
   const handleEditComment = async (commentId, content) => {
     try {
       await handleUpdateComment(commentId, content);
-      // 댓글 수정 후 일기 데이터 다시 로드
-      const diaryData = await fetchDiary(diaryId);
-      if (diaryData.comments && Array.isArray(diaryData.comments)) {
-        setInitialComments(diaryData.comments);
-      }
+      
+      // 댓글 수정 후 일기 데이터 다시 로드하는 대신 댓글만 다시 로드
+      await loadComments();
     } catch (error) {
       console.error('Error updating comment:', error);
       openModal('error', {
@@ -235,6 +211,23 @@ const DiaryDetailPage = () => {
         content: '댓글 수정에 실패했습니다.',
         confirmText: '확인'
       });
+    }
+  };
+
+  // 댓글 저장 핸들러
+  const handleSubmitWithRefresh = async (e) => {
+    e.preventDefault();
+    
+    try {
+      // 댓글 작성
+      await handleSubmitComment(e);
+      
+      // 댓글 작성 후 댓글 목록만 새로고침
+      setTimeout(() => {
+        loadComments();
+      }, 300);
+    } catch (error) {
+      console.error('Error submitting comment:', error);
     }
   };
 
@@ -279,9 +272,9 @@ const DiaryDetailPage = () => {
                 <ActionButton
                   icon={Heart}
                   onClick={handleDiaryLike}
-                  title={diaryItems.find(item => item.id === diaryId)?.liked ? "좋아요 취소" : "좋아요"}
-                  className={`${loadingId === diaryId ? 'opacity-50' : ''} ${
-                    diaryItems.find(item => item.id === diaryId)?.liked ? "fill-red-500 text-red-500" : ""
+                  title={diaryItems.find(item => item.id === activeDiaryId)?.liked ? "좋아요 취소" : "좋아요"}
+                  className={`${loadingId === activeDiaryId ? 'opacity-50' : ''} ${
+                    diaryItems.find(item => item.id === activeDiaryId)?.liked ? "fill-red-500 text-red-500" : ""
                   }`}
                 />
                 <ActionButton
@@ -369,8 +362,8 @@ const DiaryDetailPage = () => {
                 </span>
               </div>
             )}
-            {/* 댓글 입력 */}
-            <form onSubmit={handleSubmitComment} className="p-2 flex items-center gap-2">
+            {/* 댓글 입력 - handleSubmitWithRefresh 사용 */}
+            <form onSubmit={handleSubmitWithRefresh} className="p-2 flex items-center gap-2">
               <input
                 type="text"
                 name="comment"
@@ -393,12 +386,12 @@ const DiaryDetailPage = () => {
               </button>
             </form>
             {/* 댓글 목록 */}
-            <div className="overflow-y-auto flex-grow">
+            <div className="overflow-y-auto flex-grow max-h-[400px] pr-0 mr-0 mt-4">
               {comments && comments.length > 0 ? (
                 comments.map((comment) => (
                   <Comment
                     key={comment.id || comment.comment_id}
-                    diaryId={diaryId}
+                    diaryId={activeDiaryId}
                     comment={comment}
                     likedComments={{}}
                     changeLikeButtonColor={() => {}}

@@ -1,4 +1,4 @@
-import api from "./axiosInstance";
+import api from "./axios";
 
 // 댓글 목록 조회
 export const fetchComments = (diaryId) =>
