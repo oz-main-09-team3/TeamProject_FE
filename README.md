@@ -295,6 +295,6 @@ Closes #12
 
 ### 4. [API 명세서](https://docs.google.com/spreadsheets/d/1TPVanhpBEOxsP9YJ_7vGjBw8hk6eE8Ff28uk38PpqBk/edit?gid=0#gid=0)
 
-### 5. [테이블 명세서](https://officeonline.hancomdocs.com/webhwp/?mode=HWP_EDITOR&docId=eFx2cZvRiGqJEXAVwUqGwWt8x3DNkXoW&lang=ko_KR)
+### 5. [테이블 명세서]([https://officeonline.hancomdocs.com/webhwp/?mode=HWP_EDITOR&docId=eFx2cZvRiGqJEXAVwUqGwWt8x3DNkXoW&lang=ko_KR](https://www.notion.so/1d8caf5650aa806abf75fdc5a7f720ed))
 
 ### 6. [ERD](https://www.erdcloud.com/d/gAKrEjuk6ECJdp2RL)
