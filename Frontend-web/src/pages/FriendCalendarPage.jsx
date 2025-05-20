@@ -162,19 +162,19 @@ function FriendCalendarPage() {
   const sortedDiaries = sortDiariesByDate(filteredDiaries);
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center transition-colors duration-300">
-      <section className="mx-auto max-w-5xl w-full m-8 section-container border bg-yl100/90 dark:bg-darkBg/50 border-lightGold dark:border-darkCopper rounded-xl">
+    <main className="transition-colors duration-300">
+      <section className="mx-auto max-w-5xl w-full section-container border bg-yl100/90 dark:bg-darkBg/50 border-lightGold dark:border-darkCopper rounded-xl">
         {/* 헤더 - 친구 정보 없이 페이지 제목만 표시 */}
-        <div className="p-4 text-center border-b border-lightGold dark:border-darkCopper">
+        <div className="p-2 text-center border-b border-lightGold dark:border-darkCopper">
           <h2 className="text-xl font-semibold text-lighttext dark:text-darktext">
             친구의 일기
           </h2>
         </div>
         
-        <div className="flex flex-col lg:flex-row gap-3 items-stretch justify-center p-4">
+        <div className="flex flex-col lg:flex-row gap-3 items-stretch justify-center pt-4">
           {/* 캘린더 섹션 - MonthlyCalendar에 변환된 데이터 전달 */}
           <div ref={calendarContainerRef} className="w-full lg:w-2/3 bg-yl100 dark:bg-darkBg rounded-lg shadow-md">
-            <div className="aspect-[5/6] p-2 sm:p-4 flex items-center justify-center overflow-visible w-full h-full">
+            <div className="aspect-[5/6] p-2 sm:p-1 flex items-center justify-center overflow-visible w-full h-full">
               <MonthlyCalendar 
                 diaries={transformedDiaries} // 변환된 데이터 사용
                 emotionMap={emotions}

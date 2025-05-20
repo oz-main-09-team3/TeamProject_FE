@@ -11,30 +11,34 @@
     font-family: 'GangwonEduSaeeum_OTFMediumA', sans-serif;
   }
 
+  main {
+    @apply pt-4 mx-auto;
+  }
+
   /* 반응형 텍스트 및 패딩 설정 */
   @media (max-width: 767px) {
     body {
-      @apply text-sm px-4;
+      @apply text-sm px-2;
     }
   }
 
   /* 768px 너비에서 가로 방향일 때만 적용 */
   @media (min-width: 768px) and (max-width: 1023px) and (orientation: landscape) {
     body {
-      @apply text-base px-6;
+      @apply text-base px-3;
     }
   }
 
   /* 768px 너비에서 세로 방향일 때 적용 */
   @media (min-width: 768px) and (max-width: 1023px) and (orientation: portrait) {
     body {
-      @apply text-base px-6;
+      @apply text-base px-3;
     }
   }
 
   @media (min-width: 1024px) {
     body {
-      @apply text-lg px-8;
+      @apply text-lg px-4;
     }
   }
 }

@@ -212,20 +212,21 @@ function ChartPage() {
   };
 
   return (
-    <main className="flex items-center justify-center min-h-screen p-6 pt-[100px]">
-      <div className="w-full max-w-6xl bg-yl100 dark:bg-darktext rounded-3xl shadow-lg px-6 py-10 relative font-[GangwonEduSaeeum_OTFMediumA]">
-        {/* 뒤로 가기 버튼 */}
-        <BackButton to={-1} />
-
-        {/* 페이지 제목 */}
-        <h1 className="text-3xl font-bold text-center mb-2 text-lighttext dark:text-darkBg">
-          감정 일기 통계
-        </h1>
+    <main className="p-6">
+      <div className="w-full max-w-6xl mx-auto bg-yl100 dark:bg-darktext rounded-3xl shadow-lg p-6 relative font-[GangwonEduSaeeum_OTFMediumA]">
+        {/* 상단 툴바: 뒤로가기 + 제목 */}
+        <div className="flex items-center justify-between mb-4">
+          <BackButton to={-1} />
+          <h1 className="text-3xl font-bold text-center flex-1 text-lighttext dark:text-darkBg">
+            감정 일기 통계
+          </h1>
+          <div className="w-10" /> {/* 오른쪽 여백용 */}
+        </div>
 
         {/* 차트 그리드 레이아웃 */}
-        <div className="mt-8 flex flex-wrap justify-center gap-2">
+        <div className="mt-6 flex flex-wrap justify-center gap-2 w-full">
           {/* 컬럼 차트 컨테이너 - RechartsBarChart 사용 */}
-          <div className="w-full md:w-[48%] bg-yl100 dark:bg-darkBg p-4 rounded-lg shadow-md">
+          <div className="flex-1 bg-yl100 dark:bg-darkBg p-4 rounded-lg shadow-md min-w-[320px] max-w-[700px]">
             <h2 className="text-xl font-semibold text-center mb-2 text-lighttext dark:text-darktext">
               월별 일기 작성 횟수
             </h2>
@@ -239,7 +240,7 @@ function ChartPage() {
           </div>
 
           {/* 파이 차트 컨테이너 - RechartsPieChart 사용 */}
-          <div className="w-full md:w-[48%] bg-yl100 dark:bg-darkBg p-4 rounded-lg shadow-md overflow-hidden">
+          <div className="flex-1 bg-yl100 dark:bg-darkBg p-4 rounded-lg shadow-md overflow-hidden min-w-[320px] max-w-[700px]">
             <h2 className="text-xl font-semibold text-center mb-2 text-lighttext dark:text-darktext">
               {getCurrentMonthName()} 감정 분포
             </h2>

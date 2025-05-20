@@ -184,15 +184,12 @@ const FriendDiaryView = () => {
   // 기존 handleSubmitComment는 useComments에서 받아옴
   const handleSubmitCommentWithRefresh = async (e) => {
     e.preventDefault();
-    setCommentsLoading(true);
 
     try {
       await handleSubmitComment(e);
       await fetchDiaryDetail();
     } catch (error) {
       console.error('Error submitting comment:', error);
-    } finally {
-      setCommentsLoading(false);
     }
   };
 
@@ -232,9 +229,9 @@ const FriendDiaryView = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen px-4" style={{ fontFamily: "'GangwonEduSaeeum_OTFMediumA', sans-serif" }}>
-      <div className="w-full max-w-6xl mx-auto shadow-xl p-6 font-sans rounded-2xl border-4 border-lightGold dark:border-darkOrange bg-yl100 dark:bg-darktext text-lighttext dark:text-darkbg transition-colors duration-300">
-        <div className="flex flex-col gap-6">
+    <main style={{ fontFamily: "'GangwonEduSaeeum_OTFMediumA', sans-serif" }}>
+      <div className="w-full max-w-4xl mx-auto shadow-xl p-6 font-sans rounded-2xl border-4 border-lightGold dark:border-darkOrange bg-yl100 dark:bg-darktext text-lighttext dark:text-darkbg transition-colors duration-300">
+        <div className="flex flex-col gap-4">
           {/* 헤더 영역 */}
           <div className="flex justify-between items-center">
             <BackButton to={-1} />
@@ -249,10 +246,9 @@ const FriendDiaryView = () => {
               />
             </div>
           </div>
-
-          <div className="flex flex-col gap-6 md:flex-row md:gap-8">
+          <div className="flex flex-col md:flex-row gap-6">
             {/* 일기 내용 */}
-            <div className="md:w-2/3 w-full flex flex-col">
+            <div className="md:w-1/2 w-full flex flex-col">
               <div className="flex justify-center mb-8">
                 <div className="w-28 h-28 rounded-full flex justify-center items-center overflow-hidden relative bg-white">
                   {/* 이미지 URL 상태 변수 사용 */}
@@ -310,7 +306,7 @@ const FriendDiaryView = () => {
             </div>
 
             {/* 댓글 영역 */}
-            <div className="md:w-1/3 w-full flex flex-col gap-2 border-t md:border-t-0 md:border-l dark:text- border-lightGold dark:border-darkCopper md:pt-0 md:pl-5 bg-yl100 dark:bg-darktext">
+            <div className="md:w-1/2 w-full flex flex-col gap-2 border-t md:border-t-0 md:border-l dark:text- border-lightGold dark:border-darkCopper md:pt-0 md:pl-5 bg-yl100 dark:bg-darktext">
               {/* 좋아요 수 표시 */}
               {likeCount > 0 && (
                 <div className="mt-2 p-2 flex items-center gap-2 text-sm">
@@ -371,7 +367,7 @@ const FriendDiaryView = () => {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 };
 

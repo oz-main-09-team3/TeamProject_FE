@@ -269,10 +269,10 @@ const DiaryDetailPage = () => {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen px-4">
-      <div className="w-full max-w-6xl mx-auto shadow-xl p-6 font-sans rounded-2xl border-4 border-lightGold dark:border-darkOrange bg-yl100 dark:bg-darktext text-lighttext dark:text-darkbg transition-colors duration-300">
+    <main>
+      <div className="w-full max-w-4xl mx-auto shadow-xl p-6 font-sans rounded-2xl border-4 border-lightGold dark:border-darkOrange bg-yl100 dark:bg-darktext text-lighttext dark:text-darkbg transition-colors duration-300">
         <div className="flex flex-col gap-6 md:flex-row md:gap-8">
-          <div className="flex flex-col gap-6">
+          <div className="md:w-1/2 w-full flex flex-col">
             <div className="flex justify-between items-center">
               <BackButton to={-1} />
               <div className="flex gap-2">
@@ -297,136 +297,125 @@ const DiaryDetailPage = () => {
                 />
               </div>
             </div>
-
-            <div className="flex flex-col gap-6">
-              <div className="md:w-2/3 w-full flex flex-col">
-                <div className="flex justify-center mb-8">
-                  <div className="w-28 h-28 rounded-full flex justify-center items-center overflow-hidden relative">
-                    <div className="absolute inset-0 rounded-full"></div>
-                    <img
-                      src={getEmojiSrc(currentDiary)}
-                      alt="현재 기분"
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        console.error('Emoji image failed to load:', e.target.src);
-                        e.target.src = `${import.meta.env.VITE_BACKEND_URL}/static/emotions/1.png`;
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div className="text-2xl font-bold mb-4 dark:text-darkBg">
-                  {currentDiary.date}
-                </div>
-
-                <div className="w-full rounded-lg border border-lightGold dark:border-darkCopper shadow-sm p-5 dark:text-darkBg bg-white min-h-[320px] diary-content flex flex-col justify-between">
-                  <div className="mt-4 flex-1">
-                    {currentDiary.content ? (
-                      <MarkdownRenderer 
-                        content={currentDiary.content} 
-                        className="text-gray-700 dark:text-gray-300 markdown-renderer"
-                      />
-                    ) : (
-                      <p>내용이 없습니다.</p>
-                    )}
-                    {/* 이미지 표시 */}
-                    {currentDiary.images && currentDiary.images.length > 0 && (
-                      <div className="mt-6 space-y-4">
-                        {currentDiary.images.map((image) => (
-                          <img 
-                            key={image.diary_image_id}
-                            src={image.image_url} 
-                            alt="일기 이미지" 
-                            className="max-w-full h-auto rounded-lg"
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  {/* 작성자 정보: 항상 박스 하단에 */}
-                  <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center gap-3">
-                      {currentDiary.userProfile && (
-                        <img 
-                          src={currentDiary.userProfile} 
-                          alt={currentDiary.userNickname} 
-                          className="w-10 h-10 rounded-full"
-                          onError={(e) => {
-                            e.target.style.display = 'none';
-                          }}
-                        />
-                      )}
-                      <div>
-                        <div className="font-medium">{currentDiary.userNickname}</div>
-                        <div className="text-sm text-gray-500">@{currentDiary.userName}</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+            <div className="flex justify-center mb-8">
+              <div className="w-28 h-28 rounded-full flex justify-center items-center overflow-hidden relative">
+                <div className="absolute inset-0 rounded-full"></div>
+                <img
+                  src={getEmojiSrc(currentDiary)}
+                  alt="현재 기분"
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    console.error('Emoji image failed to load:', e.target.src);
+                    e.target.src = `${import.meta.env.VITE_BACKEND_URL}/static/emotions/1.png`;
+                  }}
+                />
               </div>
-
-              {/* 댓글 영역 */}
-              <div className="md:w-1/3 w-full flex flex-col gap-2 border-t md:border-t-0 md:border-l dark:text- border-lightGold dark:border-darkCopper md:pt-0 md:pl-5 bg-yl100 dark:bg-darktext">
-                {/* 좋아요 수 표시 */}
-                {likeCount > 0 && (
-                  <div className="mt-2 p-2 flex items-center gap-2 text-sm">
-                    <Heart className="w-4 h-4 fill-red-500 text-red-500" />
-                    <span className="text-lighttext dark:text-darkBg">
-                      {likeCount}명이 좋아합니다
-                    </span>
+            </div>
+            <div className="text-2xl font-bold mb-4 dark:text-darkBg">
+              {currentDiary.date}
+            </div>
+            <div className="w-full rounded-lg border border-lightGold dark:border-darkCopper shadow-sm p-5 dark:text-darkBg bg-white min-h-[320px] diary-content flex flex-col justify-between">
+              <div className="mt-4 flex-1">
+                {currentDiary.content ? (
+                  <MarkdownRenderer 
+                    content={currentDiary.content} 
+                    className="text-gray-700 dark:text-gray-300 markdown-renderer"
+                  />
+                ) : (
+                  <p>내용이 없습니다.</p>
+                )}
+                {/* 이미지 표시 */}
+                {currentDiary.images && currentDiary.images.length > 0 && (
+                  <div className="mt-6 space-y-4">
+                    {currentDiary.images.map((image) => (
+                      <img 
+                        key={image.diary_image_id}
+                        src={image.image_url} 
+                        alt="일기 이미지" 
+                        className="max-w-full h-auto rounded-lg"
+                      />
+                    ))}
                   </div>
                 )}
-
-                {/* 댓글 입력 - 인풋 오른쪽 바깥에 원형 버튼, 호버 시만 배경 */}
-                <form onSubmit={handleSubmitComment} className="p-2 flex items-center gap-2">
-                  <input
-                    type="text"
-                    name="comment"
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="댓글을 입력하세요..."
-                    readOnly={commentsLoading}
-                    className="form-input w-full p-1.5 focus:p-2 transition-all duration-200 h-8 text-lighttext dark:text-darkBg placeholder:text-gray-500 dark:placeholder:text-gray-500"
-                  />
-                  <button
-                    type="submit"
-                    className={`w-8 h-8 p-0 flex-shrink-0 flex items-center justify-center rounded-full bg-transparent hover:bg-lightGold dark:hover:bg-darkOrange transition-colors ${
-                      commentsLoading ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
-                    title="댓글 작성"
-                    disabled={commentsLoading}
-                    tabIndex={-1}
-                  >
-                    <Send className="w-4 h-4 text-lighttext dark:text-darkBg" />
-                  </button>
-                </form>
-
-                {/* 댓글 목록 */}
-                <div className="overflow-y-auto flex-grow">
-                  {comments && comments.length > 0 ? (
-                    comments.map((comment) => (
-                      <Comment
-                        key={comment.id || comment.comment_id}
-                        diaryId={diaryId}
-                        comment={comment}
-                        likedComments={{}}
-                        changeLikeButtonColor={() => {}}
-                        onDeleteComment={handleDeleteComment}
-                        onEditComment={handleEditComment}
-                      />
-                    ))
-                  ) : (
-                    <div className="text-center text-gray-500 py-8">
-                      아직 댓글이 없습니다.
-                    </div>
+              </div>
+              {/* 작성자 정보: 항상 박스 하단에 */}
+              <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-3">
+                  {currentDiary.userProfile && (
+                    <img 
+                      src={currentDiary.userProfile} 
+                      alt={currentDiary.userNickname} 
+                      className="w-10 h-10 rounded-full"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                      }}
+                    />
                   )}
+                  <div>
+                    <div className="font-medium">{currentDiary.userNickname}</div>
+                    <div className="text-sm text-gray-500">@{currentDiary.userName}</div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
+          <div className="md:w-1/2 w-full flex flex-col gap-2 border-t md:border-t-0 md:border-l dark:text- border-lightGold dark:border-darkCopper md:pt-0 md:pl-5 bg-yl100 dark:bg-darktext">
+            {/* 좋아요 수 표시 */}
+            {likeCount > 0 && (
+              <div className="mt-2 p-2 flex items-center gap-2 text-sm">
+                <Heart className="w-4 h-4 fill-red-500 text-red-500" />
+                <span className="text-lighttext dark:text-darkBg">
+                  {likeCount}명이 좋아합니다
+                </span>
+              </div>
+            )}
+            {/* 댓글 입력 */}
+            <form onSubmit={handleSubmitComment} className="p-2 flex items-center gap-2">
+              <input
+                type="text"
+                name="comment"
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="댓글을 입력하세요..."
+                readOnly={commentsLoading}
+                className="form-input w-full p-1.5 focus:p-2 transition-all duration-200 h-8 text-lighttext dark:text-darkBg placeholder:text-gray-500 dark:placeholder:text-gray-500"
+              />
+              <button
+                type="submit"
+                className={`w-8 h-8 p-0 flex-shrink-0 flex items-center justify-center rounded-full bg-transparent hover:bg-lightGold dark:hover:bg-darkOrange transition-colors ${
+                  commentsLoading ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+                title="댓글 작성"
+                disabled={commentsLoading}
+                tabIndex={-1}
+              >
+                <Send className="w-4 h-4 text-lighttext dark:text-darkBg" />
+              </button>
+            </form>
+            {/* 댓글 목록 */}
+            <div className="overflow-y-auto flex-grow">
+              {comments && comments.length > 0 ? (
+                comments.map((comment) => (
+                  <Comment
+                    key={comment.id || comment.comment_id}
+                    diaryId={diaryId}
+                    comment={comment}
+                    likedComments={{}}
+                    changeLikeButtonColor={() => {}}
+                    onDeleteComment={handleDeleteComment}
+                    onEditComment={handleEditComment}
+                  />
+                ))
+              ) : (
+                <div className="text-center text-gray-500 py-8">
+                  아직 댓글이 없습니다.
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 };
 
